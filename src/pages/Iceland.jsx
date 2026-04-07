@@ -1,0 +1,148 @@
+import { useState } from 'react'
+import Nav from '../components/Nav'
+import Footer from '../components/Footer'
+import RecommendationEngine from '../components/RecommendationEngine'
+import { regions, restaurants, stays, logistics } from '../data/iceland'
+
+const colors = {
+  cream: '#F5F0E8',
+  parchment: '#EDE6D8',
+  sand: '#D8CCBA',
+  tan: '#C8B89A',
+  gold: '#9E8660',
+  mid: '#7A6E62',
+  charcoal: '#3A3630',
+  ink: '#1E1C18',
+  white: '#FDFAF5',
+}
+
+const TABS = ['Explore', 'Eat', 'Stay', 'Logistics']
+
+export default function Iceland() {
+  const [activeTab, setActiveTab] = useState('Explore')
+
+  const tabStyle = (tab) => ({
+    fontFamily: 'system-ui, sans-serif',
+    fontSize: '0.7rem',
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase',
+    color: activeTab === tab ? colors.ink : colors.tan,
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderBottom: activeTab === tab ? `2px solid ${colors.gold}` : '2px solid transparent',
+    padding: '1rem 1.5rem',
+    cursor: 'pointer',
+    marginBottom: '-1px',
+  })
+
+  return (
+    <div style={{ backgroundColor: colors.cream, minHeight: '100vh' }}>
+      <Nav />
+      <div style={{ paddingTop: '60px' }}>
+        <div style={{ backgroundColor: colors.parchment, borderBottom: `1px solid ${colors.sand}`, padding: '5rem 2rem 4rem' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '1rem' }}>Destinations</p>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: '400', color: colors.ink, letterSpacing: '0.04em', marginBottom: '1rem', lineHeight: '1' }}>Iceland</h1>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '1rem', fontWeight: '300', color: colors.mid, maxWidth: '520px', lineHeight: '1.7' }}>
+              The further you get from the tourist loop, the better it becomes. Pack for rain regardless of the forecast. Drive yourself.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '3rem 2rem' }}>
+          <div style={{ display: 'flex', borderBottom: `1px solid ${colors.sand}`, marginBottom: '3rem' }}>
+            {TABS.map(tab => <button key={tab} style={tabStyle(tab)} onClick={() => setActiveTab(tab)}>{tab}</button>)}
+          </div>
+
+          {activeTab === 'Explore' && (
+            <div>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '2rem' }}>Regions to Know</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+                {regions.map(region => (
+                  <div key={region.name} style={{ borderTop: `1px solid ${colors.sand}`, paddingTop: '1.5rem' }}>
+                    <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.2rem', fontWeight: '400', color: colors.ink, marginBottom: '0.75rem' }}>{region.name}</h3>
+                    <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', marginBottom: '1rem' }}>{region.description}</p>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {region.vibe.map(tag => (
+                        <span key={tag} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.tan, border: `1px solid ${colors.sand}`, padding: '0.25rem 0.6rem' }}>{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'Eat' && (
+            <div>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>Curated Restaurants</p>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: colors.mid, marginBottom: '2rem', lineHeight: '1.6' }}>Iceland's food scene is small and genuine. These are worth finding.</p>
+              {restaurants.map(r => <SpotRow key={r.name} spot={r} />)}
+            </div>
+          )}
+
+          {activeTab === 'Stay' && (
+            <div>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>Where to Stay</p>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: colors.mid, marginBottom: '2rem', lineHeight: '1.6' }}>Location matters more here than anywhere. Stay where the scenery is.</p>
+              {stays.map(s => <SpotRow key={s.name} spot={s} />)}
+            </div>
+          )}
+
+          {activeTab === 'Logistics' && <LogisticsTab />}
+
+          <RecommendationEngine destination="Iceland" restaurants={restaurants} stays={stays} />
+        </div>
+      </div>
+      <Footer />
+    </div>
+  )
+}
+
+function LogisticsTab() {
+  return (
+    <div style={{ maxWidth: '700px' }}>
+      {[
+        { label: 'Best Time to Visit', content: logistics.bestTime },
+        { label: 'Getting Around', content: logistics.gettingAround },
+        { label: 'Visa Notes', content: logistics.visaNotes },
+      ].map((item, i) => (
+        <div key={item.label} style={{ marginBottom: '2.5rem', borderTop: i > 0 ? `1px solid ${colors.sand}` : 'none', paddingTop: i > 0 ? '2rem' : '0' }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.75rem' }}>{item.label}</p>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: colors.charcoal, lineHeight: '1.7' }}>{item.content}</p>
+        </div>
+      ))}
+      <div style={{ borderTop: `1px solid ${colors.sand}`, paddingTop: '2rem' }}>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.75rem' }}>Book Ahead</p>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {logistics.bookAhead.map((item, i) => (
+            <li key={i} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: colors.charcoal, lineHeight: '1.7', paddingLeft: '1rem', position: 'relative', marginBottom: '0.35rem' }}>
+              <span style={{ position: 'absolute', left: 0, color: colors.gold }}>&mdash;</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function SpotRow({ spot }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem', borderBottom: `1px solid ${colors.sand}`, padding: '1.5rem 0', alignItems: 'start' }}>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '0.25rem' }}>
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.05rem', fontWeight: '400', color: colors.ink }}>{spot.name}</h3>
+        </div>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: colors.tan, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>{spot.neighborhood} &middot; {spot.city}</p>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: colors.mid, lineHeight: '1.65' }}>{spot.note}</p>
+        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+          {spot.vibe?.map(tag => (
+            <span key={tag} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.tan, border: `1px solid ${colors.sand}`, padding: '0.2rem 0.5rem' }}>{tag}</span>
+          ))}
+        </div>
+      </div>
+      <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: colors.gold, whiteSpace: 'nowrap' }}>{spot.priceTier}</span>
+    </div>
+  )
+}
