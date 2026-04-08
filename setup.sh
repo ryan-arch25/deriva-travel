@@ -1111,7 +1111,7 @@ w('src/advisor/AdvisorLogin.jsx', ADVISOR_LOGIN)
 w('src/advisor/AdvisorDashboard.jsx', ADVISOR_DASHBOARD)
 
 print('\nAll files written successfully.')
-print(f'Project created at: {BASE}')
+print(f'Project created at: {os.getcwd()}')
 PYEOF
 
 # ── Install dependencies ──────────────────────────────────────────
