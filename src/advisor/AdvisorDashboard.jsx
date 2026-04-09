@@ -5,7 +5,7 @@ import { jsPDF } from 'jspdf'
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
   gold: '#9E8660', mid: '#7A6E62', charcoal: '#3A3630', ink: '#1E1C18',
-  white: '#FDFAF5', bark: '#2A2520',
+  white: '#FDFAF5', bark: '#2A2520', terracotta: '#B85C45',
 }
 
 const lbl = {
@@ -383,7 +383,12 @@ const SEL_STYLE = {
 }
 
 function ItineraryBuilder() {
-  const [form, setForm] = useState({ name: '', destination: '', dates: '', length: '', pace: 'balanced', interests: '', notes: '' })
+  const [form, setForm] = useState({
+    name: '', destination: '', dates: '', length: '',
+    pace: 'balanced', party: 'Couple', partySize: '2',
+    budget: 'Mid-range', cities: '', interests: '',
+    mustInclude: '', mustAvoid: '', notes: '',
+  })
   const [loading, setLoading] = useState(false)
   const [itinerary, setItinerary] = useState(null)
   const [error, setError] = useState(null)
@@ -396,15 +401,22 @@ function ItineraryBuilder() {
     setError(null)
     setItinerary(null)
 
+    const partyDesc = `${form.party}${form.partySize ? `, group of ${form.partySize}` : ''}`
+
     const prompt = `Create a detailed day-by-day itinerary for this trip:
 
 Client: ${form.name}
 Destination: ${form.destination}
 Travel dates: ${form.dates}
 Trip length: ${form.length}
+Travel party: ${partyDesc}
+Budget: ${form.budget}
 Pace: ${form.pace}
-Interests: ${form.interests}
-Notes: ${form.notes || 'None'}
+Cities/regions focus: ${form.cities || 'Advisor discretion'}
+Interests: ${form.interests || 'Not specified'}
+Must include: ${form.mustInclude || 'None specified'}
+Must avoid: ${form.mustAvoid || 'None'}
+Additional notes: ${form.notes || 'None'}
 
 Return a JSON object with exactly this structure:
 {
@@ -424,7 +436,7 @@ Return a JSON object with exactly this structure:
   ]
 }
 
-Generate exactly the right number of days for the trip length. Name actual neighborhoods, restaurants, and experiences. No generic travel advice. Return valid JSON only. No markdown.`
+Generate exactly the right number of days for the trip length. Tailor recommendations to the party type and budget. Honor all must-include items and avoid must-avoid items. Name actual neighborhoods, restaurants, and experiences. No generic travel advice. Return valid JSON only. No markdown.`
 
     try {
       const text = await callAI({
@@ -463,28 +475,79 @@ Generate exactly the right number of days for the trip length. Name actual neigh
   return (
     <div>
       <SectionHeader label="Itinerary Builder" title="Build a day-by-day itinerary." />
-      <form onSubmit={handleSubmit} style={{ maxWidth: '560px' }}>
+      <form onSubmit={handleSubmit} style={{ maxWidth: '600px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Client name</label><input value={form.name} onChange={set('name')} required style={inp} placeholder="Jane Smith" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Destination</label><input value={form.destination} onChange={set('destination')} required style={inp} placeholder="Portugal" /></div>
         </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travel dates</label><input value={form.dates} onChange={set('dates')} style={inp} placeholder="May 10-24, 2025" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Trip length</label><input value={form.length} onChange={set('length')} required style={inp} placeholder="10 days" /></div>
         </div>
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label style={lbl}>Pace</label>
-          <select value={form.pace} onChange={set('pace')} style={SEL_STYLE}>
-            <option value="slow">Slow and deep</option>
-            <option value="balanced">Balanced</option>
-            <option value="packed">Packed</option>
-          </select>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Travel party</label>
+            <select value={form.party} onChange={set('party')} style={SEL_STYLE}>
+              <option value="Solo">Solo</option>
+              <option value="Couple">Couple</option>
+              <option value="Friends">Friends</option>
+              <option value="Family">Family</option>
+            </select>
+          </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Group size</label>
+            <input value={form.partySize} onChange={set('partySize')} type="number" min="1" max="20" style={inp} placeholder="2" />
+          </div>
         </div>
-        <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Interests</label><input value={form.interests} onChange={set('interests')} style={inp} placeholder="Food, wine, architecture, coastal walks..." /></div>
-        <div style={{ marginBottom: '1.5rem' }}>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Budget tier</label>
+            <select value={form.budget} onChange={set('budget')} style={SEL_STYLE}>
+              <option value="Budget">Budget</option>
+              <option value="Mid-range">Mid-range</option>
+              <option value="Splurge">Splurge</option>
+              <option value="No limit">No limit</option>
+            </select>
+          </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Pace</label>
+            <select value={form.pace} onChange={set('pace')} style={SEL_STYLE}>
+              <option value="slow">Slow and deep</option>
+              <option value="balanced">Balanced</option>
+              <option value="packed">Packed</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1.25rem' }}>
+          <label style={lbl}>Cities or regions</label>
+          <input value={form.cities} onChange={set('cities')} style={inp} placeholder="Lisbon and Porto, skip Algarve" />
+        </div>
+
+        <div style={{ marginBottom: '1.25rem' }}>
+          <label style={lbl}>Interests</label>
+          <input value={form.interests} onChange={set('interests')} style={inp} placeholder="Food, wine, architecture, coastal walks..." />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Must include</label>
+            <input value={form.mustInclude} onChange={set('mustInclude')} style={inp} placeholder="Belcanto, Sintra day trip..." />
+          </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Must avoid</label>
+            <input value={form.mustAvoid} onChange={set('mustAvoid')} style={inp} placeholder="Busy tourist traps, long drives..." />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1.75rem' }}>
           <label style={lbl}>Notes</label>
           <textarea value={form.notes} onChange={set('notes')} rows={3} style={{ ...inp, resize: 'vertical' }} placeholder="No chain hotels, vegetarian options needed, celebrating anniversary..." />
         </div>
+
         {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: '#9E6060', marginBottom: '1rem' }}>{error}</p>}
         <button type="submit" style={primaryBtn}>Build Itinerary</button>
       </form>
@@ -511,72 +574,107 @@ function ItineraryView({ itinerary, onReset }) {
 
     bg()
 
-    // Header
+    // ── Cover header ──────────────────────────────────────────────────────────
     tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(3)
-    doc.text('DERIVA', margin, y); doc.setCharSpace(0); y += 22
+    doc.text('DERIVA', margin, y)
+    doc.setCharSpace(0)
+    const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
+    doc.text(dateStr, pageW - margin - doc.getTextWidth(dateStr), y)
+    y += 22
 
-    tc('#1E1C18'); doc.setFont('times', 'normal'); doc.setFontSize(26)
+    tc('#1E1C18'); doc.setFont('times', 'normal'); doc.setFontSize(28)
     doc.text(itinerary.destination, margin, y); y += 8
 
     tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setCharSpace(1.5)
-    doc.text(`${itinerary.clientName}  ·  ${itinerary.dates}`, margin, y); doc.setCharSpace(0); y += 22
+    doc.text(`${itinerary.clientName}  \u00b7  ${itinerary.dates}`, margin, y); doc.setCharSpace(0); y += 26
 
-    dc('#D8CCBA'); doc.setLineWidth(0.5); doc.line(margin, y, pageW - margin, y); y += 28
+    dc('#D8CCBA'); doc.setLineWidth(0.5); doc.line(margin, y, pageW - margin, y); y += 32
 
-    // Days
+    // ── Days ──────────────────────────────────────────────────────────────────
     for (const day of itinerary.days) {
-      guard(60)
+      guard(80)
 
-      // Day number + title
-      tc('#D8CCBA'); doc.setFont('times', 'normal'); doc.setFontSize(40)
-      doc.text(String(day.dayNumber).padStart(2, '0'), margin, y + 6)
+      // Terracotta day header block
+      const hdrH = 62
+      fc('#B85C45'); dc('#B85C45'); doc.setLineWidth(0)
+      doc.rect(margin, y, cw, hdrH, 'F')
 
-      tc('#1E1C18'); doc.setFont('times', 'normal'); doc.setFontSize(14)
-      doc.text(day.title, margin + 58, y)
-      dc('#9E8660'); doc.setLineWidth(0.75)
-      doc.line(margin + 58, y + 5, margin + 58 + doc.getTextWidth(day.title), y + 5)
-      y += 30
+      // Large muted day number (gold blended over terracotta)
+      tc('#AC6F51'); doc.setFont('times', 'normal'); doc.setFontSize(48)
+      doc.text(String(day.dayNumber).padStart(2, '0'), margin + 14, y + hdrH - 10)
 
-      // Morning / Afternoon / Evening
-      for (const { label, text } of [
-        { label: 'MORNING', text: day.morning },
-        { label: 'AFTERNOON', text: day.afternoon },
-        { label: 'EVENING', text: day.evening },
-      ]) {
-        doc.setFontSize(9)
-        const lines = doc.splitTextToSize(text, cw)
-        guard(14 + lines.length * 13)
+      // DAY label
+      tc('#FDFAF5'); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setCharSpace(2.5)
+      doc.text('DAY ' + day.dayNumber, margin + 80, y + 18); doc.setCharSpace(0)
 
-        tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(1.5)
-        doc.text(label, margin, y); doc.setCharSpace(0); y += 11
+      // Title in cream
+      tc('#FDFAF5'); doc.setFont('times', 'normal'); doc.setFontSize(15)
+      const titleLines = doc.splitTextToSize(day.title, cw - 100)
+      doc.text(titleLines, margin + 80, y + 32)
+      y += hdrH + 2
 
+      // Morning / Afternoon / Evening — alternating cream/parchment rows
+      const rowBgs = ['#F5F0E8', '#EDE6D8', '#F5F0E8']
+      for (let i = 0; i < 3; i++) {
+        const { label, text } = [
+          { label: 'MORNING', text: day.morning },
+          { label: 'AFTERNOON', text: day.afternoon },
+          { label: 'EVENING', text: day.evening },
+        ][i]
+        const bodyLines = doc.splitTextToSize(text, cw - 80)
+        const rowH = Math.max(bodyLines.length * 13 + 26, 40)
+        guard(rowH)
+
+        // Row background
+        fc(rowBgs[i]); dc(rowBgs[i]); doc.setLineWidth(0)
+        doc.rect(margin, y, cw, rowH, 'F')
+
+        // Sand left accent bar
+        fc('#D8CCBA'); dc('#D8CCBA')
+        doc.rect(margin, y, 3, rowH, 'F')
+
+        // Section label
+        tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setCharSpace(1.8)
+        doc.text(label, margin + 12, y + 16); doc.setCharSpace(0)
+
+        // Body text
         tc('#3A3630'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-        doc.text(lines, margin, y); y += lines.length * 13 + 14
+        doc.text(bodyLines, margin + 80, y + 16)
+        y += rowH
+
+        // Thin row divider
+        dc('#D8CCBA'); doc.setLineWidth(0.3)
+        doc.line(margin, y, margin + cw, y)
       }
 
-      // Logistics box
-      doc.setFontSize(9)
-      const logLines = doc.splitTextToSize(day.logisticsNote, cw - 78)
-      const boxH = Math.max(logLines.length * 12 + 22, 32)
-      guard(boxH + 12)
-      fc('#EDE6D8'); dc('#D8CCBA'); doc.setLineWidth(0.3); doc.rect(margin, y, cw, boxH, 'FD')
-      tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(1.5)
-      doc.text('LOGISTICS', margin + 10, y + 13); doc.setCharSpace(0)
-      tc('#3A3630'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-      doc.text(logLines, margin + 78, y + 13); y += boxH + 12
+      y += 10
 
-      // Deriva tip
-      doc.setFontSize(9)
-      const tipLines = doc.splitTextToSize(day.derivaTip, cw - 16)
-      guard(tipLines.length * 13 + 20)
-      dc('#9E8660'); doc.setLineWidth(2)
-      doc.line(margin, y - 2, margin, y + tipLines.length * 13 + 2)
-      tc('#9E8660'); doc.setFont('times', 'italic'); doc.setFontSize(9)
-      doc.text(tipLines, margin + 12, y); y += tipLines.length * 13 + 24
+      // Logistics — dark parchment, terracotta label
+      const logLines = doc.splitTextToSize(day.logisticsNote, cw - 90)
+      const logH = Math.max(logLines.length * 12 + 24, 36)
+      guard(logH + 8)
+      fc('#D8CCBA'); dc('#C8B89A'); doc.setLineWidth(0.5)
+      doc.rect(margin, y, cw, logH, 'FD')
+      tc('#B85C45'); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setCharSpace(1.8)
+      doc.text('LOGISTICS', margin + 12, y + 15); doc.setCharSpace(0)
+      tc('#2A2520'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
+      doc.text(logLines, margin + 90, y + 15)
+      y += logH + 10
+
+      // Deriva tip — full gold strip, white italic text
+      const tipLines = doc.splitTextToSize(day.derivaTip, cw - 24)
+      const tipH = Math.max(tipLines.length * 14 + 22, 36)
+      guard(tipH + 10)
+      fc('#9E8660'); dc('#9E8660'); doc.setLineWidth(0)
+      doc.rect(margin, y, cw, tipH, 'F')
+      tc('#FDFAF5'); doc.setFont('times', 'italic'); doc.setFontSize(9.5)
+      doc.text(tipLines, margin + 12, y + 16)
+      y += tipH + 22
 
       // Day divider
-      guard(20); dc('#D8CCBA'); doc.setLineWidth(0.3)
-      doc.line(margin, y, pageW - margin, y); y += 28
+      guard(20); dc('#D8CCBA'); doc.setLineWidth(0.4)
+      doc.line(margin, y, pageW - margin, y); y += 30
     }
 
     doc.save(`Deriva-${itinerary.destination}-${itinerary.clientName.replace(/\s+/g, '-')}.pdf`)
@@ -604,51 +702,43 @@ function ItineraryView({ itinerary, onReset }) {
 }
 
 function DayCard({ day }) {
-  const secLabel = {
-    fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em',
-    textTransform: 'uppercase', color: C.tan, marginBottom: '0.5rem',
-  }
-  const secText = {
-    fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300',
-    color: C.charcoal, lineHeight: '1.75',
-  }
-
   return (
-    <div style={{ marginBottom: '1.5rem', backgroundColor: C.white, border: `1px solid ${C.sand}` }}>
-      {/* Day header */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.25rem', padding: '1.75rem 2rem 1.5rem', borderBottom: `1px solid ${C.sand}` }}>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '2.8rem', fontWeight: '400', color: C.sand, lineHeight: '1', flexShrink: 0 }}>
-          {String(day.dayNumber).padStart(2, '0')}
-        </span>
-        <div>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.2rem' }}>Day {day.dayNumber}</p>
-          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', fontWeight: '400', color: C.ink, letterSpacing: '0.02em' }}>{day.title}</h3>
+    <div style={{ marginBottom: '2.5rem', border: `1px solid ${C.sand}`, overflow: 'hidden' }}>
+
+      {/* Terracotta day header */}
+      <div style={{ backgroundColor: C.terracotta, padding: '2rem 2.5rem 1.75rem' }}>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '0.75rem' }}>Day {day.dayNumber}</p>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: '5rem', fontWeight: '400', color: 'rgba(158,134,96,0.38)', lineHeight: '1', flexShrink: 0, userSelect: 'none' }}>
+            {String(day.dayNumber).padStart(2, '0')}
+          </span>
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.45rem', fontWeight: '400', color: C.white, letterSpacing: '0.02em', lineHeight: '1.2', paddingBottom: '0.6rem' }}>
+            {day.title}
+          </h3>
         </div>
       </div>
 
-      {/* Morning / Afternoon / Evening */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0', padding: '0' }}>
-        {[
-          { label: 'Morning', text: day.morning },
-          { label: 'Afternoon', text: day.afternoon },
-          { label: 'Evening', text: day.evening },
-        ].map(({ label, text }, i) => (
-          <div key={label} style={{ padding: '1.5rem 2rem', borderRight: i < 2 ? `1px solid ${C.sand}` : 'none', borderBottom: `1px solid ${C.sand}` }}>
-            <p style={secLabel}>{label}</p>
-            <p style={secText}>{text}</p>
-          </div>
-        ))}
+      {/* Morning / Afternoon / Evening — vertical flow, alternating bg */}
+      {[
+        { label: 'Morning', text: day.morning, bg: C.white },
+        { label: 'Afternoon', text: day.afternoon, bg: C.cream },
+        { label: 'Evening', text: day.evening, bg: C.white },
+      ].map(({ label, text, bg }) => (
+        <div key={label} style={{ backgroundColor: bg, borderLeft: `3px solid ${C.sand}`, padding: '1.75rem 2.5rem', borderBottom: `1px solid ${C.sand}` }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.52rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.8rem' }}>{label}</p>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.85' }}>{text}</p>
+        </div>
+      ))}
+
+      {/* Logistics — parchment, terracotta label */}
+      <div style={{ backgroundColor: C.parchment, padding: '1.25rem 2.5rem', borderBottom: `1px solid ${C.sand}`, display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.terracotta, flexShrink: 0, paddingTop: '3px', fontWeight: '600' }}>Logistics</p>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75' }}>{day.logisticsNote}</p>
       </div>
 
-      {/* Logistics */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', padding: '1rem 2rem', backgroundColor: C.parchment, borderBottom: `1px solid ${C.sand}` }}>
-        <p style={{ ...secLabel, marginBottom: 0, flexShrink: 0, paddingTop: '2px' }}>Logistics</p>
-        <p style={{ ...secText, fontSize: '0.825rem', color: C.mid }}>{day.logisticsNote}</p>
-      </div>
-
-      {/* Deriva tip */}
-      <div style={{ padding: '1rem 2rem', paddingLeft: 'calc(2rem - 2px)', borderLeft: `2px solid ${C.gold}` }}>
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: C.gold, lineHeight: '1.65' }}>{day.derivaTip}</p>
+      {/* Deriva tip — full-width gold strip */}
+      <div style={{ backgroundColor: C.gold, padding: '1.25rem 2.5rem' }}>
+        <p style={{ fontFamily: 'Georgia, serif', fontSize: '0.925rem', fontStyle: 'italic', color: C.white, lineHeight: '1.7' }}>{day.derivaTip}</p>
       </div>
     </div>
   )
