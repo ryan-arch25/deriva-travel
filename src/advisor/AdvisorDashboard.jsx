@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { jsPDF } from 'jspdf'
 
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
@@ -370,10 +371,294 @@ function ClientNotes() {
   )
 }
 
+// ── Itinerary Builder ────────────────────────────────────────────────────────
+
+const SEL_STYLE = {
+  ...inp,
+  cursor: 'pointer',
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239E8660' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 1rem center',
+  paddingRight: '2.5rem',
+}
+
+function ItineraryBuilder() {
+  const [form, setForm] = useState({ name: '', destination: '', dates: '', length: '', pace: 'balanced', interests: '', notes: '' })
+  const [loading, setLoading] = useState(false)
+  const [itinerary, setItinerary] = useState(null)
+  const [error, setError] = useState(null)
+
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setItinerary(null)
+
+    const prompt = `Create a detailed day-by-day itinerary for this trip:
+
+Client: ${form.name}
+Destination: ${form.destination}
+Travel dates: ${form.dates}
+Trip length: ${form.length}
+Pace: ${form.pace}
+Interests: ${form.interests}
+Notes: ${form.notes || 'None'}
+
+Return a JSON object with exactly this structure:
+{
+  "clientName": "client name",
+  "destination": "destination name",
+  "dates": "travel dates",
+  "days": [
+    {
+      "dayNumber": 1,
+      "title": "Short evocative title, e.g. Arrive in Lisbon",
+      "morning": "2-3 sentences. Specific place names, neighborhoods, what to do. Direct.",
+      "afternoon": "2-3 sentences. Specific places and experiences. Direct.",
+      "evening": "2-3 sentences. Name a specific restaurant and why it fits tonight.",
+      "logisticsNote": "One practical note: transit, booking requirement, or timing.",
+      "derivaTip": "One opinionated sentence. The thing most visitors miss or get wrong about this day."
+    }
+  ]
+}
+
+Generate exactly the right number of days for the trip length. Name actual neighborhoods, restaurants, and experiences. No generic travel advice. Return valid JSON only. No markdown.`
+
+    try {
+      const text = await callAI({
+        system: `You are Deriva's travel curator. Editorial, knowledgeable, direct. Sound like a well-traveled friend who actually went. Short sentences. No filler. Occasionally opinionated. Never use em dashes.`,
+        messages: [{ role: 'user', content: prompt }],
+        maxTokens: 4096,
+      })
+      const cleaned = text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+      const data = JSON.parse(cleaned)
+      setItinerary(data)
+    } catch (err) {
+      setError(`Could not generate itinerary: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.tan, marginBottom: '1rem' }}>Building Itinerary</p>
+        <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: '400', color: C.ink, marginBottom: '0.75rem' }}>
+          Planning {form.length} in {form.destination}...
+        </p>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.mid }}>
+          This takes about 20 seconds.
+        </p>
+      </div>
+    )
+  }
+
+  if (itinerary) {
+    return <ItineraryView itinerary={itinerary} onReset={() => setItinerary(null)} />
+  }
+
+  return (
+    <div>
+      <SectionHeader label="Itinerary Builder" title="Build a day-by-day itinerary." />
+      <form onSubmit={handleSubmit} style={{ maxWidth: '560px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Client name</label><input value={form.name} onChange={set('name')} required style={inp} placeholder="Jane Smith" /></div>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Destination</label><input value={form.destination} onChange={set('destination')} required style={inp} placeholder="Portugal" /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travel dates</label><input value={form.dates} onChange={set('dates')} style={inp} placeholder="May 10-24, 2025" /></div>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Trip length</label><input value={form.length} onChange={set('length')} required style={inp} placeholder="10 days" /></div>
+        </div>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <label style={lbl}>Pace</label>
+          <select value={form.pace} onChange={set('pace')} style={SEL_STYLE}>
+            <option value="slow">Slow and deep</option>
+            <option value="balanced">Balanced</option>
+            <option value="packed">Packed</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Interests</label><input value={form.interests} onChange={set('interests')} style={inp} placeholder="Food, wine, architecture, coastal walks..." /></div>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={lbl}>Notes</label>
+          <textarea value={form.notes} onChange={set('notes')} rows={3} style={{ ...inp, resize: 'vertical' }} placeholder="No chain hotels, vegetarian options needed, celebrating anniversary..." />
+        </div>
+        {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: '#9E6060', marginBottom: '1rem' }}>{error}</p>}
+        <button type="submit" style={primaryBtn}>Build Itinerary</button>
+      </form>
+    </div>
+  )
+}
+
+function ItineraryView({ itinerary, onReset }) {
+  const exportPDF = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' })
+    const pageW = doc.internal.pageSize.getWidth()
+    const pageH = doc.internal.pageSize.getHeight()
+    const margin = 54
+    const cw = pageW - margin * 2
+    let y = margin
+
+    const toRgb = hex => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]
+    const tc = hex => doc.setTextColor(...toRgb(hex))
+    const fc = hex => doc.setFillColor(...toRgb(hex))
+    const dc = hex => doc.setDrawColor(...toRgb(hex))
+
+    const bg = () => { fc('#F5F0E8'); doc.rect(0, 0, pageW, pageH, 'F') }
+    const guard = needed => { if (y + needed > pageH - margin) { doc.addPage(); bg(); y = margin } }
+
+    bg()
+
+    // Header
+    tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(3)
+    doc.text('DERIVA', margin, y); doc.setCharSpace(0); y += 22
+
+    tc('#1E1C18'); doc.setFont('times', 'normal'); doc.setFontSize(26)
+    doc.text(itinerary.destination, margin, y); y += 8
+
+    tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setCharSpace(1.5)
+    doc.text(`${itinerary.clientName}  ·  ${itinerary.dates}`, margin, y); doc.setCharSpace(0); y += 22
+
+    dc('#D8CCBA'); doc.setLineWidth(0.5); doc.line(margin, y, pageW - margin, y); y += 28
+
+    // Days
+    for (const day of itinerary.days) {
+      guard(60)
+
+      // Day number + title
+      tc('#D8CCBA'); doc.setFont('times', 'normal'); doc.setFontSize(40)
+      doc.text(String(day.dayNumber).padStart(2, '0'), margin, y + 6)
+
+      tc('#1E1C18'); doc.setFont('times', 'normal'); doc.setFontSize(14)
+      doc.text(day.title, margin + 58, y)
+      dc('#9E8660'); doc.setLineWidth(0.75)
+      doc.line(margin + 58, y + 5, margin + 58 + doc.getTextWidth(day.title), y + 5)
+      y += 30
+
+      // Morning / Afternoon / Evening
+      for (const { label, text } of [
+        { label: 'MORNING', text: day.morning },
+        { label: 'AFTERNOON', text: day.afternoon },
+        { label: 'EVENING', text: day.evening },
+      ]) {
+        doc.setFontSize(9)
+        const lines = doc.splitTextToSize(text, cw)
+        guard(14 + lines.length * 13)
+
+        tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(1.5)
+        doc.text(label, margin, y); doc.setCharSpace(0); y += 11
+
+        tc('#3A3630'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
+        doc.text(lines, margin, y); y += lines.length * 13 + 14
+      }
+
+      // Logistics box
+      doc.setFontSize(9)
+      const logLines = doc.splitTextToSize(day.logisticsNote, cw - 78)
+      const boxH = Math.max(logLines.length * 12 + 22, 32)
+      guard(boxH + 12)
+      fc('#EDE6D8'); dc('#D8CCBA'); doc.setLineWidth(0.3); doc.rect(margin, y, cw, boxH, 'FD')
+      tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(1.5)
+      doc.text('LOGISTICS', margin + 10, y + 13); doc.setCharSpace(0)
+      tc('#3A3630'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
+      doc.text(logLines, margin + 78, y + 13); y += boxH + 12
+
+      // Deriva tip
+      doc.setFontSize(9)
+      const tipLines = doc.splitTextToSize(day.derivaTip, cw - 16)
+      guard(tipLines.length * 13 + 20)
+      dc('#9E8660'); doc.setLineWidth(2)
+      doc.line(margin, y - 2, margin, y + tipLines.length * 13 + 2)
+      tc('#9E8660'); doc.setFont('times', 'italic'); doc.setFontSize(9)
+      doc.text(tipLines, margin + 12, y); y += tipLines.length * 13 + 24
+
+      // Day divider
+      guard(20); dc('#D8CCBA'); doc.setLineWidth(0.3)
+      doc.line(margin, y, pageW - margin, y); y += 28
+    }
+
+    doc.save(`Deriva-${itinerary.destination}-${itinerary.clientName.replace(/\s+/g, '-')}.pdf`)
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.25rem' }}>Itinerary</p>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: C.ink, marginBottom: '0.35rem' }}>{itinerary.destination}</h2>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
+            {itinerary.clientName} &nbsp;·&nbsp; {itinerary.dates}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
+          <button onClick={exportPDF} style={primaryBtn}>Export PDF</button>
+          <button onClick={onReset} style={ghostBtn}>New Itinerary</button>
+        </div>
+      </div>
+
+      {itinerary.days.map(day => <DayCard key={day.dayNumber} day={day} />)}
+    </div>
+  )
+}
+
+function DayCard({ day }) {
+  const secLabel = {
+    fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em',
+    textTransform: 'uppercase', color: C.tan, marginBottom: '0.5rem',
+  }
+  const secText = {
+    fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300',
+    color: C.charcoal, lineHeight: '1.75',
+  }
+
+  return (
+    <div style={{ marginBottom: '1.5rem', backgroundColor: C.white, border: `1px solid ${C.sand}` }}>
+      {/* Day header */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.25rem', padding: '1.75rem 2rem 1.5rem', borderBottom: `1px solid ${C.sand}` }}>
+        <span style={{ fontFamily: 'Georgia, serif', fontSize: '2.8rem', fontWeight: '400', color: C.sand, lineHeight: '1', flexShrink: 0 }}>
+          {String(day.dayNumber).padStart(2, '0')}
+        </span>
+        <div>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.2rem' }}>Day {day.dayNumber}</p>
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', fontWeight: '400', color: C.ink, letterSpacing: '0.02em' }}>{day.title}</h3>
+        </div>
+      </div>
+
+      {/* Morning / Afternoon / Evening */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0', padding: '0' }}>
+        {[
+          { label: 'Morning', text: day.morning },
+          { label: 'Afternoon', text: day.afternoon },
+          { label: 'Evening', text: day.evening },
+        ].map(({ label, text }, i) => (
+          <div key={label} style={{ padding: '1.5rem 2rem', borderRight: i < 2 ? `1px solid ${C.sand}` : 'none', borderBottom: `1px solid ${C.sand}` }}>
+            <p style={secLabel}>{label}</p>
+            <p style={secText}>{text}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Logistics */}
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', padding: '1rem 2rem', backgroundColor: C.parchment, borderBottom: `1px solid ${C.sand}` }}>
+        <p style={{ ...secLabel, marginBottom: 0, flexShrink: 0, paddingTop: '2px' }}>Logistics</p>
+        <p style={{ ...secText, fontSize: '0.825rem', color: C.mid }}>{day.logisticsNote}</p>
+      </div>
+
+      {/* Deriva tip */}
+      <div style={{ padding: '1rem 2rem', paddingLeft: 'calc(2rem - 2px)', borderLeft: `2px solid ${C.gold}` }}>
+        <p style={{ fontFamily: 'Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: C.gold, lineHeight: '1.65' }}>{day.derivaTip}</p>
+      </div>
+    </div>
+  )
+}
+
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 
 const NAV = [
   { id: 'brief', label: 'New Client Brief' },
+  { id: 'itinerary', label: 'Itinerary Builder' },
   { id: 'spots', label: 'My Spots' },
   { id: 'research', label: 'Research Tool' },
   { id: 'notes', label: 'Client Notes' },
@@ -410,6 +695,7 @@ export default function AdvisorDashboard() {
 
         <div style={{ flex: 1, padding: '2.5rem 3rem', minWidth: 0 }}>
           {section === 'brief' && <ClientBriefTool />}
+          {section === 'itinerary' && <ItineraryBuilder />}
           {section === 'spots' && <MySpots />}
           {section === 'research' && <ResearchTool />}
           {section === 'notes' && <ClientNotes />}
