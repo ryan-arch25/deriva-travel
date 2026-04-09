@@ -1,5 +1,29 @@
 export const regions = [
   {
+    name: 'Rome',
+    description: 'The Vatican, the Forum, the piazzas. June and July are relentless. April and October are the right calls. Base yourself in Trastevere or Prati. Stay at least three days.',
+    goodFor: ['solo', 'partner', 'friends', 'family'],
+    vibe: ['city', 'culture', 'food'],
+  },
+  {
+    name: 'Florence',
+    description: "You are here for the Uffizi, Brunelleschi's dome, and the bistecca. Three days done well is enough. Base yourself in Oltrarno, south of the river.",
+    goodFor: ['solo', 'partner', 'friends'],
+    vibe: ['city', 'culture', 'food'],
+  },
+  {
+    name: 'Venice',
+    description: 'Go in November or February. Smaller than it looks on a map, stranger than anything you have seen. Skip the gondola. Take the vaporetto. Get deliberately lost.',
+    goodFor: ['solo', 'partner', 'friends'],
+    vibe: ['city', 'culture', 'romantic'],
+  },
+  {
+    name: 'Milan',
+    description: 'Not a tourist city, which is the point. Come for the Pinacoteca di Brera and the aperitivo culture in Navigli. Fashion week if that is your thing. Skip it in August.',
+    goodFor: ['solo', 'partner', 'friends'],
+    vibe: ['city', 'food'],
+  },
+  {
     name: 'Puglia',
     description: 'The heel of the boot. Whitewashed towns, excellent burrata, olive groves that go on forever. Lecce is the base. Ostuni is prettier but busier.',
     goodFor: ['partner', 'friends', 'family'],

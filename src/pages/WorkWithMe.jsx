@@ -16,7 +16,7 @@ const colors = {
 
 const WHAT_I_OFFER = [
   'Custom Europe itineraries built around how you actually travel',
-  'Curated restaurant and hotel picks -- no tourist traps',
+  'Curated restaurant and hotel picks -- only places worth your time',
   'Day by day planning with logistics handled',
   'One round of revisions included',
 ]

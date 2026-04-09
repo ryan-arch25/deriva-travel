@@ -1,5 +1,29 @@
 export const regions = [
   {
+    name: 'Madrid',
+    description: 'Bigger and more lived-in than Barcelona. The Prado alone is worth the flight. Eat late, really late. The city does not start until 9pm. Mercado de la Paz, not San Miguel.',
+    goodFor: ['solo', 'partner', 'friends'],
+    vibe: ['city', 'culture', 'food'],
+  },
+  {
+    name: 'Barcelona',
+    description: 'Gaudi is real and worth it. The Gothic Quarter rewards slow walking. The beach is fine but not the reason to come. Go in May or September. July is borderline unbearable.',
+    goodFor: ['solo', 'partner', 'friends', 'family'],
+    vibe: ['city', 'culture', 'coastal'],
+  },
+  {
+    name: 'Seville',
+    description: 'The most beautiful city in Andalusia. The Alcazar rivals the Alhambra and has shorter lines. April for the Feria, which requires planning. August is genuinely brutal.',
+    goodFor: ['solo', 'partner', 'friends'],
+    vibe: ['city', 'culture', 'food'],
+  },
+  {
+    name: 'San Sebastian',
+    description: 'The best food city in Europe by almost any measure. Pintxos bars in every street of the old town. Three Michelin-starred restaurants within walking distance. The beach is legitimately good.',
+    goodFor: ['solo', 'partner', 'friends'],
+    vibe: ['food', 'city', 'coastal'],
+  },
+  {
     name: 'Basque Country',
     description: 'San Sebastian for pintxos and the beach. Bilbao for the Guggenheim and a quieter city. The two are 90 minutes apart. Most people pick one. You can do both.',
     goodFor: ['solo', 'partner', 'friends'],
