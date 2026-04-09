@@ -115,28 +115,21 @@ Pick 3-4 restaurants and 2-3 stays. Only pick from the provided data. No invente
 Return valid JSON only. No markdown, no explanation outside the JSON.`
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
           system: SYSTEM_PROMPT,
           messages: [{ role: 'user', content: userMessage }],
+          maxTokens: 1024,
         }),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(`${res.status}: ${body.error?.message || res.statusText}`)
+        throw new Error(`${res.status}: ${body.error || res.statusText}`)
       }
       const data = await res.json()
-      const text = data.content[0].text.trim()
-      const json = JSON.parse(text)
+      const json = JSON.parse(data.text.trim())
       setResults(json)
     } catch (err) {
       console.error(err)

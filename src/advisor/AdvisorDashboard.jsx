@@ -26,27 +26,17 @@ const ghostBtn = {
 }
 
 async function callAI({ system, messages, maxTokens = 1024 }) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('/api/chat', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: maxTokens,
-      system,
-      messages,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ system, messages, maxTokens }),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(`${res.status}: ${body.error?.message || res.statusText}`)
+    throw new Error(`${res.status}: ${body.error || res.statusText}`)
   }
   const data = await res.json()
-  return data.content[0].text
+  return data.text
 }
 
 function SectionHeader({ label, title }) {
