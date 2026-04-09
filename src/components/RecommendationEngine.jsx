@@ -115,7 +115,7 @@ Pick 3-4 restaurants and 2-3 stays. Only pick from the provided data. No invente
 Return valid JSON only. No markdown, no explanation outside the JSON.`
 
     try {
-      const res = await fetch('/api/anthropic/v1/messages', {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -66,7 +66,7 @@ Return a JSON object with this exact structure:
 Return valid JSON only. No markdown, no explanation outside the JSON.`
 
     try {
-      const res = await fetch('/api/anthropic/v1/messages', {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
