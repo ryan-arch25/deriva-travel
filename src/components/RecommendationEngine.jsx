@@ -119,6 +119,7 @@ Return valid JSON only. No markdown, no explanation outside the JSON.`
       const client = new Anthropic({
         apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
         dangerouslyAllowBrowser: true,
+        baseURL: window.location.origin + '/api/anthropic',
       })
 
       const message = await client.messages.create({

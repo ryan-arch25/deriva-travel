@@ -27,7 +27,7 @@ const ghostBtn = {
 }
 
 function getClient() {
-  return new Anthropic({ apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY, dangerouslyAllowBrowser: true })
+  return new Anthropic({ apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY, dangerouslyAllowBrowser: true, baseURL: window.location.origin + '/api/anthropic' })
 }
 
 function SectionHeader({ label, title }) {
