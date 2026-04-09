@@ -8,9 +8,10 @@ const colors = {
 }
 
 const WHAT_I_OFFER = [
-  'Custom Europe itineraries built around how you actually travel',
-  'Curated restaurant and hotel picks -- only places worth your time',
-  'Day by day planning with logistics handled',
+  'A day-by-day itinerary built around how you actually travel, not a template',
+  'Restaurant picks that are current -- not whatever topped a list two years ago',
+  'Hotel recommendations chosen for character, location, and value -- not star ratings',
+  'Logistics handled so you show up knowing exactly what to do',
   'One round of revisions included',
 ]
 
@@ -66,8 +67,10 @@ export default function WorkWithMe() {
         <div style={{ backgroundColor: colors.parchment, borderBottom: `1px solid ${colors.sand}`, padding: '5rem 2rem 4rem' }}>
           <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '1rem' }}>Work With Me</p>
-            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '400', color: colors.ink, letterSpacing: '0.03em', marginBottom: '1rem', lineHeight: '1.1' }}>Custom trip planning,<br />built from scratch.</h1>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '1rem', fontWeight: '300', color: colors.mid, maxWidth: '520px', lineHeight: '1.7' }}>Not a template. Not an algorithm. A plan that fits how you actually travel.</p>
+            <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '400', color: colors.ink, letterSpacing: '0.03em', marginBottom: '1rem', lineHeight: '1.1' }}>Europe, planned properly.</h1>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', fontWeight: '400', color: colors.charcoal, maxWidth: '520px', lineHeight: '1.6', marginBottom: '1.5rem' }}>Most itineraries are built from the same ten articles. Mine aren't.</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8', marginBottom: '1rem' }}>I stay current on what's actually worth your time in Europe right now -- the restaurants people are talking about, the neighborhoods that haven't tipped yet, the hotels that deliver. You get a real plan from someone who pays attention.</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8' }}>I work with a limited number of clients at a time. If you're serious about the trip, fill out the form below and I'll follow up within 48 hours.</p>
           </div>
         </div>
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '4rem 2rem' }}>
@@ -83,8 +86,8 @@ export default function WorkWithMe() {
               </ul>
               <div style={{ marginTop: '2rem', padding: '1.25rem', border: `1px solid ${colors.sand}`, backgroundColor: colors.white }}>
                 <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>Pricing</p>
-                <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: colors.ink }}>Custom itineraries starting at $150</p>
-                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.35rem' }}>Final pricing depends on trip complexity. I'll confirm before we begin.</p>
+                <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: colors.ink }}>Simple pricing.</p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.35rem' }}>Custom itineraries starting at $150. Final price depends on trip length and complexity. I confirm before we begin -- no surprises.</p>
               </div>
             </div>
             <div>
@@ -99,8 +102,7 @@ export default function WorkWithMe() {
           </div>
           <div style={{ borderTop: `1px solid ${colors.sand}`, paddingTop: '4rem' }}>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.75rem' }}>Start Here</p>
-            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '0.5rem' }}>Tell me about your trip.</h2>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: colors.mid, marginBottom: '2.5rem', lineHeight: '1.6' }}>The more specific you are, the better the plan.</p>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '2.5rem' }}>Tell me about your trip. The more specific you are, the better the plan.</h2>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
