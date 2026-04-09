@@ -1,0 +1,24 @@
+export const regions = [
+  { name:'Reykjavik', description:'Small enough to cover in a day, interesting enough to stay three. The food scene has caught up with the rest of Europe. Skip the tourist traps near Hallgrimskirkja.', goodFor:['solo','partner','friends'], vibe:['city','culture','food'] },
+  { name:'Golden Circle', description:'Overvisited but legitimately impressive. Do it on a weekday, leave early. Gullfoss, Geysir, and Thingvellir in one loop. Skip the tourist buses.', goodFor:['partner','friends','family'], vibe:['outdoor','adventure'] },
+  { name:'Westfjords', description:'The real Iceland. Dramatic fjords, almost no people, roads that take twice as long as the map suggests. Dynjandi waterfall is worth any detour.', goodFor:['solo','partner','friends'], vibe:['outdoor','adventure','coastal'] },
+  { name:'South Coast', description:'Black sand beaches, glacier lagoons, waterfalls you can walk behind. Skogafoss and Seljalandsfoss are crowded at noon. Go at dawn.', goodFor:['partner','friends','family'], vibe:['outdoor','coastal'] },
+  { name:'Highlands', description:'Only accessible in summer, only by 4WD. The interior is lunar and empty. Landmannalaugar is the entry point. Nothing else looks like it.', goodFor:['solo','friends'], vibe:['adventure','outdoor'] },
+]
+export const restaurants = [
+  { name:'Matur og Drykkur', city:'Reykjavik', neighborhood:'Grandi', priceTier:'$$$', vibe:['stylish','reservations needed'], goodFor:['partner','friends'], note:'Traditional Icelandic ingredients done with real skill. The tasting menu reads like a history lesson. Book ahead.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Grillmarkadurinn', city:'Reykjavik', neighborhood:'City Centre', priceTier:'$$$', vibe:['stylish','group-friendly'], goodFor:['partner','friends'], note:'Icelandic lamb and fish, cooked over lava rock. The bar is worth a stop even if you skip dinner.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Cafe Loki', city:'Reykjavik', neighborhood:'Hallgrimstorg', priceTier:'$', vibe:['local','low-key'], goodFor:['solo','partner','friends','family'], note:'Traditional Icelandic lunch. Try the fish stew and rye bread. It looks like a tourist spot but the food is real.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Slippurinn', city:'Vestmannaeyjar', neighborhood:'Westman Islands', priceTier:'$$$', vibe:['local','outdoor seating','reservations needed'], goodFor:['partner','friends'], note:"On the Westman Islands, worth the ferry. One of Iceland's best restaurants, outside Reykjavik entirely.", category:'Restaurant', isAdvisorPick:false },
+]
+export const stays = [
+  { name:'Hotel Borg', city:'Reykjavik', neighborhood:'Austurvollur', priceTier:'$$$', vibe:['stylish','central'], goodFor:['partner','friends'], note:'1930s art deco hotel on the main square. More character than the newer options. Central without being loud.', category:'Stay', isAdvisorPick:false },
+  { name:'Hotel Husafell', city:'Husafell', neighborhood:'West Iceland', priceTier:'$$$', vibe:['outdoor seating','low-key'], goodFor:['partner','friends','family'], note:'Good base for the Snaefellsnes Peninsula and western Iceland. Geothermal pool on site.', category:'Stay', isAdvisorPick:false },
+  { name:'Fosshotel Glacier Lagoon', city:'Jokulsarlon', neighborhood:'South Coast', priceTier:'$$$', vibe:['outdoor seating','low-key'], goodFor:['partner','friends'], note:'Steps from the glacier lagoon. Book the sunrise tour. The location is the whole reason to stay here.', category:'Stay', isAdvisorPick:false },
+]
+export const logistics = {
+  bestTime:'June through August for daylight and access to the Highlands. February through March for northern lights without full winter conditions.',
+  gettingAround:'Rent a car. Full stop. A 4WD is required for the Highlands and F-roads. The Ring Road is manageable in a regular car. Gas stations are sparse in rural areas.',
+  bookAhead:['Hotels anywhere in summer (they fill fast)','Northern lights tours in winter','Highland F-road 4WD rental','Blue Lagoon if you want to go (book weeks ahead)','Westfjords accommodation in peak season'],
+  visaNotes:'Iceland is part of Schengen but not the EU. US, UK, Canada: 90-day visa-free. Check ETIAS requirements post-2025.',
+}

@@ -1,0 +1,32 @@
+export const regions = [
+  { name:'Rome', description:'The Vatican, the Forum, the piazzas. June and July are relentless. April and October are the right calls. Base yourself in Trastevere or Prati. Stay at least three days.', goodFor:['solo','partner','friends','family'], vibe:['city','culture','food'] },
+  { name:'Florence', description:"You are here for the Uffizi, Brunelleschi's dome, and the bistecca. Three days done well is enough. Base yourself in Oltrarno, south of the river.", goodFor:['solo','partner','friends'], vibe:['city','culture','food'] },
+  { name:'Venice', description:'Go in November or February. Smaller than it looks on a map, stranger than anything you have seen. Skip the gondola. Take the vaporetto. Get deliberately lost.', goodFor:['solo','partner','friends'], vibe:['city','culture','romantic'] },
+  { name:'Milan', description:'Not a tourist city, which is the point. Come for the Pinacoteca di Brera and the aperitivo culture in Navigli. Skip it in August.', goodFor:['solo','partner','friends'], vibe:['city','food'] },
+  { name:'Puglia', description:'The heel of the boot. Whitewashed towns, excellent burrata, olive groves that go on forever. Lecce is the base. Ostuni is prettier but busier.', goodFor:['partner','friends','family'], vibe:['coastal','food','culture'] },
+  { name:'Sicily', description:'Too big for one trip. Focus on Palermo and the west, or the southeast around Noto and Ragusa. The food is unlike anywhere else in Italy.', goodFor:['solo','partner','friends'], vibe:['culture','food','city'] },
+  { name:'The Dolomites', description:'Mountain scenery that earns the word dramatic. Hike in summer, ski in winter. The villages of Alta Badia are quieter than Cortina.', goodFor:['solo','partner','friends','family'], vibe:['mountains','outdoor','adventure'] },
+  { name:'Lake Como', description:"Earned its reputation. Bellagio is worth the ferry. Varenna is where to actually stay. Avoid it in August unless you enjoy traffic.", goodFor:['partner','friends'], vibe:['coastal','relaxed','romantic'] },
+  { name:'Tuscany (off the tourist trail)', description:"Forget Florence in summer. Siena is better. The Val d'Orcia in May looks like a painting. Montalcino is a good base if you drink Brunello.", goodFor:['partner','friends'], vibe:['countryside','food','culture'] },
+]
+export const restaurants = [
+  { name:'Osteria del Caffe Italiano', city:'Florence', neighborhood:'Santa Croce', priceTier:'$$', vibe:['local','low-key'], goodFor:['solo','partner','friends'], note:"Lunch only. Standing at the bar or a table if you're lucky. Best bistecca in the city at lunch prices.", category:'Restaurant', isAdvisorPick:false },
+  { name:"Buca dell'Orafo", city:'Florence', neighborhood:'Ponte Vecchio', priceTier:'$$$', vibe:['romantic','reservations needed'], goodFor:['partner'], note:'Old Florence institution. Ask for a table with Arno views. The ribollita is the right order.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Osteria Il Carroccio', city:'Siena', neighborhood:'Centro Storico', priceTier:'$$', vibe:['local','low-key'], goodFor:['solo','partner','friends'], note:'Order the pici cacio e pepe. Small room, serious pasta. Locals eat here, which is the whole point.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Trattoria da Nino', city:'Palermo', neighborhood:'Capo Market', priceTier:'$', vibe:['local','cash only','group-friendly'], goodFor:['solo','friends','family'], note:'Next to the market, priced for locals. Order whatever they tell you is good. No English menu.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Il Frantoio', city:'Ostuni', neighborhood:'Countryside', priceTier:'$$$', vibe:['romantic','outdoor seating','reservations needed'], goodFor:['partner','friends'], note:'Agriturismo dinner on a working olive farm. The antipasti alone run to twelve dishes. Book weeks ahead.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Ristorante La Botte', city:'Corvara', neighborhood:'Alta Badia', priceTier:'$$', vibe:['local','group-friendly'], goodFor:['friends','family'], note:'Proper Tyrolean cooking after a day in the mountains. The canederli (bread dumplings) are the move.', category:'Restaurant', isAdvisorPick:false },
+]
+export const stays = [
+  { name:'Hotel Palazzo Manfredi', city:'Rome', neighborhood:'Celio', priceTier:'$$$$', vibe:['stylish','romantic'], goodFor:['partner'], note:"Rooftop views of the Colosseum. One of Rome's best views from a hotel. Worth the price for one night.", category:'Stay', isAdvisorPick:false },
+  { name:'Masseria Torre Coccaro', city:'Fasano', neighborhood:'Puglia', priceTier:'$$$$', vibe:['stylish','romantic','outdoor seating'], goodFor:['partner'], note:'A fortified farmhouse in the Puglian countryside. Pool, olive groves, an excellent restaurant. Honeymoon territory.', category:'Stay', isAdvisorPick:false },
+  { name:'Hotel Villa Cipriani', city:'Asolo', neighborhood:'Veneto', priceTier:'$$$', vibe:['stylish','romantic','low-key'], goodFor:['partner'], note:'In a hilltop town most people skip. Garden views, quiet rooms, unhurried pace. The Dolomites are close.', category:'Stay', isAdvisorPick:false },
+  { name:'Varenna apartment rental', city:'Varenna', neighborhood:'Lake Como', priceTier:'$$', vibe:['low-key','local'], goodFor:['partner','friends','family'], note:'Skip the hotels in Bellagio. Rent an apartment in Varenna. Quieter, cheaper, better access to the ferry.', category:'Stay', isAdvisorPick:false },
+  { name:'La Bandita Townhouse', city:'Pienza', neighborhood:"Val d'Orcia", priceTier:'$$$', vibe:['stylish','low-key','romantic'], goodFor:['partner','friends'], note:"Small hotel in a Val d'Orcia village. Excellent design, no fuss. Good base for the Tuscany countryside.", category:'Stay', isAdvisorPick:false },
+]
+export const logistics = {
+  bestTime:'May through June, or September through October. August is brutal in cities. Sicily is best in spring. The Dolomites peak in July and August for hiking.',
+  gettingAround:'Trains between major cities are excellent. For Puglia, Sicily, and Tuscany countryside, rent a car. Rome, Florence, Venice are walkable. Avoid driving in city centers.',
+  bookAhead:['Uffizi and Accademia in Florence (months ahead in summer)','Vatican Museums','Il Frantoio agriturismo','Masseria Torre Coccaro in high season','Regional trains on Italian holidays'],
+  visaNotes:'EU citizens: no visa. US, UK, Canada: 90-day visa-free under the Schengen agreement. Italy is a Schengen member.',
+}

@@ -1,0 +1,29 @@
+export const regions = [
+  { name:'Madrid', description:'Bigger and more lived-in than Barcelona. The Prado alone is worth the flight. Eat late, really late. The city does not start until 9pm. Mercado de la Paz, not San Miguel.', goodFor:['solo','partner','friends'], vibe:['city','culture','food'] },
+  { name:'Barcelona', description:'Gaudi is real and worth it. The Gothic Quarter rewards slow walking. The beach is fine but not the reason to come. Go in May or September. July is borderline unbearable.', goodFor:['solo','partner','friends','family'], vibe:['city','culture','coastal'] },
+  { name:'Seville', description:'The most beautiful city in Andalusia. The Alcazar rivals the Alhambra and has shorter lines. April for the Feria, which requires planning. August is genuinely brutal.', goodFor:['solo','partner','friends'], vibe:['city','culture','food'] },
+  { name:'San Sebastian', description:'The best food city in Europe by almost any measure. Pintxos bars in every street of the old town. Three Michelin-starred restaurants within walking distance. The beach is legitimately good.', goodFor:['solo','partner','friends'], vibe:['food','city','coastal'] },
+  { name:'Basque Country', description:'San Sebastian for pintxos and the beach. Bilbao for the Guggenheim and a quieter city. The two are 90 minutes apart. Most people pick one. You can do both.', goodFor:['solo','partner','friends'], vibe:['food','city','coastal'] },
+  { name:'Andalusia', description:'Granada for the Alhambra. Seville for the energy. Cadiz for the coast. Avoid all three in August. The interior gets hot enough to matter.', goodFor:['solo','partner','friends','family'], vibe:['culture','city','food'] },
+  { name:'Extremadura', description:'Almost nobody goes here. Caceres is a medieval city with almost no tourists. Merida has better Roman ruins than most of Italy. The jamon is better here than anywhere.', goodFor:['solo','partner','friends'], vibe:['culture','countryside'] },
+  { name:'Menorca', description:'The quieter Balearic. No mega clubs, no package tourists. Clean water, good seafood, actual villages. May and June before it fills up.', goodFor:['partner','friends','family'], vibe:['coastal','relaxed'] },
+]
+export const restaurants = [
+  { name:'Bar Txepetxa', city:'San Sebastian', neighborhood:'Parte Vieja', priceTier:'$', vibe:['local','low-key','cash only'], goodFor:['solo','partner','friends'], note:'Anchovy specialists in the old town. One thing done perfectly. Stand at the bar, order the house pintxo.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Asador Etxebarri', city:'Axpe', neighborhood:'Basque Country', priceTier:'$$$$', vibe:['stylish','reservations needed'], goodFor:['partner','friends'], note:'Grilled over wood and charcoal in a village no one can find. One of the best meals in Europe. Book months ahead.', category:'Restaurant', isAdvisorPick:false },
+  { name:'El Rinconcillo', city:'Seville', neighborhood:'Barrio Macarena', priceTier:'$', vibe:['local','cash only','low-key'], goodFor:['solo','partner','friends'], note:'Oldest bar in Seville. Order the spinach with chickpeas and whatever is written on the chalkboard.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Ultramarinos Quintin', city:'Caceres', neighborhood:'City Centre', priceTier:'$', vibe:['local','low-key'], goodFor:['solo','partner','friends'], note:'Deli and bar. Excellent jamon iberico by the plate. The locals know this place and that is the entire review.', category:'Restaurant', isAdvisorPick:false },
+  { name:'Es Cranc', city:'Fornells', neighborhood:'Menorca', priceTier:'$$$', vibe:['local','outdoor seating','reservations needed'], goodFor:['partner','friends','family'], note:'Famous for the lobster stew, caldereta de llagosta. Order it for two. It is worth the price.', category:'Restaurant', isAdvisorPick:false },
+]
+export const stays = [
+  { name:'Hotel Maria Cristina', city:'San Sebastian', neighborhood:'Centro', priceTier:'$$$$', vibe:['stylish','central'], goodFor:['partner','friends'], note:'Grand belle epoque hotel on the river. The address in San Sebastian. Service matches the building.', category:'Stay', isAdvisorPick:false },
+  { name:'Parador de Caceres', city:'Caceres', neighborhood:'Old Town', priceTier:'$$$', vibe:['stylish','local'], goodFor:['partner','friends'], note:"Stay inside the medieval walls. The Paradores network is one of Spain's best-kept secrets. This one is excellent.", category:'Stay', isAdvisorPick:false },
+  { name:'Son Granot', city:'Es Castell', neighborhood:'Menorca', priceTier:'$$$', vibe:['stylish','romantic','outdoor seating'], goodFor:['partner'], note:'Georgian farmhouse, pool, garden, quiet. Menorca done properly. Minimum stay in high season.', category:'Stay', isAdvisorPick:false },
+  { name:'EME Catedral Hotel', city:'Seville', neighborhood:'Santa Cruz', priceTier:'$$$', vibe:['stylish','central'], goodFor:['partner','friends'], note:'Rooftop pool with views of the Giralda. Location cannot be beat. Book a room with cathedral view.', category:'Stay', isAdvisorPick:false },
+]
+export const logistics = {
+  bestTime:'March through May, or October through November. August is peak heat everywhere. San Sebastian is good in July. Menorca is best in May through June.',
+  gettingAround:"Spain's high-speed rail (AVE) is excellent and connects Madrid to most major cities fast. Rent a car for Extremadura and Menorca. Cities are walkable.",
+  bookAhead:['Alhambra tickets in Granada (weeks ahead minimum)','Asador Etxebarri (months ahead)','Paradores in popular locations','Ferry to Menorca in high season','AVE trains on Spanish holidays'],
+  visaNotes:'EU citizens: no visa. US, UK, Canada: 90-day visa-free under the Schengen agreement. Spain is a Schengen member.',
+}
