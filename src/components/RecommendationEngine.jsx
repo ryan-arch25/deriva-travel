@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Anthropic from '@anthropic-ai/sdk'
 
 const colors = {
   cream: '#F5F0E8',
@@ -116,25 +115,31 @@ Pick 3-4 restaurants and 2-3 stays. Only pick from the provided data. No invente
 Return valid JSON only. No markdown, no explanation outside the JSON.`
 
     try {
-      const client = new Anthropic({
-        apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
-        dangerouslyAllowBrowser: true,
-        baseURL: window.location.origin + '/api/anthropic',
+      const res = await fetch('/api/anthropic/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: userMessage }],
+        }),
       })
-
-      const message = await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userMessage }],
-      })
-
-      const text = message.content[0].text.trim()
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(`${res.status}: ${body.error?.message || res.statusText}`)
+      }
+      const data = await res.json()
+      const text = data.content[0].text.trim()
       const json = JSON.parse(text)
       setResults(json)
     } catch (err) {
       console.error(err)
-      setError('Something went wrong. Check that your API key is set in .env and try again.')
+      setError(`Something went wrong: ${err.message}`)
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
-import Anthropic from '@anthropic-ai/sdk'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 
@@ -67,25 +66,31 @@ Return a JSON object with this exact structure:
 Return valid JSON only. No markdown, no explanation outside the JSON.`
 
     try {
-      const client = new Anthropic({
-        apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
-        dangerouslyAllowBrowser: true,
-        baseURL: window.location.origin + '/api/anthropic',
+      const res = await fetch('/api/anthropic/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 256,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: prompt }],
+        }),
       })
-
-      const message = await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 256,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: prompt }],
-      })
-
-      const text = message.content[0].text.trim()
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(`${res.status}: ${body.error?.message || res.statusText}`)
+      }
+      const data = await res.json()
+      const text = data.content[0].text.trim()
       const json = JSON.parse(text)
       setResult(json)
     } catch (err) {
       console.error(err)
-      setError('Could not get your match. Check your API key and try again.')
+      setError(`Could not get your match: ${err.message}`)
     } finally {
       setLoading(false)
     }
