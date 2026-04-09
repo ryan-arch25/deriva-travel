@@ -45,46 +45,56 @@ export default function Portugal() {
   return (
     <div style={{ backgroundColor: colors.cream, minHeight: '100vh' }}>
       <Nav />
-      <div style={{ paddingTop: '60px' }}>
+      <div>
 
         {/* HEADER */}
-        <div style={{
-          backgroundColor: colors.parchment,
-          borderBottom: `1px solid ${colors.sand}`,
-          padding: '5rem 2rem 4rem',
-        }}>
-          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-            <p style={{
-              fontFamily: 'system-ui, sans-serif',
-              fontSize: '0.65rem',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: colors.tan,
-              marginBottom: '1rem',
-            }}>
-              Destinations
-            </p>
-            <h1 style={{
-              fontFamily: 'Georgia, serif',
-              fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-              fontWeight: '400',
-              color: colors.ink,
-              letterSpacing: '0.04em',
-              marginBottom: '1rem',
-              lineHeight: '1',
-            }}>
-              Portugal
-            </h1>
-            <p style={{
-              fontFamily: 'system-ui, sans-serif',
-              fontSize: '1rem',
-              fontWeight: '300',
-              color: colors.mid,
-              maxWidth: '520px',
-              lineHeight: '1.7',
-            }}>
-              It moves at its own pace. The food is honest. The wine is good and cheap. Go in spring or fall and you will wonder why you waited this long.
-            </p>
+        <div style={{ position: 'relative', height: '70vh', minHeight: '520px', overflow: 'hidden' }}>
+          <img
+            src="https://source.unsplash.com/featured/1600x900?portugal,landscape"
+            alt="Portugal"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(20,18,14,0.85) 0%, rgba(20,18,14,0.4) 55%, rgba(20,18,14,0.1) 100%)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            padding: '4rem 2rem',
+          }}>
+            <div style={{ maxWidth: '1100px', width: '100%', margin: '0 auto' }}>
+              <p style={{
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: '0.65rem',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: 'rgba(253,250,245,0.6)',
+                marginBottom: '1rem',
+              }}>
+                Destinations
+              </p>
+              <h1 style={{
+                fontFamily: 'Georgia, serif',
+                fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                fontWeight: '400',
+                color: '#FDFAF5',
+                letterSpacing: '0.04em',
+                marginBottom: '1rem',
+                lineHeight: '1',
+              }}>
+                Portugal
+              </h1>
+              <p style={{
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: '1rem',
+                fontWeight: '300',
+                color: 'rgba(253,250,245,0.8)',
+                maxWidth: '520px',
+                lineHeight: '1.7',
+              }}>
+                It moves at its own pace. The food is honest. The wine is good and cheap. Go in spring or fall and you will wonder why you waited this long.
+              </p>
+            </div>
           </div>
         </div>
 

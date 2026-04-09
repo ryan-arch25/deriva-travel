@@ -13,6 +13,7 @@ const colors = {
   ink: '#1E1C18',
   bark: '#2A2520',
   white: '#FDFAF5',
+  terracotta: '#B85C45',
 }
 
 const destinations = [
@@ -80,7 +81,7 @@ export default function Home() {
         maxWidth: '900px',
         margin: '0 auto',
       }}>
-        <p style={sectionLabelStyle}>Deriva</p>
+        <p style={{ ...sectionLabelStyle, color: colors.terracotta }}>Deriva</p>
         <h1 style={{
           fontFamily: 'Georgia, serif',
           fontSize: 'clamp(2.8rem, 6vw, 5.5rem)',
@@ -90,6 +91,8 @@ export default function Home() {
           lineHeight: '1.1',
           marginBottom: '1.5rem',
           maxWidth: '700px',
+          borderLeft: `3px solid ${colors.terracotta}`,
+          paddingLeft: '1.5rem',
         }}>
           Europe,<br />Done Right.
         </h1>
@@ -138,7 +141,7 @@ export default function Home() {
           display: 'flex',
           overflowX: 'auto',
           gap: '0',
-          padding: '1rem 2rem',
+          padding: '0',
           maxWidth: '1100px',
           margin: '0 auto',
           scrollbarWidth: 'none',
@@ -147,47 +150,66 @@ export default function Home() {
             <div
               key={d.slug}
               style={{
-                minWidth: '260px',
+                minWidth: '280px',
                 flex: '1',
-                padding: '2rem',
                 borderRight: i < destinations.length - 1 ? `1px solid ${colors.sand}` : 'none',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
-              <h3 style={{
-                fontFamily: 'Georgia, serif',
-                fontSize: '1.4rem',
-                fontWeight: '400',
-                letterSpacing: '0.05em',
-                color: colors.ink,
-                marginBottom: '0.75rem',
-              }}>
-                {d.name}
-              </h3>
-              <p style={{
-                fontFamily: 'system-ui, sans-serif',
-                fontSize: '0.85rem',
-                fontWeight: '300',
-                color: colors.mid,
-                lineHeight: '1.6',
-                marginBottom: '1.5rem',
-              }}>
-                {d.tagline}
-              </p>
-              <Link
-                to={`/destinations/${d.slug}`}
-                style={{
+              <div style={{ position: 'relative', height: '340px', overflow: 'hidden' }}>
+                <img
+                  src={`https://source.unsplash.com/featured/800x600?${d.slug},landscape`}
+                  alt={d.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(to top, rgba(30,28,24,0.8) 0%, rgba(30,28,24,0.25) 60%, transparent 100%)',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  padding: '1.5rem',
+                }}>
+                  <h3 style={{
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '1.6rem',
+                    fontWeight: '400',
+                    letterSpacing: '0.05em',
+                    color: '#FDFAF5',
+                    margin: 0,
+                  }}>
+                    {d.name}
+                  </h3>
+                </div>
+              </div>
+              <div style={{ padding: '1.5rem 2rem 2rem' }}>
+                <p style={{
                   fontFamily: 'system-ui, sans-serif',
-                  fontSize: '0.65rem',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: colors.gold,
-                  textDecoration: 'none',
-                  borderBottom: `1px solid ${colors.gold}`,
-                  paddingBottom: '2px',
-                }}
-              >
-                Explore
-              </Link>
+                  fontSize: '0.85rem',
+                  fontWeight: '300',
+                  color: colors.mid,
+                  lineHeight: '1.6',
+                  marginBottom: '1.25rem',
+                }}>
+                  {d.tagline}
+                </p>
+                <Link
+                  to={`/destinations/${d.slug}`}
+                  style={{
+                    fontFamily: 'system-ui, sans-serif',
+                    fontSize: '0.65rem',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: colors.gold,
+                    textDecoration: 'none',
+                    borderBottom: `1px solid ${colors.gold}`,
+                    paddingBottom: '2px',
+                  }}
+                >
+                  Explore
+                </Link>
+              </div>
             </div>
           ))}
         </div>

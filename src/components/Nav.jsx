@@ -27,6 +27,7 @@ export default function Nav() {
   const isDark = location.pathname === '/'
 
   const navStyle = {
+    borderTop: '3px solid #B85C45',
     position: 'fixed',
     top: 0,
     left: 0,
