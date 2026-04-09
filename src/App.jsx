@@ -5,8 +5,6 @@ import Portugal from './pages/Portugal'
 import Italy from './pages/Italy'
 import Iceland from './pages/Iceland'
 import Spain from './pages/Spain'
-import Quiz from './pages/Quiz'
-import QuizResult from './pages/QuizResult'
 import WorkWithMe from './pages/WorkWithMe'
 import AdvisorLogin from './advisor/AdvisorLogin'
 import AdvisorDashboard from './advisor/AdvisorDashboard'
@@ -21,8 +19,6 @@ export default function App() {
         <Route path="/destinations/italy" element={<Italy />} />
         <Route path="/destinations/iceland" element={<Iceland />} />
         <Route path="/destinations/spain" element={<Spain />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/quiz/result" element={<QuizResult />} />
         <Route path="/work-with-me" element={<WorkWithMe />} />
         <Route path="/advisor" element={<AdvisorLogin />} />
         <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />

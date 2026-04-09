@@ -106,7 +106,7 @@ export default function Home() {
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <Link
-            to="/quiz"
+            to="/work-with-me"
             style={{
               fontFamily: 'system-ui, sans-serif',
               fontSize: '0.7rem',
@@ -117,22 +117,6 @@ export default function Home() {
               padding: '1rem 2rem',
               textDecoration: 'none',
               border: `1px solid ${colors.gold}`,
-            }}
-          >
-            Find Your Destination
-          </Link>
-          <Link
-            to="/work-with-me"
-            style={{
-              fontFamily: 'system-ui, sans-serif',
-              fontSize: '0.7rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: colors.ink,
-              backgroundColor: 'transparent',
-              padding: '1rem 2rem',
-              textDecoration: 'none',
-              border: `1px solid ${colors.sand}`,
             }}
           >
             Work With Me
@@ -254,24 +238,6 @@ export default function Home() {
               </p>
             </div>
           ))}
-        </div>
-        <div style={{ marginTop: '3rem' }}>
-          <Link
-            to="/quiz"
-            style={{
-              fontFamily: 'system-ui, sans-serif',
-              fontSize: '0.7rem',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: colors.white,
-              backgroundColor: colors.gold,
-              padding: '0.9rem 2rem',
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
-          >
-            Take the Quiz
-          </Link>
         </div>
       </section>
 
