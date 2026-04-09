@@ -380,6 +380,23 @@ function ItineraryBuilder() {
 
     const partyDesc = `${form.party}${form.partySize ? `, group of ${form.partySize}` : ''}`
 
+    // Pull vetted spots from My Spots that match the destination
+    let vettedSpotsBlock = ''
+    try {
+      const allSpots = JSON.parse(localStorage.getItem('deriva_spots') || '[]')
+      const dest = form.destination.toLowerCase()
+      const matched = allSpots.filter(s =>
+        s.city?.toLowerCase().includes(dest) ||
+        dest.includes(s.city?.toLowerCase())
+      )
+      if (matched.length > 0) {
+        const formatted = matched.map(s =>
+          `- ${s.name} (${s.category}) | ${s.city}${s.neighborhood ? ', ' + s.neighborhood : ''}${s.priceTier ? ' | ' + s.priceTier : ''}${s.note ? ' | ' + s.note : ''}`
+        ).join('\n')
+        vettedSpotsBlock = `\n\nAdvisor's vetted spots -- use these as priority recommendations where they fit the day:\n${formatted}\n\nWork these into the itinerary naturally. Don't force them all in, but prefer them over generic alternatives when they match the day's location and vibe.`
+      }
+    } catch { /* ignore localStorage errors */ }
+
     const prompt = `Create a detailed day-by-day itinerary for this trip:
 
 Client: ${form.name}
@@ -393,7 +410,7 @@ Cities/regions focus: ${form.cities || 'Advisor discretion'}
 Interests: ${form.interests || 'Not specified'}
 Must include: ${form.mustInclude || 'None specified'}
 Must avoid: ${form.mustAvoid || 'None'}
-Additional notes: ${form.notes || 'None'}
+Additional notes: ${form.notes || 'None'}${vettedSpotsBlock}
 
 Return a JSON object with exactly this structure:
 {
@@ -417,7 +434,7 @@ Generate exactly the right number of days for the trip length. Tailor recommenda
 
     try {
       const text = await callAI({
-        system: `You are Deriva's travel curator. Editorial, knowledgeable, direct. Sound like a well-traveled friend who actually went. Short sentences. No filler. Occasionally opinionated. Never use em dashes.`,
+        system: `You are a personal travel advisor who has actually been to these places. You have strong opinions about where to eat, stay, and spend time. You recommend the neighborhood, not just the city. You know which restaurants are coasting on reputation and which are worth the wait. You speak like a sharp, well-traveled friend writing a personal note, not a guidebook. Short sentences. Specific names. No filler, no hedging, no "consider visiting." If the advisor has provided vetted spots, treat those as your strongest recommendations and weave them into the days where they fit geographically and by vibe. Never use em dashes.`,
         messages: [{ role: 'user', content: prompt }],
         maxTokens: 4096,
       })
