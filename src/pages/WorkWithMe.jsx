@@ -20,7 +20,7 @@ const HOW_IT_WORKS = [
   { num: '03', text: 'Receive your custom itinerary as a clean PDF' },
 ]
 
-const initialForm = { name: '', email: '', destinations: '', dates: '', length: '', party: '', budget: '', notes: '', avoid: '' }
+const initialForm = { name: '', email: '', destinations: '', dates: '', length: '', party: '', partySize: '', budget: '', interests: '', alreadyBooked: '', notes: '', avoid: '', referral: '' }
 
 export default function WorkWithMe() {
   const [form, setForm] = useState(initialForm)
@@ -38,11 +38,21 @@ export default function WorkWithMe() {
       <div style={{ backgroundColor: colors.cream, minHeight: '100vh' }}>
         <Nav />
         <div style={{ maxWidth: '620px', margin: '0 auto', padding: '8rem 2rem', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '1rem' }}>Received</p>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', fontWeight: '400', color: colors.ink, marginBottom: '1.5rem' }}>Got it. I'll be in touch.</h2>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7' }}>
-            I review every brief personally. Expect a response within 48 hours. If the trip sounds like something I can do well, I'll say so.
+          <div style={{ width: '3rem', height: '1px', backgroundColor: colors.gold, marginBottom: '2rem' }} />
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1rem' }}>Brief Received</p>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '2.25rem', fontWeight: '400', color: colors.ink, marginBottom: '1.5rem', lineHeight: '1.2' }}>Thank you, {form.name.split(' ')[0] || 'you'}.</h2>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8', marginBottom: '1.5rem' }}>
+            I review every brief personally. Expect a response at <strong style={{ fontWeight: '400', color: colors.charcoal }}>{form.email}</strong> within 48 hours.
           </p>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8', marginBottom: '2.5rem' }}>
+            If {form.destinations || 'your trip'} sounds like something I can do well, I'll say so. If not, I'll point you in the right direction.
+          </p>
+          <div style={{ padding: '1.5rem', border: `1px solid ${colors.sand}`, backgroundColor: colors.white }}>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>What Happens Next</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: colors.charcoal, lineHeight: '1.7' }}>
+              I'll review your brief, follow up with any questions, confirm pricing, and then build your itinerary from scratch. The whole process usually takes 5 to 7 days.
+            </p>
+          </div>
         </div>
         <Footer />
       </div>
@@ -92,17 +102,20 @@ export default function WorkWithMe() {
             <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '0.5rem' }}>Tell me about your trip.</h2>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: colors.mid, marginBottom: '2.5rem', lineHeight: '1.6' }}>The more specific you are, the better the plan.</p>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
-                <div><label style={labelStyle} htmlFor="name">Name</label><input id="name" name="name" type="text" required value={form.name} onChange={handleChange} style={inputStyle} placeholder="Your name" /></div>
-                <div><label style={labelStyle} htmlFor="email">Email</label><input id="email" name="email" type="email" required value={form.email} onChange={handleChange} style={inputStyle} placeholder="your@email.com" /></div>
+                <div><label style={labelStyle} htmlFor="name">Full name</label><input id="name" name="name" type="text" required value={form.name} onChange={handleChange} style={inputStyle} placeholder="Jane Smith" /></div>
+                <div><label style={labelStyle} htmlFor="email">Email</label><input id="email" name="email" type="email" required value={form.email} onChange={handleChange} style={inputStyle} placeholder="jane@email.com" /></div>
               </div>
-              <label style={labelStyle} htmlFor="destinations">Destination(s) you're interested in</label>
+
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>Trip Details</p>
+              <label style={labelStyle} htmlFor="destinations">Destination(s) you're considering</label>
               <input id="destinations" name="destinations" type="text" required value={form.destinations} onChange={handleChange} style={inputStyle} placeholder="Portugal, Italy, both..." />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
                 <div><label style={labelStyle} htmlFor="dates">Travel dates</label><input id="dates" name="dates" type="text" value={form.dates} onChange={handleChange} style={inputStyle} placeholder="June 2025, flexible..." /></div>
                 <div><label style={labelStyle} htmlFor="length">Trip length</label><input id="length" name="length" type="text" value={form.length} onChange={handleChange} style={inputStyle} placeholder="10 days, 2 weeks..." /></div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.5rem' }}>
                 <div>
                   <label style={labelStyle} htmlFor="party">Travel party</label>
                   <select id="party" name="party" value={form.party} onChange={handleChange} style={selectStyle}>
@@ -114,22 +127,43 @@ export default function WorkWithMe() {
                     <option value="group">Group</option>
                   </select>
                 </div>
+                <div><label style={labelStyle} htmlFor="partySize">Party size</label><input id="partySize" name="partySize" type="text" value={form.partySize} onChange={handleChange} style={inputStyle} placeholder="2, 4, 6..." /></div>
                 <div>
                   <label style={labelStyle} htmlFor="budget">Budget tier</label>
                   <select id="budget" name="budget" value={form.budget} onChange={handleChange} style={selectStyle}>
                     <option value="">Select...</option>
-                    <option value="budget">Budget</option>
+                    <option value="budget">Budget-conscious</option>
                     <option value="mid-range">Mid-range</option>
                     <option value="splurge">Splurge</option>
                     <option value="flexible">Flexible</option>
                   </select>
                 </div>
               </div>
+
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>Preferences</p>
+              <label style={labelStyle} htmlFor="interests">Interests and priorities</label>
+              <textarea id="interests" name="interests" rows={3} value={form.interests} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Food and wine, architecture, hiking, art, nightlife, beaches, local markets..." />
               <label style={labelStyle} htmlFor="notes">Vibe and pace notes</label>
-              <textarea id="notes" name="notes" rows={3} value={form.notes} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Slow and food-focused. Prefer smaller towns. Love markets and local wine bars..." />
-              <label style={labelStyle} htmlFor="avoid">Anything specific you want or want to avoid</label>
-              <textarea id="avoid" name="avoid" rows={3} value={form.avoid} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="No big tourist sites, needs AC, vegetarian, allergies..." />
-              <button type="submit" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: colors.gold, border: 'none', padding: '1rem 2.5rem', cursor: 'pointer', marginTop: '0.5rem' }}>Send My Brief</button>
+              <textarea id="notes" name="notes" rows={3} value={form.notes} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Slow and food-focused. Prefer smaller towns. Love wine bars and long lunches..." />
+              <label style={labelStyle} htmlFor="avoid">Anything to avoid</label>
+              <textarea id="avoid" name="avoid" rows={2} value={form.avoid} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Big tourist sites, long bus rides, spicy food, hostels..." />
+              <label style={labelStyle} htmlFor="alreadyBooked">Anything already booked</label>
+              <textarea id="alreadyBooked" name="alreadyBooked" rows={2} value={form.alreadyBooked} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Flights, hotels, specific restaurants, tours..." />
+
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>One Last Thing</p>
+              <label style={labelStyle} htmlFor="referral">How did you hear about Deriva?</label>
+              <select id="referral" name="referral" value={form.referral} onChange={handleChange} style={selectStyle}>
+                <option value="">Select...</option>
+                <option value="instagram">Instagram</option>
+                <option value="friend">Friend or word of mouth</option>
+                <option value="google">Google search</option>
+                <option value="blog">Blog or article</option>
+                <option value="returning">Returning client</option>
+                <option value="other">Other</option>
+              </select>
+
+              <button type="submit" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: colors.gold, border: 'none', padding: '1rem 2.5rem', cursor: 'pointer', marginTop: '0.5rem', transition: 'background-color 0.2s ease' }} onMouseEnter={e => e.target.style.backgroundColor = '#8A7550'} onMouseLeave={e => e.target.style.backgroundColor = colors.gold}>Send My Brief</button>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginTop: '1.25rem', lineHeight: '1.6' }}>I'll respond within 48 hours. No commitment until we've talked.</p>
             </form>
           </div>
         </div>
