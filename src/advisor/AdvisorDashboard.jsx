@@ -555,8 +555,120 @@ Generate exactly the right number of days for the trip length. Tailor recommenda
   )
 }
 
-function ItineraryView({ itinerary, onReset }) {
+// ── Itinerary editing helpers ────────────────────────────────────────────────
+
+function EditableText({ value, onChange, textStyle, rows = 3 }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const ref = useRef(null)
+
+  useEffect(() => { if (!editing) setDraft(value) }, [value, editing])
+  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select() } }, [editing])
+
+  const commit = () => { onChange(draft.trim()); setEditing(false) }
+
+  if (editing) {
+    return (
+      <textarea
+        ref={ref}
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => { if (e.key === 'Escape') { setDraft(value); setEditing(false) } }}
+        rows={rows}
+        style={{
+          width: '100%', boxSizing: 'border-box', resize: 'vertical',
+          fontFamily: textStyle.fontFamily, fontSize: textStyle.fontSize,
+          fontWeight: textStyle.fontWeight || '300', fontStyle: textStyle.fontStyle || 'normal',
+          lineHeight: textStyle.lineHeight,
+          color: C.ink, backgroundColor: C.white,
+          border: `1.5px solid ${C.gold}`, padding: '0.5rem 0.75rem', outline: 'none',
+        }}
+      />
+    )
+  }
+  return (
+    <p onClick={() => setEditing(true)} style={{ ...textStyle, cursor: 'text', margin: 0 }} title="Click to edit">
+      {value}
+    </p>
+  )
+}
+
+function EditableTitle({ value, onChange }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const ref = useRef(null)
+
+  useEffect(() => { if (!editing) setDraft(value) }, [value, editing])
+  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select() } }, [editing])
+
+  const commit = () => { onChange(draft.trim()); setEditing(false) }
+  const titleStyle = {
+    fontFamily: 'Georgia, serif', fontSize: '1.45rem', fontWeight: '400',
+    color: C.white, letterSpacing: '0.02em', lineHeight: '1.2', paddingBottom: '0.6rem',
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={ref}
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') { setDraft(value); setEditing(false) }
+        }}
+        style={{ ...titleStyle, background: 'rgba(0,0,0,0.2)', border: 'none', borderBottom: '1.5px solid rgba(255,255,255,0.5)', outline: 'none', width: '100%', padding: '0.25rem 0' }}
+      />
+    )
+  }
+  return (
+    <h3 onClick={() => setEditing(true)} style={{ ...titleStyle, cursor: 'text' }} title="Click to edit">
+      {value}
+    </h3>
+  )
+}
+
+function RewritePanel({ isOpen, onRewrite, onCancel, loading, error }) {
+  const [prompt, setPrompt] = useState('')
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (isOpen) { setPrompt(''); setTimeout(() => ref.current?.focus(), 0) }
+  }, [isOpen])
+
+  if (!isOpen) return null
+  return (
+    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <input
+        ref={ref}
+        value={prompt}
+        onChange={e => setPrompt(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && prompt.trim()) onRewrite(prompt)
+          if (e.key === 'Escape') onCancel()
+        }}
+        placeholder="e.g. focus on food, make it more adventurous, add a morning walk"
+        style={{ flex: 1, minWidth: '180px', fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.ink, backgroundColor: C.white, border: `1px solid ${C.sand}`, padding: '0.5rem 0.75rem', outline: 'none' }}
+      />
+      <button onClick={() => { if (prompt.trim()) onRewrite(prompt) }} disabled={loading || !prompt.trim()} style={{ ...primaryBtn, fontSize: '0.6rem', padding: '0.5rem 0.875rem', backgroundColor: loading || !prompt.trim() ? C.tan : C.gold, cursor: loading || !prompt.trim() ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        {loading ? 'Rewriting...' : 'Rewrite'}
+      </button>
+      <button onClick={onCancel} style={{ ...ghostBtn, fontSize: '0.6rem', padding: '0.5rem 0.875rem', flexShrink: 0 }}>Cancel</button>
+      {error && <p style={{ width: '100%', fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: '#9E6060', marginTop: '0.25rem' }}>{error}</p>}
+    </div>
+  )
+}
+
+function ItineraryView({ itinerary: initial, onReset }) {
+  const [data, setData] = useState(initial)
+
+  const updateDay = (idx, updated) => setData(d => ({ ...d, days: d.days.map((day, i) => i === idx ? updated : day) }))
+  const deleteDay = (idx) => setData(d => ({ ...d, days: d.days.filter((_, i) => i !== idx) }))
+
   const exportPDF = () => {
+    const itinerary = data
     const doc = new jsPDF({ unit: 'pt', format: 'letter' })
     const pageW = doc.internal.pageSize.getWidth()
     const pageH = doc.internal.pageSize.getHeight()
@@ -677,7 +789,7 @@ function ItineraryView({ itinerary, onReset }) {
       doc.line(margin, y, pageW - margin, y); y += 30
     }
 
-    doc.save(`Deriva-${itinerary.destination}-${itinerary.clientName.replace(/\s+/g, '-')}.pdf`)
+    doc.save(`Deriva-${data.destination}-${data.clientName.replace(/\s+/g, '-')}.pdf`)
   }
 
   return (
@@ -685,9 +797,9 @@ function ItineraryView({ itinerary, onReset }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.25rem' }}>Itinerary</p>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: C.ink, marginBottom: '0.35rem' }}>{itinerary.destination}</h2>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: C.ink, marginBottom: '0.35rem' }}>{data.destination}</h2>
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
-            {itinerary.clientName} &nbsp;·&nbsp; {itinerary.dates}
+            {data.clientName} &nbsp;·&nbsp; {data.dates}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
@@ -696,49 +808,104 @@ function ItineraryView({ itinerary, onReset }) {
         </div>
       </div>
 
-      {itinerary.days.map(day => <DayCard key={day.dayNumber} day={day} />)}
+      {data.days.map((day, i) => (
+        <DayCard key={day.dayNumber} day={day} dayIndex={i} onUpdate={updateDay} onDelete={deleteDay} />
+      ))}
     </div>
   )
 }
 
-function DayCard({ day }) {
+function DayCard({ day, dayIndex, onUpdate, onDelete }) {
+  const [activeRewrite, setActiveRewrite] = useState(null)
+  const [rewriteLoading, setRewriteLoading] = useState(false)
+  const [rewriteError, setRewriteError] = useState(null)
+
+  const setField = (field, value) => onUpdate(dayIndex, { ...day, [field]: value })
+
+  const openRewrite = (field) => { setActiveRewrite(field); setRewriteError(null) }
+  const closeRewrite = () => { setActiveRewrite(null); setRewriteError(null) }
+
+  const handleRewrite = async (field, prompt) => {
+    setRewriteLoading(true)
+    setRewriteError(null)
+    const labels = { morning: 'morning', afternoon: 'afternoon', evening: 'evening', logisticsNote: 'logistics note', derivaTip: 'Deriva tip' }
+    try {
+      const text = await callAI({
+        system: `You are Deriva's travel curator. Rewrite a single section of a travel itinerary based on the advisor's instruction. Be specific, direct, editorial. 2-3 sentences max. Never use em dashes.`,
+        messages: [{ role: 'user', content: `Day ${day.dayNumber} — ${day.title}\nSection: ${labels[field]}\nCurrent: "${day[field]}"\n\nInstruction: ${prompt}\n\nReturn only the rewritten text. No quotes, no explanation.` }],
+        maxTokens: 512,
+      })
+      setField(field, text.trim())
+      closeRewrite()
+    } catch (err) {
+      setRewriteError(err.message)
+    } finally {
+      setRewriteLoading(false)
+    }
+  }
+
+  const rewriteToggle = (field, labelColor) => (
+    <button
+      onClick={() => activeRewrite === field ? closeRewrite() : openRewrite(field)}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: labelColor || (activeRewrite === field ? C.terracotta : C.tan), padding: '0.15rem 0.4rem' }}
+    >
+      ↻ Rewrite
+    </button>
+  )
+
+  const sections = [
+    { field: 'morning', label: 'Morning', bg: C.white },
+    { field: 'afternoon', label: 'Afternoon', bg: C.cream },
+    { field: 'evening', label: 'Evening', bg: C.white },
+  ]
+
   return (
     <div style={{ marginBottom: '2.5rem', border: `1px solid ${C.sand}`, overflow: 'hidden' }}>
 
       {/* Terracotta day header */}
-      <div style={{ backgroundColor: C.terracotta, padding: '2rem 2.5rem 1.75rem' }}>
+      <div style={{ backgroundColor: C.terracotta, padding: '2rem 2.5rem 1.75rem', position: 'relative' }}>
+        <button onClick={() => onDelete(dayIndex)} style={{ position: 'absolute', top: '1rem', right: '1.5rem', background: 'none', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0.25rem 0.6rem' }}>
+          Remove Day
+        </button>
         <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '0.75rem' }}>Day {day.dayNumber}</p>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
           <span style={{ fontFamily: 'Georgia, serif', fontSize: '5rem', fontWeight: '400', color: 'rgba(158,134,96,0.38)', lineHeight: '1', flexShrink: 0, userSelect: 'none' }}>
             {String(day.dayNumber).padStart(2, '0')}
           </span>
-          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.45rem', fontWeight: '400', color: C.white, letterSpacing: '0.02em', lineHeight: '1.2', paddingBottom: '0.6rem' }}>
-            {day.title}
-          </h3>
+          <EditableTitle value={day.title} onChange={v => setField('title', v)} />
         </div>
       </div>
 
-      {/* Morning / Afternoon / Evening — vertical flow, alternating bg */}
-      {[
-        { label: 'Morning', text: day.morning, bg: C.white },
-        { label: 'Afternoon', text: day.afternoon, bg: C.cream },
-        { label: 'Evening', text: day.evening, bg: C.white },
-      ].map(({ label, text, bg }) => (
-        <div key={label} style={{ backgroundColor: bg, borderLeft: `3px solid ${C.sand}`, padding: '1.75rem 2.5rem', borderBottom: `1px solid ${C.sand}` }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.52rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.8rem' }}>{label}</p>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.85' }}>{text}</p>
+      {/* Morning / Afternoon / Evening */}
+      {sections.map(({ field, label, bg }) => (
+        <div key={field} style={{ backgroundColor: bg, borderLeft: `3px solid ${C.sand}`, padding: '1.5rem 2.5rem', borderBottom: `1px solid ${C.sand}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.52rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.gold }}>{label}</p>
+            {rewriteToggle(field)}
+          </div>
+          <EditableText value={day[field]} onChange={v => setField(field, v)} textStyle={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.85' }} rows={3} />
+          <RewritePanel isOpen={activeRewrite === field} onRewrite={p => handleRewrite(field, p)} onCancel={closeRewrite} loading={rewriteLoading && activeRewrite === field} error={activeRewrite === field ? rewriteError : null} />
         </div>
       ))}
 
-      {/* Logistics — parchment, terracotta label */}
-      <div style={{ backgroundColor: C.parchment, padding: '1.25rem 2.5rem', borderBottom: `1px solid ${C.sand}`, display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.terracotta, flexShrink: 0, paddingTop: '3px', fontWeight: '600' }}>Logistics</p>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75' }}>{day.logisticsNote}</p>
+      {/* Logistics */}
+      <div style={{ backgroundColor: C.parchment, padding: '1.25rem 2.5rem', borderBottom: `1px solid ${C.sand}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.terracotta, fontWeight: '600' }}>Logistics</p>
+          {rewriteToggle('logisticsNote')}
+        </div>
+        <EditableText value={day.logisticsNote} onChange={v => setField('logisticsNote', v)} textStyle={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75' }} rows={2} />
+        <RewritePanel isOpen={activeRewrite === 'logisticsNote'} onRewrite={p => handleRewrite('logisticsNote', p)} onCancel={closeRewrite} loading={rewriteLoading && activeRewrite === 'logisticsNote'} error={activeRewrite === 'logisticsNote' ? rewriteError : null} />
       </div>
 
-      {/* Deriva tip — full-width gold strip */}
+      {/* Deriva tip */}
       <div style={{ backgroundColor: C.gold, padding: '1.25rem 2.5rem' }}>
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '0.925rem', fontStyle: 'italic', color: C.white, lineHeight: '1.7' }}>{day.derivaTip}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>Deriva Tip</p>
+          {rewriteToggle('derivaTip', 'rgba(255,255,255,0.65)')}
+        </div>
+        <EditableText value={day.derivaTip} onChange={v => setField('derivaTip', v)} textStyle={{ fontFamily: 'Georgia, serif', fontSize: '0.925rem', fontStyle: 'italic', color: C.white, lineHeight: '1.7' }} rows={2} />
+        <RewritePanel isOpen={activeRewrite === 'derivaTip'} onRewrite={p => handleRewrite('derivaTip', p)} onCancel={closeRewrite} loading={rewriteLoading && activeRewrite === 'derivaTip'} error={activeRewrite === 'derivaTip' ? rewriteError : null} />
       </div>
     </div>
   )
