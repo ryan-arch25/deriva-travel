@@ -75,8 +75,16 @@ Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotT
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Request failed')
       const cleaned = data.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-      setResults(JSON.parse(cleaned))
+      const parsed = JSON.parse(cleaned)
+      setResults(parsed)
       setStage('results')
+
+      // Send the picks to the user's email (fire and forget)
+      fetch('/api/send-picks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: email, country: destination, picks: parsed }),
+      }).catch(() => {})
     } catch {
       setError('Could not get picks right now. Try again in a moment.')
       setStage('email')
