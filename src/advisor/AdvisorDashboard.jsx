@@ -4,6 +4,7 @@ import { jsPDF } from 'jspdf'
 import * as icelandData from '../data/iceland'
 import * as italyData from '../data/italy'
 import * as spainData from '../data/spain'
+import * as portugalData from '../data/portugal'
 
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
@@ -137,6 +138,8 @@ const CURATED_SPOTS = [
   ...italyData.stays.map(s => ({ ...s, country: 'Italy', source: 'curated' })),
   ...spainData.restaurants.map(s => ({ ...s, country: 'Spain', source: 'curated' })),
   ...spainData.stays.map(s => ({ ...s, country: 'Spain', source: 'curated' })),
+  ...portugalData.restaurants.map(s => ({ ...s, country: 'Portugal', source: 'curated' })),
+  ...portugalData.stays.map(s => ({ ...s, country: 'Portugal', source: 'curated' })),
 ].map((s, i) => ({ ...s, id: s.id ?? `curated_${i}` }))
 
 function MySpots() {
