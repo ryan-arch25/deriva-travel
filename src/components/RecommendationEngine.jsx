@@ -26,11 +26,16 @@ export default function RecommendationEngine({ destination, restaurants, stays }
     const sData = stays.map(s => `${s.name} (${s.city}, ${s.neighborhood}) -- ${s.priceTier} -- ${s.note}`).join('\n')
     const msg = `A traveler is planning a trip to ${destination}.\nVibe: ${vibe}\nParty: ${party}\nNotes: ${notes||'none'}\n\nRESTAURANTS:\n${rData}\n\nSTAYS:\n${sData}\n\nReturn JSON only:\n{"intro":"2 sentences max","restaurants":[{"name":"","city":"","neighborhood":"","priceTier":"","note":""}],"stays":[{"name":"","city":"","neighborhood":"","priceTier":"","note":""}]}\nPick 3-4 restaurants and 2-3 stays from the provided data only.`
     try {
-      const client = new Anthropic({ apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY, dangerouslyAllowBrowser: true })
-      const res = await client.messages.create({ model:'claude-sonnet-4-20250514', max_tokens:1024,
-        system:SYS, messages:[{ role:'user', content:msg }] })
-      setResults(JSON.parse(res.content[0].text.trim()))
-    } catch(err) { setError('Check your API key in .env and try again.') }
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system: SYS, messages: [{ role: 'user', content: msg }], maxTokens: 1024 }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Request failed')
+      const cleaned = data.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+      setResults(JSON.parse(cleaned))
+    } catch { setError('Could not get picks right now. Try again in a moment.') }
     finally { setLoading(false) }
   }
   return (
