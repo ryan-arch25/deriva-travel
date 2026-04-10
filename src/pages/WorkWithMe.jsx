@@ -84,7 +84,7 @@ export default function WorkWithMe() {
       <Nav />
       <div style={{ paddingTop: '60px' }}>
         <div style={{ position: 'relative', height: '60vh', minHeight: '420px', overflow: 'hidden' }}>
-          <img src="/images/hero.jpg" alt="European landscape" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src="/images/portugal.jpg" alt="Lisbon street" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(20,18,14,0.15) 0%, rgba(20,18,14,0) 40%, rgba(20,18,14,0.35) 100%)' }} />
         </div>
         <div style={{ backgroundColor: colors.parchment, borderBottom: `1px solid ${colors.sand}`, padding: '5rem 2rem 4rem' }}>
@@ -140,7 +140,7 @@ export default function WorkWithMe() {
                 <div><label style={labelStyle} htmlFor="dates">Travel dates</label><input id="dates" name="dates" type="text" value={form.dates} onChange={handleChange} style={inputStyle} placeholder="June 2025, flexible..." /></div>
                 <div><label style={labelStyle} htmlFor="partySize">Party size</label><input id="partySize" name="partySize" type="text" value={form.partySize} onChange={handleChange} style={inputStyle} placeholder="2, 4, 6..." /></div>
               </div>
-              <label style={labelStyle} htmlFor="tripNotes">Tell me about the trip. What matters most, what you want to avoid, anything already booked.</label>
+              <label style={labelStyle} htmlFor="tripNotes">Tell me about the trip</label>
               <textarea id="tripNotes" name="tripNotes" rows={5} value={form.tripNotes} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Slow and food-focused. Prefer smaller towns. Flights already booked into Lisbon. Allergic to shellfish..." />
 
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>One Last Thing</p>
