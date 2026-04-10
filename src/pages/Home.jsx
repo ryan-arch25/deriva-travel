@@ -16,9 +16,9 @@ const destinations = [
 ]
 
 const steps = [
-  { title: 'Share your idea with me' },
-  { title: 'We talk through the details' },
-  { title: 'I take it from there' },
+  { title: 'Share your idea with me', body: 'Fill out a short form with the basics.' },
+  { title: 'We talk through the details', body: '20 minutes to talk through what you\'re looking for.' },
+  { title: 'I take it from there', body: 'I build your itinerary from scratch and deliver it to you.' },
 ]
 
 export default function Home() {
@@ -78,7 +78,8 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '3rem 4rem' }}>
             {steps.map(step => (
               <div key={step.title}>
-                <h3 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 2.6vw, 1.7rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.25' }}>{step.title}</h3>
+                <h3 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 2.6vw, 1.7rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.25', marginBottom: '0.75rem' }}>{step.title}</h3>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: '#c8b89a', lineHeight: '1.65', maxWidth: '280px' }}>{step.body}</p>
               </div>
             ))}
           </div>
