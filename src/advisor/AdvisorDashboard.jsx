@@ -1,6 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { jsPDF } from 'jspdf'
+import * as icelandData from '../data/iceland'
+import * as italyData from '../data/italy'
+import * as spainData from '../data/spain'
 
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
@@ -125,50 +128,107 @@ function ClientBriefTool() {
 
 // ── My Spots ─────────────────────────────────────────────────────────────────
 
+// Build a single list of curated picks from each country's data file at module
+// load. Each entry is tagged with its country so the dashboard can filter.
+const CURATED_SPOTS = [
+  ...icelandData.restaurants.map(s => ({ ...s, country: 'Iceland', source: 'curated' })),
+  ...icelandData.stays.map(s => ({ ...s, country: 'Iceland', source: 'curated' })),
+  ...italyData.restaurants.map(s => ({ ...s, country: 'Italy', source: 'curated' })),
+  ...italyData.stays.map(s => ({ ...s, country: 'Italy', source: 'curated' })),
+  ...spainData.restaurants.map(s => ({ ...s, country: 'Spain', source: 'curated' })),
+  ...spainData.stays.map(s => ({ ...s, country: 'Spain', source: 'curated' })),
+].map((s, i) => ({ ...s, id: s.id ?? `curated_${i}` }))
+
 function MySpots() {
-  const [spots, setSpots] = useState(() => { try { return JSON.parse(localStorage.getItem('deriva_spots') || '[]') } catch { return [] } })
+  const [customSpots, setCustomSpots] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('deriva_spots') || '[]') } catch { return [] }
+  })
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({ name: '', city: '', neighborhood: '', category: 'Restaurant', priceTier: '$$', note: '' })
+  const [form, setForm] = useState({ name: '', city: '', neighborhood: '', address: '', category: 'Restaurant', note: '' })
+  const [countryFilter, setCountryFilter] = useState('All')
+  const [categoryFilter, setCategoryFilter] = useState('All')
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-  const saveSpots = (updated) => { setSpots(updated); localStorage.setItem('deriva_spots', JSON.stringify(updated)) }
+  const saveCustom = (updated) => {
+    setCustomSpots(updated)
+    localStorage.setItem('deriva_spots', JSON.stringify(updated))
+  }
 
   const addSpot = (e) => {
     e.preventDefault()
-    saveSpots([...spots, { ...form, id: Date.now() }])
-    setForm({ name: '', city: '', neighborhood: '', category: 'Restaurant', priceTier: '$$', note: '' })
+    saveCustom([...customSpots, { ...form, id: `custom_${Date.now()}`, country: 'Custom', source: 'custom' }])
+    setForm({ name: '', city: '', neighborhood: '', address: '', category: 'Restaurant', note: '' })
     setAdding(false)
   }
+
+  // Normalize localStorage entries from older versions that don't have country/source fields
+  const normalizedCustom = customSpots.map(s => ({ ...s, country: s.country || 'Custom', source: 'custom' }))
+
+  const allSpots = useMemo(() => [...CURATED_SPOTS, ...normalizedCustom], [customSpots])
+
+  const countries = useMemo(() => {
+    const set = new Set(allSpots.map(s => s.country).filter(Boolean))
+    return ['All', ...Array.from(set).sort()]
+  }, [allSpots])
+
+  const categories = useMemo(() => {
+    const set = new Set(allSpots.map(s => s.category).filter(Boolean))
+    return ['All', ...Array.from(set).sort()]
+  }, [allSpots])
+
+  const filteredSpots = useMemo(() => {
+    return allSpots
+      .filter(s => countryFilter === 'All' || s.country === countryFilter)
+      .filter(s => categoryFilter === 'All' || s.category === categoryFilter)
+      .sort((a, b) => {
+        // Group by country, then by category, then by name
+        if (a.country !== b.country) return (a.country || '').localeCompare(b.country || '')
+        if ((a.category || '') !== (b.category || '')) return (a.category || '').localeCompare(b.category || '')
+        return (a.name || '').localeCompare(b.name || '')
+      })
+  }, [allSpots, countryFilter, categoryFilter])
 
   const sel = { ...inp, cursor: 'pointer' }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-        <SectionHeader label="My Spots" title={`${spots.length} spot${spots.length !== 1 ? 's' : ''}`} />
-        {!adding && <button onClick={() => setAdding(true)} style={{ ...primaryBtn, marginTop: '1.5rem' }}>Add Spot</button>}
+        <SectionHeader label="My Spots" title={`${filteredSpots.length} of ${allSpots.length} spot${allSpots.length !== 1 ? 's' : ''}`} />
+        {!adding && <button onClick={() => setAdding(true)} style={{ ...primaryBtn, marginTop: '1.5rem' }}>Add Custom Spot</button>}
       </div>
+
+      {/* Filters */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem', maxWidth: '560px', marginBottom: '2rem' }}>
+        <div>
+          <label style={lbl}>Country</label>
+          <select value={countryFilter} onChange={e => setCountryFilter(e.target.value)} style={sel}>
+            {countries.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={lbl}>Category</label>
+          <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} style={sel}>
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+
       {adding && (
         <form onSubmit={addSpot} style={{ marginBottom: '2rem', padding: '2rem', border: `1px solid ${C.sand}`, backgroundColor: C.parchment }}>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: '400', color: C.ink, marginBottom: '1.5rem' }}>New Spot</p>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: '400', color: C.ink, marginBottom: '1.5rem' }}>New Custom Spot</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Name</label><input value={form.name} onChange={set('name')} required style={inp} placeholder="Restaurant or hotel name" /></div>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>City</label><input value={form.city} onChange={set('city')} required style={inp} placeholder="Lisbon" /></div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Neighborhood</label><input value={form.neighborhood} onChange={set('neighborhood')} style={inp} placeholder="Chiado" /></div>
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label style={lbl}>Category</label>
-              <select value={form.category} onChange={set('category')} style={sel}>
-                <option>Restaurant</option><option>Stay</option><option>Bar</option><option>Experience</option><option>Other</option>
-              </select>
-            </div>
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label style={lbl}>Price tier</label>
-              <select value={form.priceTier} onChange={set('priceTier')} style={sel}>
-                <option>$</option><option>$$</option><option>$$$</option><option>$$$$</option>
-              </select>
-            </div>
+            <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Address</label><input value={form.address} onChange={set('address')} style={inp} placeholder="Rua de..." /></div>
+          </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={lbl}>Category</label>
+            <select value={form.category} onChange={set('category')} style={sel}>
+              <option>Restaurant</option><option>Hotel</option><option>Bar</option><option>Café</option><option>Food Hall</option><option>Experience</option><option>Other</option>
+            </select>
           </div>
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={lbl}>Note</label>
@@ -180,25 +240,44 @@ function MySpots() {
           </div>
         </form>
       )}
-      {spots.length === 0 && !adding && (
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.mid }}>No spots yet. Add your first one.</p>
+
+      {filteredSpots.length === 0 && !adding && (
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.mid }}>No spots match these filters.</p>
       )}
-      {spots.map(spot => (
-        <div key={spot.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem', borderBottom: `1px solid ${C.sand}`, padding: '1.25rem 0', alignItems: 'start' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
-              <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: '400', color: C.ink }}>{spot.name}</h3>
-              <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', color: C.gold }}>{spot.priceTier}</span>
-              <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, border: `1px solid ${C.sand}`, padding: '0.15rem 0.4rem' }}>{spot.category}</span>
+
+      {filteredSpots.map((spot, i) => {
+        const prev = filteredSpots[i - 1]
+        const showCountryHeader = !prev || prev.country !== spot.country
+        return (
+          <div key={spot.id}>
+            {showCountryHeader && (
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginTop: i === 0 ? 0 : '2rem', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `1px solid ${C.gold}` }}>
+                {spot.country}
+              </p>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem', borderBottom: `1px solid ${C.sand}`, padding: '1.25rem 0', alignItems: 'start' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+                  <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: '400', color: C.ink }}>{spot.name}</h3>
+                  <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, border: `1px solid ${C.sand}`, padding: '0.15rem 0.4rem' }}>{spot.category}</span>
+                </div>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: C.tan, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: spot.address ? '0.2rem' : '0.5rem' }}>
+                  {[spot.neighborhood, spot.city].filter(Boolean).join(' · ')}
+                </p>
+                {spot.address && (
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: C.tan, marginBottom: '0.5rem' }}>
+                    {spot.address}
+                  </p>
+                )}
+                {spot.note && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.mid, lineHeight: '1.6' }}>{spot.note}</p>}
+              </div>
+              {spot.source === 'custom' && (
+                <button onClick={() => saveCustom(customSpots.filter(s => s.id !== spot.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: '0.25rem', flexShrink: 0 }}>Remove</button>
+              )}
             </div>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: C.tan, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-              {[spot.neighborhood, spot.city].filter(Boolean).join(' · ')}
-            </p>
-            {spot.note && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.mid, lineHeight: '1.6' }}>{spot.note}</p>}
           </div>
-          <button onClick={() => saveSpots(spots.filter(s => s.id !== spot.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: '0.25rem', flexShrink: 0 }}>Remove</button>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
