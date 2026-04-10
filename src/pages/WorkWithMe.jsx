@@ -26,13 +26,32 @@ const initialForm = { name: '', email: '', destinations: '', dates: '', length: 
 export default function WorkWithMe() {
   const [form, setForm] = useState(initialForm)
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
 
   const labelStyle = { fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.tan, display: 'block', marginBottom: '0.5rem' }
   const inputStyle = { width: '100%', fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: colors.ink, backgroundColor: colors.white, border: `1px solid ${colors.sand}`, padding: '0.75rem 1rem', outline: 'none', marginBottom: '1.5rem', appearance: 'none' }
   const selectStyle = { ...inputStyle, cursor: 'pointer', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239E8660' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', paddingRight: '2.5rem' }
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
-  const handleSubmit = (e) => { e.preventDefault(); setSubmitted(true) }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch('https://formspree.io/f/mgopjvbz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('Submission failed')
+      setSubmitted(true)
+    } catch {
+      setError('Something went wrong. Please try again or email directly.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (submitted) {
     return (
@@ -164,7 +183,8 @@ export default function WorkWithMe() {
                 <option value="other">Other</option>
               </select>
 
-              <button type="submit" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: colors.gold, border: 'none', padding: '1rem 2.5rem', cursor: 'pointer', marginTop: '0.5rem', transition: 'background-color 0.2s ease' }} onMouseEnter={e => e.target.style.backgroundColor = '#8A7550'} onMouseLeave={e => e.target.style.backgroundColor = colors.gold}>Send My Brief</button>
+              {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: '#B85C45', marginBottom: '1rem' }}>{error}</p>}
+              <button type="submit" disabled={submitting} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: submitting ? colors.tan : colors.gold, border: 'none', padding: '1rem 2.5rem', cursor: submitting ? 'not-allowed' : 'pointer', marginTop: '0.5rem', transition: 'background-color 0.2s ease' }} onMouseEnter={e => { if (!submitting) e.target.style.backgroundColor = '#8A7550' }} onMouseLeave={e => { if (!submitting) e.target.style.backgroundColor = colors.gold }}>{submitting ? 'Sending...' : 'Send My Brief'}</button>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginTop: '1.25rem', lineHeight: '1.6' }}>I'll respond within 48 hours. No commitment until we've talked.</p>
             </form>
           </div>
