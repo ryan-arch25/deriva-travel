@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import RecommendationEngine from '../components/RecommendationEngine'
+import DestinationFooter from '../components/DestinationFooter'
 import { regions, restaurants, stays, logistics } from '../data/portugal'
 
 const colors = {
@@ -113,10 +113,9 @@ export default function Portugal() {
           {activeTab === 'Stay' && <StayTab />}
           {activeTab === 'Logistics' && <LogisticsTab />}
 
-          <RecommendationEngine
-            destination="Portugal"
-            restaurants={restaurants}
-            stays={stays}
+          <DestinationFooter
+            country="Portugal"
+            whyCopy="Portugal is the best value in Western Europe right now and it won't stay that way. Lisbon and Porto are the entry points but the Alentejo and the coast are where you actually want to spend time. Best for people who travel slowly and eat well."
           />
         </div>
       </div>

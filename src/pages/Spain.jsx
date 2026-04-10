@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import RecommendationEngine from '../components/RecommendationEngine'
+import DestinationFooter from '../components/DestinationFooter'
 import { regions, restaurants, stays, logistics } from '../data/spain'
 
 const colors = {
@@ -131,7 +131,10 @@ export default function Spain() {
 
           {activeTab === 'Logistics' && <LogisticsTab />}
 
-          <RecommendationEngine destination="Spain" restaurants={restaurants} stays={stays} />
+          <DestinationFooter
+            country="Spain"
+            whyCopy="Spain has more regional variety than most people realize. Madrid, the Basque Country, the Costa Brava, and Andalusia are four completely different trips. Best for people who want food, culture, and late nights in equal measure."
+          />
         </div>
       </div>
       <Footer />

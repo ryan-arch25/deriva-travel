@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import RecommendationEngine from '../components/RecommendationEngine'
+import DestinationFooter from '../components/DestinationFooter'
 import { regions, restaurants, stays, logistics } from '../data/iceland'
 
 const colors = {
@@ -131,7 +131,10 @@ export default function Iceland() {
 
           {activeTab === 'Logistics' && <LogisticsTab />}
 
-          <RecommendationEngine destination="Iceland" restaurants={restaurants} stays={stays} />
+          <DestinationFooter
+            country="Iceland"
+            whyCopy="Iceland rewards people who actually want to go somewhere. The landscape is unlike anything else on earth and Reykjavík is one of the most livable, walkable cities in Europe. Best for people who want real nature without roughing it."
+          />
         </div>
       </div>
       <Footer />

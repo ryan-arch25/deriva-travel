@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import RecommendationEngine from '../components/RecommendationEngine'
+import DestinationFooter from '../components/DestinationFooter'
 import { regions, restaurants, stays, logistics } from '../data/italy'
 
 const colors = {
@@ -111,10 +111,9 @@ export default function Italy() {
           {activeTab === 'Stay' && <StayTab />}
           {activeTab === 'Logistics' && <LogisticsTab />}
 
-          <RecommendationEngine
-            destination="Italy"
-            restaurants={restaurants}
-            stays={stays}
+          <DestinationFooter
+            country="Italy"
+            whyCopy="Italy has been done to death and is still worth it. The trick is knowing where to go and what to skip. Best for people who want to eat well, move slowly, and leave with something to actually talk about."
           />
         </div>
       </div>
