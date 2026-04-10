@@ -397,10 +397,21 @@ function SpotRow({ spot }) {
           color: colors.tan,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          marginBottom: '0.6rem',
+          marginBottom: spot.address ? '0.25rem' : '0.6rem',
         }}>
-          {spot.neighborhood} &middot; {spot.city}
+          {spot.neighborhood ? <>{spot.neighborhood} &middot; {spot.city}</> : spot.city}
         </p>
+        {spot.address && (
+          <p style={{
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '0.75rem',
+            fontWeight: '300',
+            color: colors.tan,
+            marginBottom: '0.6rem',
+          }}>
+            {spot.address}
+          </p>
+        )}
         <p style={{
           fontFamily: 'system-ui, sans-serif',
           fontSize: '0.875rem',
@@ -426,14 +437,16 @@ function SpotRow({ spot }) {
           ))}
         </div>
       </div>
-      <span style={{
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: '0.8rem',
-        color: colors.gold,
-        whiteSpace: 'nowrap',
-      }}>
-        {spot.priceTier}
-      </span>
+      {spot.priceTier && (
+        <span style={{
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: '0.8rem',
+          color: colors.gold,
+          whiteSpace: 'nowrap',
+        }}>
+          {spot.priceTier}
+        </span>
+      )}
     </div>
   )
 }

@@ -172,7 +172,8 @@ function SpotRow({ spot }) {
     <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem', borderBottom: `1px solid ${colors.sand}`, padding: '1.5rem 0', alignItems: 'start' }}>
       <div>
         <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.05rem', fontWeight: '400', color: colors.ink, marginBottom: '0.25rem' }}>{spot.name}</h3>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: colors.tan, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>{spot.neighborhood} &middot; {spot.city}</p>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: colors.tan, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: spot.address ? '0.25rem' : '0.6rem' }}>{spot.neighborhood ? <>{spot.neighborhood} &middot; {spot.city}</> : spot.city}</p>
+        {spot.address && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginBottom: '0.6rem' }}>{spot.address}</p>}
         <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: colors.mid, lineHeight: '1.65' }}>{spot.note}</p>
         <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
           {spot.vibe?.map(tag => (
@@ -180,7 +181,7 @@ function SpotRow({ spot }) {
           ))}
         </div>
       </div>
-      <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: colors.gold, whiteSpace: 'nowrap' }}>{spot.priceTier}</span>
+      {spot.priceTier && <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: colors.gold, whiteSpace: 'nowrap' }}>{spot.priceTier}</span>}
     </div>
   )
 }
