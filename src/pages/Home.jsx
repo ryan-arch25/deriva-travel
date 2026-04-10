@@ -16,9 +16,9 @@ const destinations = [
 ]
 
 const steps = [
-  { num: '01', title: 'Tell me about your trip', body: 'Fill out a short form with the basics.' },
-  { num: '02', title: 'We get on a quick call', body: '20 minutes to talk through what you\'re looking for.' },
-  { num: '03', title: 'Receive your itinerary', body: 'A fully custom, branded travel plan built for you.' },
+  { title: 'Share your idea with me' },
+  { title: 'We talk through the details' },
+  { title: 'I take it from there' },
 ]
 
 export default function Home() {
@@ -77,10 +77,8 @@ export default function Home() {
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', fontWeight: '500', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c0614a', marginBottom: '3rem', textAlign: 'center' }}>How It Works</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '3rem 4rem' }}>
             {steps.map(step => (
-              <div key={step.num}>
-                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', fontWeight: '500', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#c0614a', marginBottom: '1rem' }}>{step.num}</p>
-                <h3 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 2.6vw, 1.7rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.25', marginBottom: '0.75rem' }}>{step.title}</h3>
-                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: '#c8b89a', lineHeight: '1.65', maxWidth: '280px' }}>{step.body}</p>
+              <div key={step.title}>
+                <h3 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 2.6vw, 1.7rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.25' }}>{step.title}</h3>
               </div>
             ))}
           </div>
