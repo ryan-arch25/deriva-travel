@@ -72,7 +72,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="how-it-works" style={{ padding: '6rem 2rem', maxWidth: '1100px', margin: '0 auto' }}>
+      <section id="how-it-works" style={{ padding: '3rem 2rem 6rem', maxWidth: '1100px', margin: '0 auto' }}>
         <p style={sectionLabelStyle}>How It Works</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '3rem 4rem', marginTop: '2rem' }}>
           {steps.map(step => (
@@ -98,7 +98,9 @@ export default function Home() {
             No templates. No aggregated reviews. No lists of the same twelve restaurants. Just good judgment, applied to your trip.
           </p>
           <div style={{ marginTop: '2.5rem' }}>
-            <Link to="/work-with-me" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.gold, textDecoration: 'none', borderBottom: '1px solid #9E8660', paddingBottom: '2px' }}>Work With Me</Link>
+            <Link to="/work-with-me" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: colors.gold, padding: '1rem 2rem', textDecoration: 'none', border: '1px solid #9E8660', display: 'inline-block' }}>
+              Work With Me
+            </Link>
           </div>
         </div>
       </section>
