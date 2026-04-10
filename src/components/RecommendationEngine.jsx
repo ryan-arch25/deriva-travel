@@ -107,6 +107,15 @@ ${workWithMeUrl}`
           picksRecap: recap,
         }),
       }).catch(() => {})
+
+      // Also send the polished templated picks email via Resend (fire and forget).
+      // Runs in parallel with the Formspree submission. If Resend fails, the user
+      // still gets the Formspree autoresponse and the form owner still gets notified.
+      fetch('/api/send-picks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: email, country: destination, picks: parsed }),
+      }).catch(() => {})
     } catch {
       setError('Could not get picks right now. Try again in a moment.')
       setStage('email')
