@@ -16,9 +16,9 @@ const destinations = [
 ]
 
 const steps = [
-  { num: '01', title: 'Tell me where you want to go', body: 'Browse destinations, get instant picks tailored to your trip, or work with me directly for a fully custom itinerary.' },
-  { num: '02', title: 'Get a custom itinerary', body: 'A day-by-day plan built from scratch. The right neighborhoods, the right restaurants, the right pace for how you travel.' },
-  { num: '03', title: 'Travel with confidence', body: 'Every detail handled. Bookings, logistics, and backup options. You show up. Everything else is taken care of.' },
+  { num: '01', text: 'Tell me about your trip' },
+  { num: '02', text: 'We get on a call' },
+  { num: '03', text: 'You get your itinerary' },
 ]
 
 export default function Home() {
@@ -72,16 +72,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="how-it-works" style={{ padding: '3rem 2rem 6rem', maxWidth: '1100px', margin: '0 auto' }}>
-        <p style={sectionLabelStyle}>How It Works</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '3rem 4rem', marginTop: '2rem' }}>
-          {steps.map(step => (
-            <div key={step.num}>
-              <p style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', color: colors.sand, marginBottom: '1rem', letterSpacing: '0.05em' }}>{step.num}</p>
-              <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', fontWeight: '400', color: colors.ink, marginBottom: '0.75rem' }}>{step.title}</h3>
-              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7' }}>{step.body}</p>
-            </div>
-          ))}
+      <section id="how-it-works" className="home-how" style={{ backgroundColor: '#1e1a16', padding: '6rem 2rem' }}>
+        <div style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', fontWeight: '500', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c0614a', marginBottom: '3rem' }}>How It Works</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {steps.map(step => (
+              <div key={step.num} className="home-how-step" style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '1.25rem' }}>
+                <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', fontWeight: '500', letterSpacing: '0.2em', color: '#c0614a', flexShrink: 0 }}>{step.num}</span>
+                <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.3' }}>{step.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

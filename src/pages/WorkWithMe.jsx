@@ -68,20 +68,10 @@ export default function WorkWithMe() {
         <Nav />
         <div style={{ maxWidth: '620px', margin: '0 auto', padding: '8rem 2rem', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ width: '3rem', height: '1px', backgroundColor: colors.gold, marginBottom: '2rem' }} />
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1rem' }}>Brief Received</p>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '2.25rem', fontWeight: '400', color: colors.ink, marginBottom: '1.5rem', lineHeight: '1.2' }}>Thank you, {form.name.split(' ')[0] || 'you'}.</h2>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8', marginBottom: '1.5rem' }}>
-            I review every brief personally. Expect a response at <strong style={{ fontWeight: '400', color: colors.charcoal }}>{form.email}</strong> within 48 hours.
-          </p>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8', marginBottom: '2.5rem' }}>
-            If {form.destinations || 'your trip'} sounds like something I can do well, I'll say so. If not, I'll point you in the right direction.
-          </p>
-          <div style={{ padding: '1.5rem', border: `1px solid ${colors.sand}`, backgroundColor: colors.white }}>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>What Happens Next</p>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: colors.charcoal, lineHeight: '1.7' }}>
-              I'll review your brief, follow up with any questions, confirm pricing, and then build your itinerary from scratch. The whole process usually takes 5 to 7 days.
-            </p>
-          </div>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem' }}>Received</p>
+          <h2 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: '500', color: colors.ink, lineHeight: '1.2' }}>
+            Got it. I'll be in touch within 24 hours to set up a call.
+          </h2>
         </div>
         <Footer />
       </div>
@@ -134,7 +124,10 @@ export default function WorkWithMe() {
           </div>
           <div style={{ borderTop: `1px solid ${colors.sand}`, paddingTop: '4rem' }}>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.75rem' }}>Start Here</p>
-            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '2.5rem' }}>Tell me about your trip. The more specific you are, the better the plan.</h2>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '1rem' }}>Tell me about your trip. The more specific you are, the better the plan.</h2>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem' }}>
+              Fill out the form and we'll find time for a short call to talk through your trip.
+            </p>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
