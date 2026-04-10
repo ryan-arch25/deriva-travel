@@ -1127,6 +1127,7 @@ function renderItineraryHtml(it) {
   `
 
   return `<!DOCTYPE html>
+<!-- Deriva itinerary template v2 · dark hero + terracotta accents -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
