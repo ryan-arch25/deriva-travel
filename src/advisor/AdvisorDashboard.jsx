@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { jsPDF } from 'jspdf'
 import * as icelandData from '../data/iceland'
 import * as italyData from '../data/italy'
 import * as spainData from '../data/spain'
@@ -524,507 +523,794 @@ const SEL_STYLE = {
   paddingRight: '2.5rem',
 }
 
-function ItineraryBuilder() {
-  const [form, setForm] = useState({
-    name: '', destination: '', dates: '', length: '',
-    pace: 'balanced', party: 'Couple', partySize: '2',
-    budget: 'Mid-range', cities: '', interests: '',
-    mustInclude: '', mustAvoid: '', notes: '',
-  })
-  const [loading, setLoading] = useState(false)
-  const [itinerary, setItinerary] = useState(null)
-  const [error, setError] = useState(null)
 
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+// ── Itinerary Builder ─────────────────────────────────────────────────────────
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setItinerary(null)
+const ITIN_ITEM_TYPES = [
+  { value: 'meal', label: 'Meal' },
+  { value: 'activity', label: 'Activity' },
+  { value: 'transport', label: 'Transport' },
+  { value: 'note', label: 'Note' },
+]
 
-    const partyDesc = `${form.party}${form.partySize ? `, group of ${form.partySize}` : ''}`
+const makeId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
 
-    // Pull vetted spots from My Spots that match the destination
-    let vettedSpotsBlock = ''
-    try {
-      const allSpots = JSON.parse(localStorage.getItem('deriva_spots') || '[]')
-      const dest = form.destination.toLowerCase()
-      const matched = allSpots.filter(s =>
-        s.city?.toLowerCase().includes(dest) ||
-        dest.includes(s.city?.toLowerCase())
-      )
-      if (matched.length > 0) {
-        const formatted = matched.map(s =>
-          `- ${s.name} (${s.category}) | ${s.city}${s.neighborhood ? ', ' + s.neighborhood : ''}${s.priceTier ? ' | ' + s.priceTier : ''}${s.note ? ' | ' + s.note : ''}`
-        ).join('\n')
-        vettedSpotsBlock = `\n\nAdvisor's vetted spots. Use these as priority recommendations where they fit the day:\n${formatted}\n\nWork these into the itinerary naturally. Don't force them all in, but prefer them over generic alternatives when they match the day's location and vibe.`
-      }
-    } catch { /* ignore localStorage errors */ }
-
-    const prompt = `Create a detailed day-by-day itinerary for this trip:
-
-Client: ${form.name}
-Destination: ${form.destination}
-Travel dates: ${form.dates}
-Trip length: ${form.length}
-Travel party: ${partyDesc}
-Budget: ${form.budget}
-Pace: ${form.pace}
-Cities/regions focus: ${form.cities || 'Advisor discretion'}
-Interests: ${form.interests || 'Not specified'}
-Must include: ${form.mustInclude || 'None specified'}
-Must avoid: ${form.mustAvoid || 'None'}
-Additional notes: ${form.notes || 'None'}${vettedSpotsBlock}
-
-Return a JSON object with exactly this structure:
-{
-  "clientName": "client name",
-  "destination": "destination name",
-  "dates": "travel dates",
-  "days": [
-    {
-      "dayNumber": 1,
-      "title": "Short evocative title, e.g. Arrive in Lisbon",
-      "morning": "2-3 sentences. Specific place names, neighborhoods, what to do. Direct.",
-      "afternoon": "2-3 sentences. Specific places and experiences. Direct.",
-      "evening": "2-3 sentences. Name a specific restaurant and why it fits tonight.",
-      "logisticsNote": "One practical note: transit, booking requirement, or timing.",
-      "derivaTip": "One opinionated sentence. The thing most visitors miss or get wrong about this day."
-    }
-  ]
+async function itinFetch(method, body, idParam) {
+  const query = idParam ? `?id=${encodeURIComponent(idParam)}` : ''
+  const opts = {
+    method,
+    headers: { 'x-advisor-auth': 'deriva2024' },
+  }
+  if (body !== undefined) {
+    opts.headers['Content-Type'] = 'application/json'
+    opts.body = JSON.stringify(body)
+  }
+  const res = await fetch(`/api/itineraries${query}`, opts)
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || `${res.status}`)
+  return data
 }
 
-Generate exactly the right number of days for the trip length. Tailor recommendations to the party type and budget. Honor all must-include items and avoid must-avoid items. Name actual neighborhoods, restaurants, and experiences. No generic travel advice. Return valid JSON only. No markdown.`
+function ItineraryBuilder() {
+  const [mode, setMode] = useState('list') // list | edit | preview
+  const [itineraries, setItineraries] = useState([])
+  const [active, setActive] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [saveState, setSaveState] = useState('idle') // idle | saving | saved | error
+  const saveTimer = useRef(null)
+  const latestDataRef = useRef(null)
 
+  const loadList = async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const text = await callAI({
-        system: `You are a personal travel advisor who has actually been to these places. You have strong opinions about where to eat, stay, and spend time. You recommend the neighborhood, not just the city. You know which restaurants are coasting on reputation and which are worth the wait. You speak like a sharp, well-traveled friend writing a personal note, not a guidebook. Short sentences. Specific names. No filler, no hedging, no "consider visiting." If the advisor has provided vetted spots, treat those as your strongest recommendations and weave them into the days where they fit geographically and by vibe. Never use em dashes or double dashes. Use commas, periods, and parentheses instead.`,
-        messages: [{ role: 'user', content: prompt }],
-        maxTokens: 4096,
-      })
-      const cleaned = text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-      const data = JSON.parse(cleaned)
-      setItinerary(data)
+      const data = await itinFetch('GET')
+      setItineraries(data.itineraries || [])
     } catch (err) {
-      setError(`Could not generate itinerary: ${err.message}`)
+      setError('Could not load itineraries. Check that /api/itineraries is running.')
     } finally {
       setLoading(false)
     }
   }
 
-  if (loading) {
+  useEffect(() => { loadList() }, [])
+
+  const openItinerary = async (id) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await itinFetch('GET', undefined, id)
+      setActive(data.itinerary)
+      latestDataRef.current = data.itinerary
+      setMode('edit')
+    } catch (err) {
+      setError('Could not load that itinerary.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const createNew = async () => {
+    setError(null)
+    try {
+      const data = await itinFetch('POST', { clientName: 'Untitled Itinerary' })
+      setActive(data.itinerary)
+      latestDataRef.current = data.itinerary
+      setMode('edit')
+      loadList()
+    } catch (err) {
+      setError('Could not create itinerary.')
+    }
+  }
+
+  const removeItinerary = async (id) => {
+    if (!confirm('Delete this itinerary? This cannot be undone.')) return
+    try {
+      await itinFetch('DELETE', undefined, id)
+      loadList()
+    } catch (err) {
+      setError('Could not delete itinerary.')
+    }
+  }
+
+  const updateActive = (updater) => {
+    setActive(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      latestDataRef.current = next
+      return next
+    })
+    setSaveState('saving')
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(async () => {
+      const toSave = latestDataRef.current
+      if (!toSave?.id) return
+      try {
+        const { id, createdAt, updatedAt, ...fields } = toSave
+        await itinFetch('PATCH', { id, ...fields })
+        setSaveState('saved')
+        loadList()
+      } catch {
+        setSaveState('error')
+      }
+    }, 1200)
+  }
+
+  const saveNow = async () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    const toSave = latestDataRef.current
+    if (!toSave?.id) return
+    setSaveState('saving')
+    try {
+      const { id, createdAt, updatedAt, ...fields } = toSave
+      await itinFetch('PATCH', { id, ...fields })
+      setSaveState('saved')
+      loadList()
+    } catch {
+      setSaveState('error')
+    }
+  }
+
+  const backToList = async () => {
+    await saveNow()
+    setActive(null)
+    setMode('list')
+  }
+
+  if (mode === 'list') {
     return (
       <div>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.tan, marginBottom: '1rem' }}>Building Itinerary</p>
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: '400', color: C.ink, marginBottom: '0.75rem' }}>Planning {form.length} in {form.destination}...</p>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.mid }}>This takes about 20 seconds.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+          <SectionHeader label="Itinerary Builder" title={loading ? 'Loading…' : `${itineraries.length} itinerar${itineraries.length === 1 ? 'y' : 'ies'}`} />
+          <button onClick={createNew} style={{ ...primaryBtn, marginTop: '1.5rem' }}>New Itinerary</button>
+        </div>
+        {error && <div style={{ padding: '1rem', border: `1px solid ${C.tan}`, marginBottom: '1.5rem', fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.charcoal }}>{error}</div>}
+        {!loading && itineraries.length === 0 && !error && (
+          <div style={{ padding: '2rem', border: `1px dashed ${C.sand}`, fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', color: C.mid }}>
+            No itineraries yet. Click New Itinerary to start one.
+          </div>
+        )}
+        {itineraries.map(it => (
+          <div key={it.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '1rem', borderBottom: `1px solid ${C.sand}`, padding: '1.25rem 0', alignItems: 'center' }}>
+            <button onClick={() => openItinerary(it.id)} style={{ background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', padding: 0 }}>
+              <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.05rem', color: C.ink, marginBottom: '0.25rem' }}>{it.clientName || 'Untitled'}</p>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', color: C.tan, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                {[it.destination, it.dates, it.dayCount ? `${it.dayCount} day${it.dayCount !== 1 ? 's' : ''}` : null].filter(Boolean).join(' · ') || 'No details yet'}
+              </p>
+            </button>
+            <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: C.tan }}>{it.updatedAt ? new Date(it.updatedAt).toLocaleDateString() : ''}</span>
+            <button onClick={() => removeItinerary(it.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: '0.25rem' }}>Delete</button>
+          </div>
+        ))}
       </div>
     )
   }
 
-  if (itinerary) {
-    return <ItineraryView itinerary={itinerary} onReset={() => setItinerary(null)} />
-  }
+  if (!active) return null
+
+  const saveLabel = { idle: '', saving: 'Saving…', saved: 'Saved', error: 'Save failed' }[saveState]
 
   return (
     <div>
-      <SectionHeader label="Itinerary Builder" title="Build a day-by-day itinerary." />
-      <form onSubmit={handleSubmit} style={{ maxWidth: '600px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
-          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Client name</label><input value={form.name} onChange={set('name')} required style={inp} placeholder="Jane Smith" /></div>
-          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Destination</label><input value={form.destination} onChange={set('destination')} required style={inp} placeholder="Portugal" /></div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
-          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travel dates</label><input value={form.dates} onChange={set('dates')} style={inp} placeholder="May 10-24, 2025" /></div>
-          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Trip length</label><input value={form.length} onChange={set('length')} required style={inp} placeholder="10 days" /></div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Travel party</label>
-            <select value={form.party} onChange={set('party')} style={SEL_STYLE}>
-              <option value="Solo">Solo</option>
-              <option value="Couple">Couple</option>
-              <option value="Friends">Friends</option>
-              <option value="Family">Family</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Group size</label>
-            <input value={form.partySize} onChange={set('partySize')} type="number" min="1" max="20" style={inp} placeholder="2" />
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Budget tier</label>
-            <select value={form.budget} onChange={set('budget')} style={SEL_STYLE}>
-              <option value="Budget">Budget</option>
-              <option value="Mid-range">Mid-range</option>
-              <option value="Splurge">Splurge</option>
-              <option value="No limit">No limit</option>
-            </select>
-          </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Pace</label>
-            <select value={form.pace} onChange={set('pace')} style={SEL_STYLE}>
-              <option value="slow">Slow and deep</option>
-              <option value="balanced">Balanced</option>
-              <option value="packed">Packed</option>
-            </select>
-          </div>
-        </div>
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label style={lbl}>Cities or regions</label>
-          <input value={form.cities} onChange={set('cities')} style={inp} placeholder="Lisbon and Porto, skip Algarve" />
-        </div>
-        <div style={{ marginBottom: '1.25rem' }}>
-          <label style={lbl}>Interests</label>
-          <input value={form.interests} onChange={set('interests')} style={inp} placeholder="Food, wine, architecture, coastal walks..." />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Must include</label>
-            <input value={form.mustInclude} onChange={set('mustInclude')} style={inp} placeholder="Belcanto, Sintra day trip..." />
-          </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Must avoid</label>
-            <input value={form.mustAvoid} onChange={set('mustAvoid')} style={inp} placeholder="Busy tourist traps, long drives..." />
-          </div>
-        </div>
-        <div style={{ marginBottom: '1.75rem' }}>
-          <label style={lbl}>Notes</label>
-          <textarea value={form.notes} onChange={set('notes')} rows={3} style={{ ...inp, resize: 'vertical' }} placeholder="No chain hotels, vegetarian options needed, celebrating anniversary..." />
-        </div>
-        {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: '#9E6060', marginBottom: '1rem' }}>{error}</p>}
-        <button type="submit" style={primaryBtn}>Build Itinerary</button>
-      </form>
-    </div>
-  )
-}
-
-// ── Itinerary editing helpers ────────────────────────────────────────────────
-
-function EditableText({ value, onChange, textStyle, rows = 3 }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value)
-  const ref = useRef(null)
-
-  useEffect(() => { if (!editing) setDraft(value) }, [value, editing])
-  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select() } }, [editing])
-
-  const commit = () => { onChange(draft.trim()); setEditing(false) }
-
-  if (editing) {
-    return (
-      <textarea
-        ref={ref}
-        value={draft}
-        onChange={e => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={e => { if (e.key === 'Escape') { setDraft(value); setEditing(false) } }}
-        rows={rows}
-        style={{
-          width: '100%', boxSizing: 'border-box', resize: 'vertical',
-          fontFamily: textStyle.fontFamily, fontSize: textStyle.fontSize,
-          fontWeight: textStyle.fontWeight || '300', fontStyle: textStyle.fontStyle || 'normal',
-          lineHeight: textStyle.lineHeight,
-          color: C.ink, backgroundColor: C.white,
-          border: `1.5px solid ${C.gold}`, padding: '0.5rem 0.75rem', outline: 'none',
-        }}
-      />
-    )
-  }
-  return (
-    <p onClick={() => setEditing(true)} style={{ ...textStyle, cursor: 'text', margin: 0 }} title="Click to edit">
-      {value}
-    </p>
-  )
-}
-
-function EditableTitle({ value, onChange }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value)
-  const ref = useRef(null)
-
-  useEffect(() => { if (!editing) setDraft(value) }, [value, editing])
-  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select() } }, [editing])
-
-  const commit = () => { onChange(draft.trim()); setEditing(false) }
-  const titleStyle = {
-    fontFamily: 'Georgia, serif', fontSize: '1.45rem', fontWeight: '400',
-    color: C.white, letterSpacing: '0.02em', lineHeight: '1.2', paddingBottom: '0.6rem',
-  }
-
-  if (editing) {
-    return (
-      <input
-        ref={ref}
-        value={draft}
-        onChange={e => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={e => {
-          if (e.key === 'Enter') commit()
-          if (e.key === 'Escape') { setDraft(value); setEditing(false) }
-        }}
-        style={{ ...titleStyle, background: 'rgba(0,0,0,0.2)', border: 'none', borderBottom: '1.5px solid rgba(255,255,255,0.5)', outline: 'none', width: '100%', padding: '0.25rem 0' }}
-      />
-    )
-  }
-  return (
-    <h3 onClick={() => setEditing(true)} style={{ ...titleStyle, cursor: 'text' }} title="Click to edit">
-      {value}
-    </h3>
-  )
-}
-
-function RewritePanel({ isOpen, onRewrite, onCancel, loading, error }) {
-  const [prompt, setPrompt] = useState('')
-  const ref = useRef(null)
-
-  useEffect(() => {
-    if (isOpen) { setPrompt(''); setTimeout(() => ref.current?.focus(), 0) }
-  }, [isOpen])
-
-  if (!isOpen) return null
-  return (
-    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <input
-        ref={ref}
-        value={prompt}
-        onChange={e => setPrompt(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter' && prompt.trim()) onRewrite(prompt)
-          if (e.key === 'Escape') onCancel()
-        }}
-        placeholder="e.g. focus on food, make it more adventurous, add a morning walk"
-        style={{ flex: 1, minWidth: '180px', fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.ink, backgroundColor: C.white, border: `1px solid ${C.sand}`, padding: '0.5rem 0.75rem', outline: 'none' }}
-      />
-      <button onClick={() => { if (prompt.trim()) onRewrite(prompt) }} disabled={loading || !prompt.trim()} style={{ ...primaryBtn, fontSize: '0.6rem', padding: '0.5rem 0.875rem', backgroundColor: loading || !prompt.trim() ? C.tan : C.gold, cursor: loading || !prompt.trim() ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-        {loading ? 'Rewriting...' : 'Rewrite'}
-      </button>
-      <button onClick={onCancel} style={{ ...ghostBtn, fontSize: '0.6rem', padding: '0.5rem 0.875rem', flexShrink: 0 }}>Cancel</button>
-      {error && <p style={{ width: '100%', fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: '#9E6060', marginTop: '0.25rem' }}>{error}</p>}
-    </div>
-  )
-}
-
-function ItineraryView({ itinerary: initial, onReset }) {
-  const [data, setData] = useState(initial)
-
-  const updateDay = (idx, updated) => setData(d => ({ ...d, days: d.days.map((day, i) => i === idx ? updated : day) }))
-  const deleteDay = (idx) => setData(d => ({ ...d, days: d.days.filter((_, i) => i !== idx) }))
-
-  const exportPDF = () => {
-    const doc = new jsPDF({ unit: 'pt', format: 'letter' })
-    const pageW = doc.internal.pageSize.getWidth()
-    const pageH = doc.internal.pageSize.getHeight()
-    const margin = 54
-    const cw = pageW - margin * 2
-    let y = margin
-
-    const toRgb = hex => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]
-    const tc = hex => doc.setTextColor(...toRgb(hex))
-    const fc = hex => doc.setFillColor(...toRgb(hex))
-    const dc = hex => doc.setDrawColor(...toRgb(hex))
-
-    const bg = () => { fc('#F5F0E8'); doc.rect(0, 0, pageW, pageH, 'F') }
-    const guard = needed => { if (y + needed > pageH - margin) { doc.addPage(); bg(); y = margin } }
-
-    bg()
-
-    tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setCharSpace(3)
-    doc.text('DERIVA', margin, y)
-    doc.setCharSpace(0)
-    const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(7)
-    doc.text(dateStr, pageW - margin - doc.getTextWidth(dateStr), y)
-    y += 22
-
-    tc('#1E1C18'); doc.setFont('times', 'normal'); doc.setFontSize(28)
-    doc.text(data.destination, margin, y); y += 8
-
-    tc('#C8B89A'); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setCharSpace(1.5)
-    doc.text(`${data.clientName}  \u00b7  ${data.dates}`, margin, y); doc.setCharSpace(0); y += 26
-
-    dc('#D8CCBA'); doc.setLineWidth(0.5); doc.line(margin, y, pageW - margin, y); y += 32
-
-    for (const day of data.days) {
-      guard(80)
-      const hdrH = 62
-      fc('#B85C45'); dc('#B85C45'); doc.setLineWidth(0)
-      doc.rect(margin, y, cw, hdrH, 'F')
-      tc('#AC6F51'); doc.setFont('times', 'normal'); doc.setFontSize(48)
-      doc.text(String(day.dayNumber).padStart(2, '0'), margin + 14, y + hdrH - 10)
-      tc('#FDFAF5'); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setCharSpace(2.5)
-      doc.text('DAY ' + day.dayNumber, margin + 80, y + 18); doc.setCharSpace(0)
-      tc('#FDFAF5'); doc.setFont('times', 'normal'); doc.setFontSize(15)
-      doc.text(doc.splitTextToSize(day.title, cw - 100), margin + 80, y + 32)
-      y += hdrH + 2
-
-      const rowBgs = ['#F5F0E8', '#EDE6D8', '#F5F0E8']
-      for (let i = 0; i < 3; i++) {
-        const { label, text } = [
-          { label: 'MORNING', text: day.morning },
-          { label: 'AFTERNOON', text: day.afternoon },
-          { label: 'EVENING', text: day.evening },
-        ][i]
-        const bodyLines = doc.splitTextToSize(text, cw - 80)
-        const rowH = Math.max(bodyLines.length * 13 + 26, 40)
-        guard(rowH)
-        fc(rowBgs[i]); dc(rowBgs[i]); doc.setLineWidth(0)
-        doc.rect(margin, y, cw, rowH, 'F')
-        fc('#D8CCBA'); dc('#D8CCBA')
-        doc.rect(margin, y, 3, rowH, 'F')
-        tc('#9E8660'); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setCharSpace(1.8)
-        doc.text(label, margin + 12, y + 16); doc.setCharSpace(0)
-        tc('#3A3630'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-        doc.text(bodyLines, margin + 80, y + 16)
-        y += rowH
-        dc('#D8CCBA'); doc.setLineWidth(0.3)
-        doc.line(margin, y, margin + cw, y)
-      }
-
-      y += 10
-      const logLines = doc.splitTextToSize(day.logisticsNote, cw - 90)
-      const logH = Math.max(logLines.length * 12 + 24, 36)
-      guard(logH + 8)
-      fc('#D8CCBA'); dc('#C8B89A'); doc.setLineWidth(0.5)
-      doc.rect(margin, y, cw, logH, 'FD')
-      tc('#B85C45'); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setCharSpace(1.8)
-      doc.text('LOGISTICS', margin + 12, y + 15); doc.setCharSpace(0)
-      tc('#2A2520'); doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
-      doc.text(logLines, margin + 90, y + 15)
-      y += logH + 10
-
-      const tipLines = doc.splitTextToSize(day.derivaTip, cw - 24)
-      const tipH = Math.max(tipLines.length * 14 + 22, 36)
-      guard(tipH + 10)
-      fc('#9E8660'); dc('#9E8660'); doc.setLineWidth(0)
-      doc.rect(margin, y, cw, tipH, 'F')
-      tc('#FDFAF5'); doc.setFont('times', 'italic'); doc.setFontSize(9.5)
-      doc.text(tipLines, margin + 12, y + 16)
-      y += tipH + 22
-
-      guard(20); dc('#D8CCBA'); doc.setLineWidth(0.4)
-      doc.line(margin, y, pageW - margin, y); y += 30
-    }
-
-    doc.save(`Deriva-${data.destination}-${data.clientName.replace(/\s+/g, '-')}.pdf`)
-  }
-
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.25rem' }}>Itinerary</p>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: C.ink, marginBottom: '0.35rem' }}>{data.destination}</h2>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
-            {data.clientName} &nbsp;·&nbsp; {data.dates}
+          <button onClick={backToList} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, padding: 0, marginBottom: '0.75rem' }}>← All Itineraries</button>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.75rem', fontWeight: '400', color: C.ink, marginBottom: '0.25rem' }}>{active.clientName || 'Untitled Itinerary'}</p>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', color: C.tan, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            {[active.destination, active.dates].filter(Boolean).join(' · ') || 'No destination yet'}
+            {saveLabel && <span style={{ marginLeft: '1rem', color: saveState === 'error' ? C.terracotta : C.tan }}>· {saveLabel}</span>}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
-          <button onClick={exportPDF} style={primaryBtn}>Export PDF</button>
-          <button onClick={onReset} style={ghostBtn}>New Itinerary</button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={() => setMode('edit')} style={mode === 'edit' ? primaryBtn : ghostBtn}>Edit</button>
+          <button onClick={() => setMode('preview')} style={mode === 'preview' ? primaryBtn : ghostBtn}>Preview</button>
         </div>
       </div>
-      {data.days.map((day, i) => (
-        <DayCard key={day.dayNumber} day={day} dayIndex={i} onUpdate={updateDay} onDelete={deleteDay} />
-      ))}
+
+      {mode === 'edit' && <ItineraryEdit itinerary={active} onChange={updateActive} />}
+      {mode === 'preview' && <ItineraryPreview itinerary={active} />}
     </div>
   )
 }
 
-function DayCard({ day, dayIndex, onUpdate, onDelete }) {
-  const [activeRewrite, setActiveRewrite] = useState(null)
-  const [rewriteLoading, setRewriteLoading] = useState(false)
-  const [rewriteError, setRewriteError] = useState(null)
+function ItineraryEdit({ itinerary, onChange }) {
+  const patch = (fields) => onChange(prev => ({ ...prev, ...fields }))
 
-  const setField = (field, value) => onUpdate(dayIndex, { ...day, [field]: value })
-  const openRewrite = (field) => { setActiveRewrite(field); setRewriteError(null) }
-  const closeRewrite = () => { setActiveRewrite(null); setRewriteError(null) }
+  const addHotel = () => onChange(prev => ({
+    ...prev,
+    hotels: [...(prev.hotels || []), { id: makeId('hotel'), name: '', city: '', checkIn: '', checkOut: '', confirmation: '', link: '' }],
+  }))
+  const updateHotel = (id, fields) => onChange(prev => ({
+    ...prev,
+    hotels: (prev.hotels || []).map(h => h.id === id ? { ...h, ...fields } : h),
+  }))
+  const removeHotel = (id) => onChange(prev => ({ ...prev, hotels: (prev.hotels || []).filter(h => h.id !== id) }))
 
-  const handleRewrite = async (field, prompt) => {
-    setRewriteLoading(true)
-    setRewriteError(null)
-    const labels = { morning: 'morning', afternoon: 'afternoon', evening: 'evening', logisticsNote: 'logistics note', derivaTip: 'Deriva tip' }
-    try {
-      const text = await callAI({
-        system: `You are Deriva's travel curator. Rewrite a single section of a travel itinerary based on the advisor's instruction. Be specific, direct, editorial. 2 to 3 sentences max. Never use em dashes or double dashes. Use commas, periods, and parentheses instead.`,
-        messages: [{ role: 'user', content: `Day ${day.dayNumber}: ${day.title}\nSection: ${labels[field]}\nCurrent: "${day[field]}"\n\nInstruction: ${prompt}\n\nReturn only the rewritten text. No quotes, no explanation.` }],
-        maxTokens: 512,
-      })
-      setField(field, text.trim())
-      closeRewrite()
-    } catch (err) {
-      setRewriteError(err.message)
-    } finally {
-      setRewriteLoading(false)
-    }
+  const addFlight = () => onChange(prev => ({
+    ...prev,
+    flights: [...(prev.flights || []), { id: makeId('flight'), airline: '', flightNumber: '', from: '', to: '', departDate: '', departTime: '', arriveDate: '', arriveTime: '', confirmation: '' }],
+  }))
+  const updateFlight = (id, fields) => onChange(prev => ({
+    ...prev,
+    flights: (prev.flights || []).map(f => f.id === id ? { ...f, ...fields } : f),
+  }))
+  const removeFlight = (id) => onChange(prev => ({ ...prev, flights: (prev.flights || []).filter(f => f.id !== id) }))
+
+  const addDay = () => onChange(prev => ({
+    ...prev,
+    days: [...(prev.days || []), { id: makeId('day'), date: '', city: '', title: '', items: [] }],
+  }))
+  const updateDay = (id, fields) => onChange(prev => ({
+    ...prev,
+    days: (prev.days || []).map(d => d.id === id ? { ...d, ...fields } : d),
+  }))
+  const removeDay = (id) => onChange(prev => ({ ...prev, days: (prev.days || []).filter(d => d.id !== id) }))
+  const moveDay = (id, dir) => onChange(prev => {
+    const days = [...(prev.days || [])]
+    const i = days.findIndex(d => d.id === id)
+    if (i === -1) return prev
+    const j = i + dir
+    if (j < 0 || j >= days.length) return prev
+    ;[days[i], days[j]] = [days[j], days[i]]
+    return { ...prev, days }
+  })
+
+  const addItem = (dayId) => {
+    const day = (itinerary.days || []).find(d => d.id === dayId)
+    if (!day) return
+    updateDay(dayId, {
+      items: [...(day.items || []), { id: makeId('item'), time: '', type: 'activity', label: '', link: '' }],
+    })
+  }
+  const updateItem = (dayId, itemId, fields) => {
+    const day = (itinerary.days || []).find(d => d.id === dayId)
+    if (!day) return
+    updateDay(dayId, { items: (day.items || []).map(it => it.id === itemId ? { ...it, ...fields } : it) })
+  }
+  const removeItem = (dayId, itemId) => {
+    const day = (itinerary.days || []).find(d => d.id === dayId)
+    if (!day) return
+    updateDay(dayId, { items: (day.items || []).filter(it => it.id !== itemId) })
+  }
+  const moveItem = (dayId, itemId, dir) => {
+    const day = (itinerary.days || []).find(d => d.id === dayId)
+    if (!day) return
+    const items = [...(day.items || [])]
+    const i = items.findIndex(it => it.id === itemId)
+    if (i === -1) return
+    const j = i + dir
+    if (j < 0 || j >= items.length) return
+    ;[items[i], items[j]] = [items[j], items[i]]
+    updateDay(dayId, { items })
   }
 
-  const rewriteToggle = (field, color) => (
-    <button
-      onClick={() => activeRewrite === field ? closeRewrite() : openRewrite(field)}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: color || (activeRewrite === field ? C.terracotta : C.tan), padding: '0.15rem 0.4rem' }}
-    >
-      ↻ Rewrite
-    </button>
-  )
+  const addDocument = () => onChange(prev => ({
+    ...prev,
+    documents: [...(prev.documents || []), { id: makeId('doc'), label: '', url: '' }],
+  }))
+  const updateDocument = (id, fields) => onChange(prev => ({
+    ...prev,
+    documents: (prev.documents || []).map(d => d.id === id ? { ...d, ...fields } : d),
+  }))
+  const removeDocument = (id) => onChange(prev => ({ ...prev, documents: (prev.documents || []).filter(d => d.id !== id) }))
 
-  const sections = [
-    { field: 'morning', label: 'Morning', bg: C.white },
-    { field: 'afternoon', label: 'Afternoon', bg: C.cream },
-    { field: 'evening', label: 'Evening', bg: C.white },
-  ]
+  const sel = { ...inp, cursor: 'pointer' }
 
   return (
-    <div style={{ marginBottom: '2.5rem', border: `1px solid ${C.sand}`, overflow: 'hidden' }}>
-      <div style={{ backgroundColor: C.terracotta, padding: '2rem 2.5rem 1.75rem', position: 'relative' }}>
-        <button onClick={() => onDelete(dayIndex)} style={{ position: 'absolute', top: '1rem', right: '1.5rem', background: 'none', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0.25rem 0.6rem' }}>
-          Remove Day
-        </button>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: '0.75rem' }}>Day {day.dayNumber}</p>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '5rem', fontWeight: '400', color: 'rgba(158,134,96,0.38)', lineHeight: '1', flexShrink: 0, userSelect: 'none' }}>
-            {String(day.dayNumber).padStart(2, '0')}
-          </span>
-          <EditableTitle value={day.title} onChange={v => setField('title', v)} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+      {/* Trip Details */}
+      <section>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: `1px solid ${C.sand}` }}>Trip Details</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Client name</label><input value={itinerary.clientName || ''} onChange={e => patch({ clientName: e.target.value })} style={inp} placeholder="Jane Smith" /></div>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Destination(s)</label><input value={itinerary.destination || ''} onChange={e => patch({ destination: e.target.value })} style={inp} placeholder="Italy" /></div>
         </div>
-      </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travel dates</label><input value={itinerary.dates || ''} onChange={e => patch({ dates: e.target.value })} style={inp} placeholder="June 12-22, 2026" /></div>
+          <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travelers</label><input value={itinerary.travelers || ''} onChange={e => patch({ travelers: e.target.value })} style={inp} placeholder="2" /></div>
+        </div>
+        <label style={lbl}>Internal notes</label>
+        <textarea value={itinerary.notes || ''} onChange={e => patch({ notes: e.target.value })} rows={3} style={{ ...inp, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Private notes about this client or trip. Not shown in the preview." />
+      </section>
 
-      {sections.map(({ field, label, bg }) => (
-        <div key={field} style={{ backgroundColor: bg, borderLeft: `3px solid ${C.sand}`, padding: '1.5rem 2.5rem', borderBottom: `1px solid ${C.sand}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.52rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.gold }}>{label}</p>
-            {rewriteToggle(field)}
+      {/* Hotels */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: `1px solid ${C.sand}` }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold }}>Hotels</p>
+          <button type="button" onClick={addHotel} style={ghostBtn}>Add Hotel</button>
+        </div>
+        {(itinerary.hotels || []).length === 0 && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.mid }}>No hotels yet.</p>}
+        {(itinerary.hotels || []).map(h => (
+          <div key={h.id} style={{ padding: '1.5rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Hotel name</label><input value={h.name} onChange={e => updateHotel(h.id, { name: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>City</label><input value={h.city} onChange={e => updateHotel(h.id, { city: e.target.value })} style={inp} /></div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Check-in</label><input type="date" value={h.checkIn} onChange={e => updateHotel(h.id, { checkIn: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Check-out</label><input type="date" value={h.checkOut} onChange={e => updateHotel(h.id, { checkOut: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Confirmation #</label><input value={h.confirmation} onChange={e => updateHotel(h.id, { confirmation: e.target.value })} style={inp} /></div>
+            </div>
+            <div style={{ marginBottom: '1rem' }}><label style={lbl}>Booking link (optional)</label><input value={h.link} onChange={e => updateHotel(h.id, { link: e.target.value })} style={inp} placeholder="https://…" /></div>
+            <button type="button" onClick={() => removeHotel(h.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: 0 }}>Remove</button>
           </div>
-          <EditableText value={day[field]} onChange={v => setField(field, v)} textStyle={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.85' }} rows={3} />
-          <RewritePanel isOpen={activeRewrite === field} onRewrite={p => handleRewrite(field, p)} onCancel={closeRewrite} loading={rewriteLoading && activeRewrite === field} error={activeRewrite === field ? rewriteError : null} />
-        </div>
-      ))}
+        ))}
+      </section>
 
-      <div style={{ backgroundColor: C.parchment, padding: '1.25rem 2.5rem', borderBottom: `1px solid ${C.sand}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.terracotta, fontWeight: '600' }}>Logistics</p>
-          {rewriteToggle('logisticsNote')}
+      {/* Flights */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: `1px solid ${C.sand}` }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold }}>Flights</p>
+          <button type="button" onClick={addFlight} style={ghostBtn}>Add Flight</button>
         </div>
-        <EditableText value={day.logisticsNote} onChange={v => setField('logisticsNote', v)} textStyle={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75' }} rows={2} />
-        <RewritePanel isOpen={activeRewrite === 'logisticsNote'} onRewrite={p => handleRewrite('logisticsNote', p)} onCancel={closeRewrite} loading={rewriteLoading && activeRewrite === 'logisticsNote'} error={activeRewrite === 'logisticsNote' ? rewriteError : null} />
+        {(itinerary.flights || []).length === 0 && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.mid }}>No flights yet.</p>}
+        {(itinerary.flights || []).map(f => (
+          <div key={f.id} style={{ padding: '1.5rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Airline</label><input value={f.airline} onChange={e => updateFlight(f.id, { airline: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Flight #</label><input value={f.flightNumber} onChange={e => updateFlight(f.id, { flightNumber: e.target.value })} style={inp} placeholder="AA 100" /></div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>From</label><input value={f.from} onChange={e => updateFlight(f.id, { from: e.target.value })} style={inp} placeholder="JFK" /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>To</label><input value={f.to} onChange={e => updateFlight(f.id, { to: e.target.value })} style={inp} placeholder="FCO" /></div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0 1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Depart date</label><input type="date" value={f.departDate} onChange={e => updateFlight(f.id, { departDate: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Depart time</label><input type="time" value={f.departTime} onChange={e => updateFlight(f.id, { departTime: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Arrive date</label><input type="date" value={f.arriveDate} onChange={e => updateFlight(f.id, { arriveDate: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Arrive time</label><input type="time" value={f.arriveTime} onChange={e => updateFlight(f.id, { arriveTime: e.target.value })} style={inp} /></div>
+            </div>
+            <div style={{ marginBottom: '1rem' }}><label style={lbl}>Confirmation #</label><input value={f.confirmation} onChange={e => updateFlight(f.id, { confirmation: e.target.value })} style={inp} /></div>
+            <button type="button" onClick={() => removeFlight(f.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: 0 }}>Remove</button>
+          </div>
+        ))}
+      </section>
+
+      {/* Day by Day */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: `1px solid ${C.sand}` }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold }}>Day by Day</p>
+          <button type="button" onClick={addDay} style={ghostBtn}>Add Day</button>
+        </div>
+        {(itinerary.days || []).length === 0 && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.mid }}>No days yet.</p>}
+        {(itinerary.days || []).map((d, i) => (
+          <div key={d.id} style={{ padding: '1.5rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: C.ink }}>Day {i + 1}</p>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button type="button" disabled={i === 0} onClick={() => moveDay(d.id, -1)} style={{ ...ghostBtn, padding: '0.4rem 0.75rem', opacity: i === 0 ? 0.3 : 1 }}>↑</button>
+                <button type="button" disabled={i === (itinerary.days || []).length - 1} onClick={() => moveDay(d.id, 1)} style={{ ...ghostBtn, padding: '0.4rem 0.75rem', opacity: i === (itinerary.days || []).length - 1 ? 0.3 : 1 }}>↓</button>
+                <button type="button" onClick={() => removeDay(d.id)} style={{ ...ghostBtn, padding: '0.4rem 0.75rem' }}>Delete</button>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '0 1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Date</label><input type="date" value={d.date} onChange={e => updateDay(d.id, { date: e.target.value })} style={inp} /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>City</label><input value={d.city} onChange={e => updateDay(d.id, { city: e.target.value })} style={inp} placeholder="Florence" /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={lbl}>Title / theme</label><input value={d.title} onChange={e => updateDay(d.id, { title: e.target.value })} style={inp} placeholder="Arrival in Florence" /></div>
+            </div>
+
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.5rem' }}>Items</p>
+            {(d.items || []).map((it, j) => (
+              <div key={it.id} style={{ display: 'grid', gridTemplateColumns: '90px 130px 1fr auto', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <input value={it.time} onChange={e => updateItem(d.id, it.id, { time: e.target.value })} placeholder="9:00" style={{ ...inp, padding: '0.5rem 0.6rem', fontSize: '0.85rem' }} />
+                <select value={it.type} onChange={e => updateItem(d.id, it.id, { type: e.target.value })} style={{ ...sel, padding: '0.5rem 0.6rem', fontSize: '0.85rem' }}>
+                  {ITIN_ITEM_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.5rem' }}>
+                  <input value={it.label} onChange={e => updateItem(d.id, it.id, { label: e.target.value })} placeholder="Lunch at Trattoria Cammillo" style={{ ...inp, padding: '0.5rem 0.6rem', fontSize: '0.85rem' }} />
+                  <input value={it.link} onChange={e => updateItem(d.id, it.id, { link: e.target.value })} placeholder="Link (optional)" style={{ ...inp, padding: '0.5rem 0.6rem', fontSize: '0.85rem' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <button type="button" disabled={j === 0} onClick={() => moveItem(d.id, it.id, -1)} style={{ ...ghostBtn, padding: '0.35rem 0.5rem', opacity: j === 0 ? 0.3 : 1 }}>↑</button>
+                  <button type="button" disabled={j === (d.items || []).length - 1} onClick={() => moveItem(d.id, it.id, 1)} style={{ ...ghostBtn, padding: '0.35rem 0.5rem', opacity: j === (d.items || []).length - 1 ? 0.3 : 1 }}>↓</button>
+                  <button type="button" onClick={() => removeItem(d.id, it.id)} style={{ ...ghostBtn, padding: '0.35rem 0.6rem' }}>×</button>
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={() => addItem(d.id)} style={{ ...ghostBtn, marginTop: '0.5rem' }}>Add Item</button>
+          </div>
+        ))}
+      </section>
+
+      {/* Documents */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: `1px solid ${C.sand}` }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold }}>Documents</p>
+          <button type="button" onClick={addDocument} style={ghostBtn}>Add Document</button>
+        </div>
+        {(itinerary.documents || []).length === 0 && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.mid }}>No documents yet.</p>}
+        {(itinerary.documents || []).map(doc => (
+          <div key={doc.id} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <input value={doc.label} onChange={e => updateDocument(doc.id, { label: e.target.value })} placeholder="Villa contract" style={inp} />
+            <input value={doc.url} onChange={e => updateDocument(doc.id, { url: e.target.value })} placeholder="https://…" style={inp} />
+            <button type="button" onClick={() => removeDocument(doc.id)} style={ghostBtn}>Remove</button>
+          </div>
+        ))}
+      </section>
+    </div>
+  )
+}
+
+function ItineraryPreview({ itinerary }) {
+  const html = useMemo(() => renderItineraryHtml(itinerary), [itinerary])
+
+  const downloadHtml = () => {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const safeName = (itinerary.clientName || 'itinerary').replace(/[^a-z0-9]+/gi, '-').toLowerCase()
+    a.href = url
+    a.download = `${safeName}-itinerary.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <button onClick={downloadHtml} style={primaryBtn}>Export as HTML</button>
       </div>
-
-      <div style={{ backgroundColor: C.gold, padding: '1.25rem 2.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.5rem', letterSpacing: '0.24em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>Deriva Tip</p>
-          {rewriteToggle('derivaTip', 'rgba(255,255,255,0.65)')}
-        </div>
-        <EditableText value={day.derivaTip} onChange={v => setField('derivaTip', v)} textStyle={{ fontFamily: 'Georgia, serif', fontSize: '0.925rem', fontStyle: 'italic', color: C.white, lineHeight: '1.7' }} rows={2} />
-        <RewritePanel isOpen={activeRewrite === 'derivaTip'} onRewrite={p => handleRewrite('derivaTip', p)} onCancel={closeRewrite} loading={rewriteLoading && activeRewrite === 'derivaTip'} error={activeRewrite === 'derivaTip' ? rewriteError : null} />
+      <div style={{ border: `1px solid ${C.sand}`, overflow: 'hidden' }}>
+        <iframe
+          title="Itinerary preview"
+          srcDoc={html}
+          style={{ width: '100%', height: 'calc(100vh - 240px)', minHeight: '600px', border: 'none', backgroundColor: C.cream }}
+        />
       </div>
     </div>
   )
 }
 
-// ── Dashboard shell ───────────────────────────────────────────────────────────
+// ── Itinerary HTML render ─────────────────────────────────────────────────────
+
+const escapeHtml = (s = '') => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
+const safeUrl = (u = '') => {
+  if (!u) return ''
+  if (/^(https?:|mailto:|tel:)/i.test(u)) return u
+  return `https://${u}`
+}
+
+const formatIsoDate = (iso) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d)) return iso
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+function renderItineraryHtml(it) {
+  const title = escapeHtml(it.clientName || 'Deriva Itinerary')
+  const destination = escapeHtml(it.destination || '')
+  const dates = escapeHtml(it.dates || '')
+  const travelers = escapeHtml(it.travelers || '')
+
+  const hotelsHtml = (it.hotels || []).length === 0 ? '' : `
+    <section class="section">
+      <h2 class="section-label">Hotels</h2>
+      ${(it.hotels || []).map(h => `
+        <div class="card">
+          <div class="card-head">
+            <p class="card-title">${escapeHtml(h.name || 'Hotel')}</p>
+            <p class="card-sub">${escapeHtml(h.city || '')}</p>
+          </div>
+          <div class="card-grid">
+            ${h.checkIn ? `<div><span class="meta-label">Check-in</span><span class="meta-value">${escapeHtml(formatIsoDate(h.checkIn))}</span></div>` : ''}
+            ${h.checkOut ? `<div><span class="meta-label">Check-out</span><span class="meta-value">${escapeHtml(formatIsoDate(h.checkOut))}</span></div>` : ''}
+            ${h.confirmation ? `<div><span class="meta-label">Confirmation</span><span class="meta-value">${escapeHtml(h.confirmation)}</span></div>` : ''}
+          </div>
+          ${h.link ? `<p><a class="link" href="${escapeHtml(safeUrl(h.link))}" target="_blank" rel="noopener">View booking →</a></p>` : ''}
+        </div>
+      `).join('')}
+    </section>
+  `
+
+  const flightsHtml = (it.flights || []).length === 0 ? '' : `
+    <section class="section">
+      <h2 class="section-label">Flights</h2>
+      ${(it.flights || []).map(f => `
+        <div class="card">
+          <div class="card-head">
+            <p class="card-title">${escapeHtml(f.airline || 'Flight')} ${escapeHtml(f.flightNumber || '')}</p>
+            <p class="card-sub">${escapeHtml(f.from || '')}${f.to ? ' → ' + escapeHtml(f.to) : ''}</p>
+          </div>
+          <div class="card-grid">
+            ${f.departDate ? `<div><span class="meta-label">Depart</span><span class="meta-value">${escapeHtml(formatIsoDate(f.departDate))}${f.departTime ? ' · ' + escapeHtml(f.departTime) : ''}</span></div>` : ''}
+            ${f.arriveDate ? `<div><span class="meta-label">Arrive</span><span class="meta-value">${escapeHtml(formatIsoDate(f.arriveDate))}${f.arriveTime ? ' · ' + escapeHtml(f.arriveTime) : ''}</span></div>` : ''}
+            ${f.confirmation ? `<div><span class="meta-label">Confirmation</span><span class="meta-value">${escapeHtml(f.confirmation)}</span></div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </section>
+  `
+
+  const itemTypeClass = { meal: 'item-meal', activity: 'item-activity', transport: 'item-transport', note: 'item-note' }
+
+  const daysHtml = (it.days || []).length === 0 ? '' : `
+    <section class="section">
+      <h2 class="section-label">Day by Day</h2>
+      ${(it.days || []).map((d, i) => `
+        <div class="day-card">
+          <div class="day-head">
+            <p class="day-number">Day ${i + 1}</p>
+            <p class="day-title">${escapeHtml(d.title || '')}</p>
+            <p class="day-meta">${[formatIsoDate(d.date), d.city].filter(Boolean).map(escapeHtml).join(' · ')}</p>
+          </div>
+          ${(d.items || []).length === 0 ? '' : `
+            <div class="day-items">
+              ${(d.items || []).map(item => `
+                <div class="item ${itemTypeClass[item.type] || 'item-activity'}">
+                  <div class="item-time">${escapeHtml(item.time || '')}</div>
+                  <div class="item-body">
+                    <p class="item-type">${escapeHtml(item.type || 'activity')}</p>
+                    <p class="item-label">${item.link ? `<a class="link" href="${escapeHtml(safeUrl(item.link))}" target="_blank" rel="noopener">${escapeHtml(item.label || '')}</a>` : escapeHtml(item.label || '')}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `).join('')}
+    </section>
+  `
+
+  const documentsHtml = (it.documents || []).length === 0 ? '' : `
+    <section class="section">
+      <h2 class="section-label">Documents</h2>
+      <ul class="doc-list">
+        ${(it.documents || []).map(d => `
+          <li><a class="link" href="${escapeHtml(safeUrl(d.url))}" target="_blank" rel="noopener">${escapeHtml(d.label || d.url || 'Document')}</a></li>
+        `).join('')}
+      </ul>
+    </section>
+  `
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${title} · Deriva Itinerary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background-color: #F5F0E8;
+    color: #3A3630;
+    line-height: 1.6;
+  }
+  .page { max-width: 780px; margin: 0 auto; padding: 60px 40px 80px; }
+
+  .header { border-bottom: 1px solid #D8CCBA; padding-bottom: 32px; margin-bottom: 48px; }
+  .wordmark {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 14px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #1E1C18;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #C8B89A;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 44px;
+    font-weight: 500;
+    color: #1E1C18;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .trip-meta { font-size: 14px; color: #7A6E62; line-height: 1.8; }
+  .trip-meta span { color: #C8B89A; margin: 0 10px; }
+
+  .section { margin-bottom: 56px; }
+  .section-label {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #9E8660;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #9E8660;
+  }
+
+  .card {
+    background-color: #FDFAF5;
+    border: 1px solid #D8CCBA;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .card-head { margin-bottom: 16px; }
+  .card-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: #1E1C18;
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #C8B89A;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px 24px;
+    padding-top: 12px;
+    border-top: 1px solid #EDE6D8;
+  }
+  .card-grid > div { display: flex; flex-direction: column; }
+  .meta-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #C8B89A;
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 15px;
+    color: #1E1C18;
+  }
+  .card p:last-child { margin-top: 12px; }
+
+  .day-card {
+    background-color: #FDFAF5;
+    border: 1px solid #D8CCBA;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+  }
+  .day-head { border-bottom: 1px solid #EDE6D8; padding-bottom: 16px; margin-bottom: 20px; }
+  .day-number {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #9E8660;
+    margin-bottom: 8px;
+  }
+  .day-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: #1E1C18;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .day-meta {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7A6E62;
+  }
+
+  .day-items { display: flex; flex-direction: column; gap: 12px; }
+  .item {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 16px;
+    padding: 14px 16px;
+    border-left: 3px solid #D8CCBA;
+    background-color: #F5F0E8;
+  }
+  .item-time {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 16px;
+    color: #9E8660;
+    padding-top: 2px;
+  }
+  .item-type {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #C8B89A;
+    margin-bottom: 4px;
+  }
+  .item-label {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    color: #1E1C18;
+    line-height: 1.4;
+  }
+  .item-meal {
+    border-left-color: #9E8660;
+    background-color: #FDFAF5;
+  }
+  .item-meal .item-type { color: #9E8660; }
+  .item-transport {
+    background-color: transparent;
+    border-left-color: #C8B89A;
+  }
+  .item-transport .item-label {
+    font-style: italic;
+    color: #7A6E62;
+  }
+  .item-note {
+    background-color: transparent;
+    border-left-color: #EDE6D8;
+  }
+  .item-note .item-label {
+    font-size: 14px;
+    color: #7A6E62;
+    font-family: -apple-system, system-ui, sans-serif;
+  }
+
+  .doc-list { list-style: none; }
+  .doc-list li {
+    padding: 14px 0;
+    border-bottom: 1px solid #EDE6D8;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+  }
+  .doc-list li:last-child { border-bottom: none; }
+
+  .link {
+    color: #9E8660;
+    text-decoration: none;
+    border-bottom: 1px solid #9E8660;
+    padding-bottom: 1px;
+  }
+  .link:hover { color: #8A7550; }
+
+  .footer {
+    margin-top: 80px;
+    padding-top: 40px;
+    border-top: 1px solid #D8CCBA;
+    text-align: center;
+  }
+  .footer-wordmark {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 12px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #1E1C18;
+    margin-bottom: 8px;
+  }
+  .footer-contact { font-size: 12px; color: #9E8660; }
+  .footer-contact a { color: #9E8660; text-decoration: none; border-bottom: 1px solid #9E8660; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <p class="wordmark">Deriva</p>
+    <p class="eyebrow">Itinerary</p>
+    <h1>${title}</h1>
+    <p class="trip-meta">
+      ${destination ? destination : ''}
+      ${destination && dates ? '<span>·</span>' : ''}
+      ${dates ? dates : ''}
+      ${(destination || dates) && travelers ? '<span>·</span>' : ''}
+      ${travelers ? `${travelers} traveler${travelers === '1' ? '' : 's'}` : ''}
+    </p>
+  </header>
+
+  ${flightsHtml}
+  ${hotelsHtml}
+  ${daysHtml}
+  ${documentsHtml}
+
+  <footer class="footer">
+    <p class="footer-wordmark">Deriva</p>
+    <p class="footer-contact">
+      <a href="mailto:hello@deriva.travel">hello@deriva.travel</a>
+    </p>
+  </footer>
+</div>
+</body>
+</html>`
+}
 
 // ── Leads Dashboard ───────────────────────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import { listLeads, createLead, updateLead } from './lib/leads-store.js'
+import { listItineraries, getItinerary, createItinerary, updateItinerary, deleteItinerary } from './lib/itineraries-store.js'
 
 const ADVISOR_TOKEN = process.env.ADVISOR_AUTH_TOKEN || 'deriva2024'
 const isAuthorized = (req) => req.headers['x-advisor-auth'] === ADVISOR_TOKEN
@@ -57,6 +58,58 @@ app.patch('/api/leads', async (req, res) => {
     const lead = await updateLead(id, patch)
     if (!lead) return res.status(404).json({ error: 'Lead not found' })
     res.json({ ok: true, lead })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/itineraries', async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
+  try {
+    const id = req.query?.id
+    if (id) {
+      const it = await getItinerary(id)
+      if (!it) return res.status(404).json({ error: 'Not found' })
+      return res.json({ itinerary: it })
+    }
+    const itineraries = await listItineraries()
+    res.json({ itineraries })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/itineraries', async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
+  try {
+    const it = await createItinerary(req.body || {})
+    res.json({ itinerary: it })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.patch('/api/itineraries', async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
+  const { id, ...patch } = req.body || {}
+  if (!id) return res.status(400).json({ error: 'id required' })
+  try {
+    const it = await updateItinerary(id, patch)
+    if (!it) return res.status(404).json({ error: 'Not found' })
+    res.json({ itinerary: it })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.delete('/api/itineraries', async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
+  const id = req.query?.id
+  if (!id) return res.status(400).json({ error: 'id required' })
+  try {
+    const deleted = await deleteItinerary(id)
+    if (!deleted) return res.status(404).json({ error: 'Not found' })
+    res.json({ ok: true })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
