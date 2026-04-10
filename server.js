@@ -2,7 +2,6 @@ import 'dotenv/config'
 import express from 'express'
 import fs from 'fs'
 import path from 'path'
-import { sendPicksEmail } from './lib/send-picks-email.js'
 
 const app = express()
 app.use(express.json())
@@ -39,17 +38,6 @@ app.post('/api/log', (req, res) => {
     const row = [new Date().toISOString(), country, email, vibe, party, notes].map(csvEscape).join(',') + '\n'
     fs.appendFileSync(LEADS_PATH, row)
     res.json({ ok: true })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
-
-app.post('/api/send-picks', async (req, res) => {
-  const { to, country, picks } = req.body || {}
-  if (!to || !country || !picks) return res.status(400).json({ error: 'Missing required fields' })
-  try {
-    const data = await sendPicksEmail({ to, country, picks })
-    res.json({ ok: true, id: data?.id })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

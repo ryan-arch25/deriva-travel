@@ -79,11 +79,24 @@ Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotT
       setResults(parsed)
       setStage('results')
 
-      // Send the picks to the user's email (fire and forget)
-      fetch('/api/send-picks', {
+      // Submit the picks + user email to Formspree (fire and forget).
+      // Same endpoint as the contact form. Formspree emails the form owner
+      // a notification containing the user's email and a readable recap of
+      // the picks they were shown.
+      fetch('https://formspree.io/f/mgopjvbz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: email, country: destination, picks: parsed }),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          _subject: `Deriva picks generated — ${destination}`,
+          _replyto: email,
+          formType: 'picks',
+          country: destination,
+          email,
+          vibe,
+          party,
+          notes: notes || '',
+          picksRecap: buildPicksRecap(destination, parsed),
+        }),
       }).catch(() => {})
     } catch {
       setError('Could not get picks right now. Try again in a moment.')
@@ -206,6 +219,34 @@ Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotT
       )}
     </div>
   )
+}
+
+function buildPicksRecap(country, picks) {
+  const lines = []
+  lines.push(`DERIVA PICKS — ${country.toUpperCase()}`)
+  lines.push('')
+  if (picks.intro) { lines.push(picks.intro); lines.push('') }
+  if (picks.restaurants?.length) {
+    lines.push('WHERE TO EAT')
+    for (const r of picks.restaurants) {
+      lines.push(`- ${r.name} (${r.priceTier}) — ${r.neighborhood}, ${r.city}`)
+      if (r.note) lines.push(`  ${r.note}`)
+    }
+    lines.push('')
+  }
+  if (picks.stays?.length) {
+    lines.push('WHERE TO STAY')
+    for (const s of picks.stays) {
+      lines.push(`- ${s.name} (${s.priceTier}) — ${s.neighborhood}, ${s.city}`)
+      if (s.note) lines.push(`  ${s.note}`)
+    }
+    lines.push('')
+  }
+  if (picks.oneThingNotToMiss) {
+    lines.push('ONE THING NOT TO MISS')
+    lines.push(picks.oneThingNotToMiss)
+  }
+  return lines.join('\n')
 }
 
 function SpotCard({ spot }) {
