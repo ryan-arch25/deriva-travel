@@ -81,15 +81,8 @@ Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotT
 
       // Submit the picks + user email to Formspree (fire and forget).
       // Same endpoint as the contact form. Formspree notifies the form owner
-      // and, via _autoresponse, mirrors the picks recap back to the user.
+      // only -- the user-facing picks email is handled separately by Resend.
       const recap = buildPicksRecap(destination, parsed)
-      const workWithMeUrl = `${window.location.origin}/work-with-me`
-      const autoresponse = `${recap}
-
----
-
-Planning this trip and want help putting it all together? That's what I do.
-${workWithMeUrl}`
 
       fetch('https://formspree.io/f/mgopjvbz', {
         method: 'POST',
@@ -97,7 +90,6 @@ ${workWithMeUrl}`
         body: JSON.stringify({
           _subject: `Deriva picks generated — ${destination}`,
           _replyto: email,
-          _autoresponse: autoresponse,
           formType: 'picks',
           country: destination,
           email,
