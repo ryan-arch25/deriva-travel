@@ -39,12 +39,21 @@ export default function WorkWithMe() {
     setSubmitting(true)
     setError(null)
     try {
-      const res = await fetch('https://formspree.io/f/mgopjvbz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      if (!res.ok) throw new Error('Submission failed')
+      // Fire both endpoints in parallel. Formspree handles email
+      // notification, /api/leads stores the lead in the dashboard.
+      const [formspreeRes] = await Promise.all([
+        fetch('https://formspree.io/f/mgopjvbz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(form),
+        }),
+        fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        }).catch(() => {}),
+      ])
+      if (!formspreeRes.ok) throw new Error('Submission failed')
       setSubmitted(true)
     } catch {
       setError('Something went wrong. Please try again or email directly.')

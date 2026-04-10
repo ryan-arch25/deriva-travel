@@ -944,7 +944,210 @@ function DayCard({ day, dayIndex, onUpdate, onDelete }) {
 
 // ── Dashboard shell ───────────────────────────────────────────────────────────
 
+// ── Leads Dashboard ───────────────────────────────────────────────────────────
+
+const ADVISOR_TOKEN = 'deriva2024'
+const STATUS_OPTIONS = [
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'closed', label: 'Closed' },
+]
+const STATUS_STYLES = {
+  new: { background: C.gold, color: C.white, border: C.gold },
+  contacted: { background: C.parchment, color: C.charcoal, border: C.sand },
+  in_progress: { background: C.sand, color: C.ink, border: C.tan },
+  closed: { background: 'transparent', color: C.tan, border: C.sand },
+}
+
+function StatusBadge({ status }) {
+  const s = STATUS_STYLES[status] || STATUS_STYLES.new
+  const label = STATUS_OPTIONS.find(o => o.value === status)?.label || 'New'
+  return (
+    <span style={{
+      display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem',
+      letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0.3rem 0.65rem',
+      backgroundColor: s.background, color: s.color, border: `1px solid ${s.border}`,
+    }}>{label}</span>
+  )
+}
+
+function formatDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function LeadDetailPanel({ lead, onClose, onUpdate }) {
+  const [status, setStatus] = useState(lead.status)
+  const [notes, setNotes] = useState(lead.notes || '')
+  const [savingStatus, setSavingStatus] = useState(false)
+  const [savingNotes, setSavingNotes] = useState(false)
+  const notesTimer = useRef(null)
+
+  // Reset local state when a different lead is selected
+  useEffect(() => {
+    setStatus(lead.status)
+    setNotes(lead.notes || '')
+  }, [lead.id])
+
+  const persist = async (patch) => {
+    const res = await fetch('/api/leads', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-advisor-auth': ADVISOR_TOKEN },
+      body: JSON.stringify({ id: lead.id, ...patch }),
+    })
+    if (!res.ok) throw new Error('Save failed')
+    const data = await res.json()
+    onUpdate(data.lead)
+  }
+
+  const handleStatusChange = async (e) => {
+    const next = e.target.value
+    setStatus(next)
+    setSavingStatus(true)
+    try { await persist({ status: next }) } catch { /* swallow, leave UI as-is */ }
+    finally { setSavingStatus(false) }
+  }
+
+  const handleNotesChange = (e) => {
+    const next = e.target.value
+    setNotes(next)
+    setSavingNotes(true)
+    if (notesTimer.current) clearTimeout(notesTimer.current)
+    notesTimer.current = setTimeout(async () => {
+      try { await persist({ notes: next }) } catch { /* swallow */ }
+      finally { setSavingNotes(false) }
+    }, 600)
+  }
+
+  const Field = ({ label, value }) => (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.35rem' }}>{label}</p>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{value || '—'}</p>
+    </div>
+  )
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(20,18,14,0.4)', zIndex: 50 }} />
+      <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: '520px', backgroundColor: C.cream, borderLeft: `1px solid ${C.sand}`, zIndex: 51, overflowY: 'auto', padding: '2.5rem 2.5rem 4rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+          <div>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.4rem' }}>Lead Detail</p>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: '400', color: C.ink }}>{lead.name}</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', color: C.mid, marginTop: '0.25rem' }}>Submitted {formatDate(lead.createdAt)}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, padding: '0.25rem' }}>Close</button>
+        </div>
+
+        <Field label="Email" value={lead.email} />
+        <Field label="Destinations" value={lead.destinations} />
+        <Field label="Travel Dates" value={lead.dates} />
+        <Field label="Party Size" value={lead.partySize} />
+        <Field label="Tell Me About The Trip" value={lead.tripNotes} />
+        <Field label="How They Heard About Deriva" value={lead.referral} />
+
+        <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: `1px solid ${C.sand}` }}>
+          <label style={lbl}>Status {savingStatus && <span style={{ color: C.tan, textTransform: 'none', letterSpacing: 0 }}>· saving</span>}</label>
+          <select value={status} onChange={handleStatusChange} style={{ ...inp, cursor: 'pointer', marginBottom: '1.5rem' }}>
+            {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+
+          <label style={lbl}>Private Notes {savingNotes && <span style={{ color: C.tan, textTransform: 'none', letterSpacing: 0 }}>· saving</span>}</label>
+          <textarea
+            value={notes}
+            onChange={handleNotesChange}
+            rows={6}
+            placeholder="Notes only you can see. Saved automatically."
+            style={{ ...inp, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }}
+          />
+        </div>
+      </div>
+    </>
+  )
+}
+
+function LeadsDashboard() {
+  const [leads, setLeads] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [activeId, setActiveId] = useState(null)
+
+  const load = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/leads', { headers: { 'x-advisor-auth': ADVISOR_TOKEN } })
+      if (!res.ok) throw new Error(`${res.status}`)
+      const data = await res.json()
+      setLeads(data.leads || [])
+    } catch (err) {
+      setError('Could not load leads. Check that /api/leads is running.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleLeadUpdate = (updated) => {
+    setLeads(prev => prev.map(l => l.id === updated.id ? updated : l))
+  }
+
+  const active = leads.find(l => l.id === activeId)
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+        <SectionHeader label="Leads" title={loading ? 'Loading…' : `${leads.length} lead${leads.length !== 1 ? 's' : ''}`} />
+        <button onClick={load} style={{ ...ghostBtn, marginTop: '1.5rem' }}>Refresh</button>
+      </div>
+
+      {error && (
+        <div style={{ padding: '1rem', border: `1px solid ${C.tan}`, marginBottom: '1.5rem', fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.charcoal }}>{error}</div>
+      )}
+
+      {!loading && leads.length === 0 && !error && (
+        <div style={{ padding: '2rem', border: `1px dashed ${C.sand}`, fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', color: C.mid }}>
+          No leads yet. New Work With Me submissions will appear here.
+        </div>
+      )}
+
+      {leads.length > 0 && (
+        <div style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1.4fr 1fr 110px 110px', gap: '1rem', padding: '0.85rem 1.25rem', borderBottom: `1px solid ${C.sand}`, backgroundColor: C.parchment, fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
+            <div>Type</div><div>Name</div><div>Email</div><div>Destination</div><div>Submitted</div><div>Status</div>
+          </div>
+          {leads.map(lead => (
+            <button
+              key={lead.id}
+              onClick={() => setActiveId(lead.id)}
+              style={{
+                display: 'grid', gridTemplateColumns: '120px 1fr 1.4fr 1fr 110px 110px', gap: '1rem',
+                padding: '1rem 1.25rem', borderBottom: `1px solid ${C.sand}`, width: '100%',
+                textAlign: 'left', background: 'none', border: 'none', borderBottom: `1px solid ${C.sand}`,
+                cursor: 'pointer', alignItems: 'center', fontFamily: 'system-ui, sans-serif',
+              }}
+            >
+              <div style={{ fontSize: '0.7rem', color: C.tan, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Work With Me</div>
+              <div style={{ fontSize: '0.875rem', color: C.ink, fontWeight: '400', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.name}</div>
+              <div style={{ fontSize: '0.8rem', color: C.mid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.email}</div>
+              <div style={{ fontSize: '0.8rem', color: C.mid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.destinations}</div>
+              <div style={{ fontSize: '0.75rem', color: C.tan }}>{formatDate(lead.createdAt)}</div>
+              <div><StatusBadge status={lead.status} /></div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {active && <LeadDetailPanel lead={active} onClose={() => setActiveId(null)} onUpdate={handleLeadUpdate} />}
+    </div>
+  )
+}
+
 const NAV = [
+  { id: 'leads', label: 'Leads' },
   { id: 'brief', label: 'New Client Brief' },
   { id: 'itinerary', label: 'Itinerary Builder' },
   { id: 'spots', label: 'My Spots' },
@@ -954,7 +1157,7 @@ const NAV = [
 
 export default function AdvisorDashboard() {
   const navigate = useNavigate()
-  const [section, setSection] = useState('brief')
+  const [section, setSection] = useState('leads')
 
   useEffect(() => {
     if (!sessionStorage.getItem('deriva_advisor')) navigate('/advisor')
@@ -980,6 +1183,7 @@ export default function AdvisorDashboard() {
           ))}
         </div>
         <div style={{ flex: 1, padding: '2.5rem 3rem', minWidth: 0 }}>
+          {section === 'leads' && <LeadsDashboard />}
           {section === 'brief' && <ClientBriefTool />}
           {section === 'itinerary' && <ItineraryBuilder />}
           {section === 'spots' && <MySpots />}

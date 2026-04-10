@@ -3,6 +3,10 @@ import express from 'express'
 import fs from 'fs'
 import path from 'path'
 import { sendPicksEmail } from './lib/send-picks-email.js'
+import { listLeads, createLead, updateLead } from './lib/leads-store.js'
+
+const ADVISOR_TOKEN = process.env.ADVISOR_AUTH_TOKEN || 'deriva2024'
+const isAuthorized = (req) => req.headers['x-advisor-auth'] === ADVISOR_TOKEN
 
 const app = express()
 app.use(express.json())
@@ -50,6 +54,40 @@ app.post('/api/send-picks', async (req, res) => {
   try {
     const data = await sendPicksEmail({ to, country, picks })
     res.json({ ok: true, id: data?.id })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/leads', async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
+  try {
+    const leads = await listLeads()
+    res.json({ leads })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.post('/api/leads', async (req, res) => {
+  const body = req.body || {}
+  if (!body.name || !body.email) return res.status(400).json({ error: 'Missing required fields' })
+  try {
+    const lead = await createLead(body)
+    res.json({ ok: true, id: lead.id })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.patch('/api/leads', async (req, res) => {
+  if (!isAuthorized(req)) return res.status(401).json({ error: 'Unauthorized' })
+  const { id, ...patch } = req.body || {}
+  if (!id) return res.status(400).json({ error: 'id required' })
+  try {
+    const lead = await updateLead(id, patch)
+    if (!lead) return res.status(404).json({ error: 'Lead not found' })
+    res.json({ ok: true, lead })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
