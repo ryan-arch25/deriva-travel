@@ -16,9 +16,9 @@ const destinations = [
 ]
 
 const steps = [
-  { num: '01', text: 'Tell me about your trip' },
-  { num: '02', text: 'We get on a call' },
-  { num: '03', text: 'You get your itinerary' },
+  { num: '01', title: 'Tell me about your trip', body: 'Fill out a short form with the basics.' },
+  { num: '02', title: 'We get on a quick call', body: '20 minutes to talk through what you\'re looking for.' },
+  { num: '03', title: 'Receive your itinerary', body: 'A fully custom, branded travel plan built for you.' },
 ]
 
 export default function Home() {
@@ -73,13 +73,14 @@ export default function Home() {
       </section>
 
       <section id="how-it-works" className="home-how" style={{ backgroundColor: '#1e1a16', padding: '6rem 2rem' }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', fontWeight: '500', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c0614a', marginBottom: '3rem' }}>How It Works</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', fontWeight: '500', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c0614a', marginBottom: '3rem', textAlign: 'center' }}>How It Works</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '3rem 4rem' }}>
             {steps.map(step => (
-              <div key={step.num} className="home-how-step" style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '1.25rem' }}>
-                <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', fontWeight: '500', letterSpacing: '0.2em', color: '#c0614a', flexShrink: 0 }}>{step.num}</span>
-                <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.3' }}>{step.text}</span>
+              <div key={step.num}>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', fontWeight: '500', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#c0614a', marginBottom: '1rem' }}>{step.num}</p>
+                <h3 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.4rem, 2.6vw, 1.7rem)', fontWeight: '500', color: '#f5f0e8', lineHeight: '1.25', marginBottom: '0.75rem' }}>{step.title}</h3>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: '#c8b89a', lineHeight: '1.65', maxWidth: '280px' }}>{step.body}</p>
               </div>
             ))}
           </div>

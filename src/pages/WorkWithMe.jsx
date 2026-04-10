@@ -69,8 +69,8 @@ export default function WorkWithMe() {
         <div style={{ maxWidth: '620px', margin: '0 auto', padding: '8rem 2rem', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ width: '3rem', height: '1px', backgroundColor: colors.gold, marginBottom: '2rem' }} />
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem' }}>Received</p>
-          <h2 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: '500', color: colors.ink, lineHeight: '1.2' }}>
-            Got it. I'll be in touch within 24 hours to set up a call.
+          <h2 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.9rem, 3.8vw, 2.5rem)', fontWeight: '500', color: colors.ink, lineHeight: '1.25' }}>
+            Thanks for reaching out. I'll be in touch within 24 hours to schedule a quick call to talk through your trip.
           </h2>
         </div>
         <Footer />
@@ -126,7 +126,7 @@ export default function WorkWithMe() {
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.75rem' }}>Start Here</p>
             <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '1rem' }}>Tell me about your trip. The more specific you are, the better the plan.</h2>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem' }}>
-              Fill out the form and we'll find time for a short call to talk through your trip.
+              Fill out the form below and we'll set up a short call to talk through your trip. No commitment required. Just a conversation.
             </p>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>
