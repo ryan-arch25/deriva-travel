@@ -16,7 +16,7 @@ const destinations = [
 ]
 
 const steps = [
-  { num: '01', title: 'Tell me where you want to go', body: 'Share your destination, travel style, and what matters most to you. No forms. Just a conversation.' },
+  { num: '01', title: 'Tell me where you want to go', body: 'Browse destinations, get instant picks tailored to your trip, or work with me directly for a fully custom itinerary.' },
   { num: '02', title: 'Get a custom itinerary', body: 'A day-by-day plan built from scratch. The right neighborhoods, the right restaurants, the right pace for how you travel.' },
   { num: '03', title: 'Travel with confidence', body: 'Every detail handled. Bookings, logistics, and backup options. You show up. Everything else is taken care of.' },
 ]
@@ -92,7 +92,7 @@ export default function Home() {
             Deriva exists for people who are tired of going somewhere and feeling like they went nowhere.
           </p>
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8', marginBottom: '1rem' }}>
-            Every recommendation is personal. Every itinerary is built from scratch. The goal is not to show you Europe -- it is to show you a version of Europe that actually fits how you travel.
+            Every recommendation is personal. Every itinerary is built from scratch. The goal is not to show you Europe. It is to show you a version of Europe that actually fits how you travel.
           </p>
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8' }}>
             No templates. No aggregated reviews. No lists of the same twelve restaurants. Just good judgment, applied to your trip.

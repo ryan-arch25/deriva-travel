@@ -9,8 +9,8 @@ const colors = {
 
 const WHAT_I_OFFER = [
   'A day-by-day itinerary built around how you actually travel, not a template',
-  'Restaurant picks that are current -- not whatever topped a list two years ago',
-  'Hotel recommendations chosen for character, location, and value -- not star ratings',
+  'Restaurant picks that are current, not whatever topped a list two years ago',
+  'Hotel recommendations chosen for character, location, and value instead of star ratings',
   'Logistics handled so you show up knowing exactly what to do',
   'One round of revisions included',
 ]
@@ -21,7 +21,7 @@ const HOW_IT_WORKS = [
   { num: '03', text: 'Receive your custom itinerary as a clean PDF' },
 ]
 
-const initialForm = { name: '', email: '', destinations: '', dates: '', length: '', party: '', partySize: '', budget: '', interests: '', alreadyBooked: '', notes: '', avoid: '', referral: '' }
+const initialForm = { name: '', email: '', destinations: '', dates: '', partySize: '', tripNotes: '', referral: '' }
 
 export default function WorkWithMe() {
   const [form, setForm] = useState(initialForm)
@@ -83,12 +83,16 @@ export default function WorkWithMe() {
     <div style={{ backgroundColor: colors.cream, minHeight: '100vh' }}>
       <Nav />
       <div style={{ paddingTop: '60px' }}>
+        <div style={{ position: 'relative', height: '60vh', minHeight: '420px', overflow: 'hidden' }}>
+          <img src="/images/hero.jpg" alt="European landscape" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(20,18,14,0.15) 0%, rgba(20,18,14,0) 40%, rgba(20,18,14,0.35) 100%)' }} />
+        </div>
         <div style={{ backgroundColor: colors.parchment, borderBottom: `1px solid ${colors.sand}`, padding: '5rem 2rem 4rem' }}>
           <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '1rem' }}>Work With Me</p>
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '400', color: colors.ink, letterSpacing: '0.03em', marginBottom: '1rem', lineHeight: '1.1' }}>Europe, planned properly.</h1>
             <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', fontWeight: '400', color: colors.charcoal, maxWidth: '520px', lineHeight: '1.6', marginBottom: '1.5rem' }}>Most itineraries are built from the same ten articles. Mine aren't.</p>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8', marginBottom: '1rem' }}>I stay current on what's actually worth your time in Europe right now -- the restaurants people are talking about, the neighborhoods that haven't tipped yet, the hotels that deliver. You get a real plan from someone who pays attention.</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8', marginBottom: '1rem' }}>I stay current on what's actually worth your time in Europe right now. The restaurants people are talking about, the neighborhoods that haven't tipped yet, the hotels that deliver. You get a real plan from someone who pays attention.</p>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8' }}>I work with a limited number of clients at a time. If you're serious about the trip, fill out the form below and I'll follow up within 48 hours.</p>
           </div>
         </div>
@@ -106,7 +110,7 @@ export default function WorkWithMe() {
               <div style={{ marginTop: '2rem', padding: '1.25rem', border: `1px solid ${colors.sand}`, backgroundColor: colors.white }}>
                 <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>Pricing</p>
                 <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: colors.ink }}>Simple pricing.</p>
-                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.35rem' }}>Custom itineraries starting at $150. Final price depends on trip length and complexity. I confirm before we begin -- no surprises.</p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.35rem' }}>Custom itineraries starting at $150. Final price depends on trip length and complexity. I confirm before we begin, no surprises.</p>
               </div>
             </div>
             <div>
@@ -134,42 +138,10 @@ export default function WorkWithMe() {
               <input id="destinations" name="destinations" type="text" required value={form.destinations} onChange={handleChange} style={inputStyle} placeholder="Portugal, Italy, both..." />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
                 <div><label style={labelStyle} htmlFor="dates">Travel dates</label><input id="dates" name="dates" type="text" value={form.dates} onChange={handleChange} style={inputStyle} placeholder="June 2025, flexible..." /></div>
-                <div><label style={labelStyle} htmlFor="length">Trip length</label><input id="length" name="length" type="text" value={form.length} onChange={handleChange} style={inputStyle} placeholder="10 days, 2 weeks..." /></div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.5rem' }}>
-                <div>
-                  <label style={labelStyle} htmlFor="party">Travel party</label>
-                  <select id="party" name="party" value={form.party} onChange={handleChange} style={selectStyle}>
-                    <option value="">Select...</option>
-                    <option value="solo">Solo</option>
-                    <option value="couple">Couple</option>
-                    <option value="friends">Friends</option>
-                    <option value="family">Family</option>
-                    <option value="group">Group</option>
-                  </select>
-                </div>
                 <div><label style={labelStyle} htmlFor="partySize">Party size</label><input id="partySize" name="partySize" type="text" value={form.partySize} onChange={handleChange} style={inputStyle} placeholder="2, 4, 6..." /></div>
-                <div>
-                  <label style={labelStyle} htmlFor="budget">Budget tier</label>
-                  <select id="budget" name="budget" value={form.budget} onChange={handleChange} style={selectStyle}>
-                    <option value="">Select...</option>
-                    <option value="budget">Budget-conscious</option>
-                    <option value="mid-range">Mid-range</option>
-                    <option value="splurge">Splurge</option>
-                    <option value="flexible">Flexible</option>
-                  </select>
-                </div>
               </div>
-
-              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>Preferences</p>
-              <label style={labelStyle} htmlFor="interests">Interests and priorities</label>
-              <textarea id="interests" name="interests" rows={3} value={form.interests} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Food and wine, architecture, hiking, art, nightlife, beaches, local markets..." />
-              <label style={labelStyle} htmlFor="notes">Vibe and pace notes</label>
-              <textarea id="notes" name="notes" rows={3} value={form.notes} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Slow and food-focused. Prefer smaller towns. Love wine bars and long lunches..." />
-              <label style={labelStyle} htmlFor="avoid">Anything to avoid</label>
-              <textarea id="avoid" name="avoid" rows={2} value={form.avoid} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Big tourist sites, long bus rides, spicy food, hostels..." />
-              <label style={labelStyle} htmlFor="alreadyBooked">Anything already booked</label>
-              <textarea id="alreadyBooked" name="alreadyBooked" rows={2} value={form.alreadyBooked} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Flights, hotels, specific restaurants, tours..." />
+              <label style={labelStyle} htmlFor="tripNotes">Tell me about the trip. What matters most, what you want to avoid, anything already booked.</label>
+              <textarea id="tripNotes" name="tripNotes" rows={5} value={form.tripNotes} onChange={handleChange} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'system-ui, sans-serif' }} placeholder="Slow and food-focused. Prefer smaller towns. Flights already booked into Lisbon. Allergic to shellfish..." />
 
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>One Last Thing</p>
               <label style={labelStyle} htmlFor="referral">How did you hear about Deriva?</label>

@@ -37,15 +37,15 @@ export default function RecommendationEngine({ destination, restaurants, stays }
     setError(null)
     setStage('loading')
 
-    // Log the email submission (fire and forget — don't block picks if it fails)
+    // Log the email submission (fire and forget, don't block picks if it fails)
     fetch('/api/log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ country: destination, email, vibe, party, notes }),
     }).catch(() => {})
 
-    const rData = restaurants.map(r => `${r.name} (${r.city}, ${r.neighborhood}) -- ${r.priceTier} -- ${r.note}`).join('\n')
-    const sData = stays.map(s => `${s.name} (${s.city}, ${s.neighborhood}) -- ${s.priceTier} -- ${s.note}`).join('\n')
+    const rData = restaurants.map(r => `${r.name} | ${r.city}, ${r.neighborhood} | ${r.priceTier} | ${r.note}`).join('\n')
+    const sData = stays.map(s => `${s.name} | ${s.city}, ${s.neighborhood} | ${s.priceTier} | ${s.note}`).join('\n')
     const msg = `A traveler is planning a trip to ${destination}.
 Vibe: ${vibe}
 Party: ${party}
@@ -64,7 +64,7 @@ Return JSON only, no markdown:
   "stays": [{"name":"","city":"","neighborhood":"","priceTier":"","note":""}],
   "oneThingNotToMiss": "A single specific experience in ${destination} the traveler should not skip given their vibe and party. Confident, specific, 2-3 sentences. Sounds like a well-traveled friend, not a travel aggregator. Not a listicle. Name a place, a moment, a time of day."
 }
-Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotToMiss should NOT be from the lists -- it is a single experience or moment, like a sunset walk, an early-morning market, a specific drive, a ritual.`
+Pick 3 to 4 restaurants and 2 to 3 stays from the provided data only. The oneThingNotToMiss should NOT come from the lists. It is a single experience or moment, like a sunset walk, an early-morning market, a specific drive, or a ritual. Do not use em dashes or double dashes anywhere in your output. Write in complete sentences with commas, periods, and parentheses instead.`
 
     try {
       const res = await fetch('/api/chat', {
@@ -81,14 +81,14 @@ Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotT
 
       // Submit the picks + user email to Formspree (fire and forget).
       // Same endpoint as the contact form. Formspree notifies the form owner
-      // only -- the user-facing picks email is handled separately by Resend.
+      // only. The user-facing picks email is handled separately by Resend.
       const recap = buildPicksRecap(destination, parsed)
 
       fetch('https://formspree.io/f/mgopjvbz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          _subject: `Deriva picks generated — ${destination}`,
+          _subject: `Deriva picks generated for ${destination}`,
           _replyto: email,
           formType: 'picks',
           country: destination,
@@ -233,13 +233,13 @@ Pick 3-4 restaurants and 2-3 stays from the provided data only. The oneThingNotT
 
 function buildPicksRecap(country, picks) {
   const lines = []
-  lines.push(`DERIVA PICKS — ${country.toUpperCase()}`)
+  lines.push(`DERIVA PICKS FOR ${country.toUpperCase()}`)
   lines.push('')
   if (picks.intro) { lines.push(picks.intro); lines.push('') }
   if (picks.restaurants?.length) {
     lines.push('WHERE TO EAT')
     for (const r of picks.restaurants) {
-      lines.push(`- ${r.name} (${r.priceTier}) — ${r.neighborhood}, ${r.city}`)
+      lines.push(`• ${r.name} (${r.priceTier}) in ${r.neighborhood}, ${r.city}`)
       if (r.note) lines.push(`  ${r.note}`)
     }
     lines.push('')
@@ -247,7 +247,7 @@ function buildPicksRecap(country, picks) {
   if (picks.stays?.length) {
     lines.push('WHERE TO STAY')
     for (const s of picks.stays) {
-      lines.push(`- ${s.name} (${s.priceTier}) — ${s.neighborhood}, ${s.city}`)
+      lines.push(`• ${s.name} (${s.priceTier}) in ${s.neighborhood}, ${s.city}`)
       if (s.note) lines.push(`  ${s.note}`)
     }
     lines.push('')

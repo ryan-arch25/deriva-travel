@@ -255,19 +255,19 @@ function ResearchTool() {
     setLoading(true)
     try {
       const text = await callAI({
-        system: `You are a sharp, opinionated travel research assistant for a professional travel advisor. You write destination briefs that cut through the noise. Be specific with names, neighborhoods, and prices. No filler, no clichés, no "something for everyone." Write like a well-connected advisor sharing intel with a peer.`,
+        system: `You are a sharp, opinionated travel research assistant for a professional travel advisor. You write destination briefs that cut through the noise. Be specific with names, neighborhoods, and prices. No filler, no clichés, no "something for everyone." Write like a well-connected advisor sharing intel with a peer. Do not use em dashes or double dashes anywhere in your output. Write in complete sentences using commas, periods, and parentheses instead.`,
         messages: [{ role: 'user', content: `Write a destination brief for ${dest}. Return a JSON object with exactly these keys:
 {
   "destination": "destination name",
-  "bestTime": "2-3 sentences on the best time to visit right now and why. Be specific about months and what changes.",
-  "whatsChanged": "2-3 sentences on what's changed recently -- new openings, closures, neighborhoods shifting, policy changes, anything an advisor should know.",
-  "skip": "3-5 specific places or experiences that are overrated. Name names. Explain briefly why each is a skip.",
-  "dontMiss": "3-5 specific underrated spots, neighborhoods, or experiences most advisors don't know about. Be specific.",
-  "restaurants": "4-6 specific restaurants worth booking. Include neighborhood, price tier, and what to order or why it matters. Current picks only.",
-  "stays": "4-6 hotel recommendations organized by budget tier (mid-range, upscale, splurge). Include neighborhood and one sentence on why each.",
-  "logistics": "3-5 practical notes: airport transfers, getting around, tipping, booking lead times, anything that saves the client friction."
+  "bestTime": "2 to 3 sentences on the best time to visit right now and why. Be specific about months and what changes.",
+  "whatsChanged": "2 to 3 sentences on what has changed recently, like new openings, closures, neighborhoods shifting, policy changes, anything an advisor should know.",
+  "skip": "3 to 5 specific places or experiences that are overrated. Name names. Explain briefly why each is a skip.",
+  "dontMiss": "3 to 5 specific underrated spots, neighborhoods, or experiences most advisors don't know about. Be specific.",
+  "restaurants": "4 to 6 specific restaurants worth booking. Include neighborhood, price tier, and what to order or why it matters. Current picks only.",
+  "stays": "4 to 6 hotel recommendations organized by budget tier (mid-range, upscale, splurge). Include neighborhood and one sentence on why each.",
+  "logistics": "3 to 5 practical notes: airport transfers, getting around, tipping, booking lead times, anything that saves the client friction."
 }
-Return valid JSON only. No markdown.` }],
+Return valid JSON only. No markdown. Do not use em dashes or double dashes anywhere in the values.` }],
         maxTokens: 2048,
       })
       const cleaned = text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
@@ -476,7 +476,7 @@ function ItineraryBuilder() {
         const formatted = matched.map(s =>
           `- ${s.name} (${s.category}) | ${s.city}${s.neighborhood ? ', ' + s.neighborhood : ''}${s.priceTier ? ' | ' + s.priceTier : ''}${s.note ? ' | ' + s.note : ''}`
         ).join('\n')
-        vettedSpotsBlock = `\n\nAdvisor's vetted spots -- use these as priority recommendations where they fit the day:\n${formatted}\n\nWork these into the itinerary naturally. Don't force them all in, but prefer them over generic alternatives when they match the day's location and vibe.`
+        vettedSpotsBlock = `\n\nAdvisor's vetted spots. Use these as priority recommendations where they fit the day:\n${formatted}\n\nWork these into the itinerary naturally. Don't force them all in, but prefer them over generic alternatives when they match the day's location and vibe.`
       }
     } catch { /* ignore localStorage errors */ }
 
@@ -517,7 +517,7 @@ Generate exactly the right number of days for the trip length. Tailor recommenda
 
     try {
       const text = await callAI({
-        system: `You are a personal travel advisor who has actually been to these places. You have strong opinions about where to eat, stay, and spend time. You recommend the neighborhood, not just the city. You know which restaurants are coasting on reputation and which are worth the wait. You speak like a sharp, well-traveled friend writing a personal note, not a guidebook. Short sentences. Specific names. No filler, no hedging, no "consider visiting." If the advisor has provided vetted spots, treat those as your strongest recommendations and weave them into the days where they fit geographically and by vibe. Never use em dashes.`,
+        system: `You are a personal travel advisor who has actually been to these places. You have strong opinions about where to eat, stay, and spend time. You recommend the neighborhood, not just the city. You know which restaurants are coasting on reputation and which are worth the wait. You speak like a sharp, well-traveled friend writing a personal note, not a guidebook. Short sentences. Specific names. No filler, no hedging, no "consider visiting." If the advisor has provided vetted spots, treat those as your strongest recommendations and weave them into the days where they fit geographically and by vibe. Never use em dashes or double dashes. Use commas, periods, and parentheses instead.`,
         messages: [{ role: 'user', content: prompt }],
         maxTokens: 4096,
       })
@@ -867,8 +867,8 @@ function DayCard({ day, dayIndex, onUpdate, onDelete }) {
     const labels = { morning: 'morning', afternoon: 'afternoon', evening: 'evening', logisticsNote: 'logistics note', derivaTip: 'Deriva tip' }
     try {
       const text = await callAI({
-        system: `You are Deriva's travel curator. Rewrite a single section of a travel itinerary based on the advisor's instruction. Be specific, direct, editorial. 2-3 sentences max. Never use em dashes.`,
-        messages: [{ role: 'user', content: `Day ${day.dayNumber} — ${day.title}\nSection: ${labels[field]}\nCurrent: "${day[field]}"\n\nInstruction: ${prompt}\n\nReturn only the rewritten text. No quotes, no explanation.` }],
+        system: `You are Deriva's travel curator. Rewrite a single section of a travel itinerary based on the advisor's instruction. Be specific, direct, editorial. 2 to 3 sentences max. Never use em dashes or double dashes. Use commas, periods, and parentheses instead.`,
+        messages: [{ role: 'user', content: `Day ${day.dayNumber}: ${day.title}\nSection: ${labels[field]}\nCurrent: "${day[field]}"\n\nInstruction: ${prompt}\n\nReturn only the rewritten text. No quotes, no explanation.` }],
         maxTokens: 512,
       })
       setField(field, text.trim())
