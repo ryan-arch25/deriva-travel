@@ -205,13 +205,80 @@ function MySpots() {
 
 // ── Research Tool ─────────────────────────────────────────────────────────────
 
+function BriefSection({ title, content }) {
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.5rem' }}>{title}</p>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75', whiteSpace: 'pre-wrap' }}>{content}</p>
+    </div>
+  )
+}
+
+function DestinationBrief({ brief }) {
+  const sections = [
+    ['Best Time to Visit Right Now', brief.bestTime],
+    ["What's Changed Recently", brief.whatsChanged],
+    ['Skip These (Overrated)', brief.skip],
+    ['Don\'t Miss These (Underrated)', brief.dontMiss],
+    ['Must-Book Restaurants', brief.restaurants],
+    ['Best Stays by Budget', brief.stays],
+    ['Key Logistics', brief.logistics],
+  ]
+  return (
+    <div style={{ maxWidth: '100%', border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1.75rem 1.5rem' }}>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.4rem' }}>Destination Brief</p>
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.35rem', fontWeight: '400', color: C.ink, marginBottom: '1.5rem' }}>{brief.destination}</p>
+      <div style={{ width: '2.5rem', height: '1px', backgroundColor: C.sand, marginBottom: '1.5rem' }} />
+      {sections.map(([title, content]) => content ? <BriefSection key={title} title={title} content={content} /> : null)}
+    </div>
+  )
+}
+
 function ResearchTool() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [briefMode, setBriefMode] = useState(false)
+  const [briefDest, setBriefDest] = useState('')
   const bottomRef = useRef(null)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
+  const generateBrief = async () => {
+    const dest = briefDest.trim()
+    if (!dest || loading) return
+    setBriefMode(false)
+    setBriefDest('')
+    const userMsg = { role: 'user', content: `Destination brief: ${dest}` }
+    const updated = [...messages, userMsg]
+    setMessages(updated)
+    setLoading(true)
+    try {
+      const text = await callAI({
+        system: `You are a sharp, opinionated travel research assistant for a professional travel advisor. You write destination briefs that cut through the noise. Be specific with names, neighborhoods, and prices. No filler, no clichés, no "something for everyone." Write like a well-connected advisor sharing intel with a peer.`,
+        messages: [{ role: 'user', content: `Write a destination brief for ${dest}. Return a JSON object with exactly these keys:
+{
+  "destination": "destination name",
+  "bestTime": "2-3 sentences on the best time to visit right now and why. Be specific about months and what changes.",
+  "whatsChanged": "2-3 sentences on what's changed recently -- new openings, closures, neighborhoods shifting, policy changes, anything an advisor should know.",
+  "skip": "3-5 specific places or experiences that are overrated. Name names. Explain briefly why each is a skip.",
+  "dontMiss": "3-5 specific underrated spots, neighborhoods, or experiences most advisors don't know about. Be specific.",
+  "restaurants": "4-6 specific restaurants worth booking. Include neighborhood, price tier, and what to order or why it matters. Current picks only.",
+  "stays": "4-6 hotel recommendations organized by budget tier (mid-range, upscale, splurge). Include neighborhood and one sentence on why each.",
+  "logistics": "3-5 practical notes: airport transfers, getting around, tipping, booking lead times, anything that saves the client friction."
+}
+Return valid JSON only. No markdown.` }],
+        maxTokens: 2048,
+      })
+      const cleaned = text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+      const brief = JSON.parse(cleaned)
+      setMessages([...updated, { role: 'assistant', content: brief, isBrief: true }])
+    } catch (err) {
+      setMessages([...updated, { role: 'assistant', content: `Could not generate brief: ${err.message}` }])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const send = async () => {
     const text = input.trim()
@@ -223,7 +290,7 @@ function ResearchTool() {
     try {
       const text = await callAI({
         system: `You are a research assistant for a professional travel advisor. Answer questions about European destinations, restaurants, hotels, logistics, and trip planning. Be specific and direct. Write for an experienced advisor. No filler, no tourism clichés.`,
-        messages: updated,
+        messages: updated.map(m => ({ role: m.role, content: typeof m.content === 'string' ? m.content : `[Destination brief for ${m.content.destination}]` })),
       })
       setMessages([...updated, { role: 'assistant', content: text }])
     } catch (err) {
@@ -257,9 +324,13 @@ function ResearchTool() {
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.4rem' }}>
               {msg.role === 'user' ? 'You' : 'Deriva'}
             </p>
-            <div style={{ maxWidth: '80%', fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75', backgroundColor: msg.role === 'user' ? C.parchment : C.white, border: `1px solid ${C.sand}`, padding: '1rem 1.25rem', whiteSpace: 'pre-wrap' }}>
-              {msg.content}
-            </div>
+            {msg.isBrief ? (
+              <DestinationBrief brief={msg.content} />
+            ) : (
+              <div style={{ maxWidth: '80%', fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75', backgroundColor: msg.role === 'user' ? C.parchment : C.white, border: `1px solid ${C.sand}`, padding: '1rem 1.25rem', whiteSpace: 'pre-wrap' }}>
+                {typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)}
+              </div>
+            )}
           </div>
         ))}
         {loading && (
@@ -270,8 +341,20 @@ function ResearchTool() {
         )}
         <div ref={bottomRef} />
       </div>
+      {briefMode && (
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem', padding: '0.75rem 1rem', backgroundColor: C.parchment, border: `1px solid ${C.sand}` }}>
+          <input value={briefDest} onChange={e => setBriefDest(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); generateBrief() } if (e.key === 'Escape') setBriefMode(false) }} placeholder="Enter a destination..." autoFocus style={{ ...inp, flex: 1, marginBottom: 0 }} />
+          <button onClick={generateBrief} disabled={loading || !briefDest.trim()} style={{ ...primaryBtn, backgroundColor: loading || !briefDest.trim() ? C.tan : C.gold, cursor: loading || !briefDest.trim() ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>Generate</button>
+          <button onClick={() => { setBriefMode(false); setBriefDest('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan }}>Cancel</button>
+        </div>
+      )}
       <div style={{ display: 'flex', gap: '0.75rem', borderTop: `1px solid ${C.sand}`, paddingTop: '1rem', flexShrink: 0 }}>
-        <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} rows={2} placeholder="Ask about a destination, neighborhood, restaurant... (Enter to send)" style={{ ...inp, flex: 1, resize: 'none' }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {!briefMode && (
+            <button onClick={() => setBriefMode(true)} disabled={loading} style={{ alignSelf: 'flex-start', fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: loading ? C.tan : C.gold, background: 'none', border: `1px solid ${loading ? C.sand : C.gold}`, padding: '0.4rem 0.85rem', cursor: loading ? 'not-allowed' : 'pointer' }}>Destination Brief</button>
+          )}
+          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} rows={2} placeholder="Ask about a destination, neighborhood, restaurant... (Enter to send)" style={{ ...inp, flex: 1, resize: 'none', marginBottom: 0 }} />
+        </div>
         <button onClick={send} disabled={loading || !input.trim()} style={{ ...primaryBtn, alignSelf: 'flex-end', backgroundColor: loading || !input.trim() ? C.tan : C.gold, cursor: loading || !input.trim() ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>Send</button>
       </div>
     </div>
