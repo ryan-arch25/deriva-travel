@@ -30,8 +30,8 @@ export default function Home() {
     <div style={{ backgroundColor: colors.cream, minHeight: '100vh' }}>
       <Nav />
 
-      <section style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8rem 4rem 6rem 4rem' }}>
+      <section className="home-hero" style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1fr', overflow: 'hidden' }}>
+        <div className="home-hero-text" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8rem 4rem 6rem 4rem' }}>
           <p style={{ ...sectionLabelStyle, color: colors.terracotta }}>Deriva</p>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.8rem, 4vw, 5rem)', fontWeight: '400', letterSpacing: '0.05em', color: colors.ink, lineHeight: '1.1', marginBottom: '1.5rem', borderLeft: '3px solid #B85C45', paddingLeft: '1.5rem' }}>
             Europe,<br />Done Right.
@@ -45,7 +45,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <div style={{ position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
+        <div className="home-hero-photo" style={{ position: 'relative', overflow: 'hidden', minHeight: '100vh' }}>
           <img src="/images/hero.jpg" alt="Dolomites Italy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
         </div>
       </section>
@@ -54,7 +54,7 @@ export default function Home() {
         <div style={{ padding: '0 2rem', maxWidth: '1100px', margin: '0 auto' }}>
           <p style={sectionLabelStyle}>Destinations</p>
         </div>
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '0', padding: '0', maxWidth: '1100px', margin: '0 auto', scrollbarWidth: 'none' }}>
+        <div className="home-destinations" style={{ display: 'flex', overflowX: 'auto', gap: '0', padding: '0', maxWidth: '1100px', margin: '0 auto', scrollbarWidth: 'none' }}>
           {destinations.map((d, i) => (
             <div key={d.slug} style={{ minWidth: '280px', flex: '1', borderRight: i < destinations.length - 1 ? '1px solid #D8CCBA' : 'none', display: 'flex', flexDirection: 'column' }}>
               <div style={{ position: 'relative', height: '340px', overflow: 'hidden' }}>
@@ -104,6 +104,35 @@ export default function Home() {
       </section>
 
       <Footer />
+
+      <style>{`
+        @media (max-width: 768px) {
+          .home-hero {
+            grid-template-columns: 1fr !important;
+            min-height: auto !important;
+          }
+          .home-hero-text {
+            padding: 4rem 2rem !important;
+            order: 1;
+          }
+          .home-hero-photo {
+            min-height: 50vh !important;
+            order: 2;
+          }
+          .home-destinations {
+            flex-direction: column !important;
+            overflow-x: visible !important;
+          }
+          .home-destinations > div {
+            min-width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid #D8CCBA;
+          }
+          .home-destinations > div:last-child {
+            border-bottom: none !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
