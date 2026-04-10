@@ -84,7 +84,7 @@ export default function WorkWithMe() {
       <Nav />
       <div style={{ paddingTop: '60px' }}>
         <div style={{ position: 'relative', height: '60vh', minHeight: '420px', overflow: 'hidden' }}>
-          <img src="/images/portugal.jpg" alt="Lisbon street" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src="/images/work-with-me-hero.jpg" alt="Vintage Fiat 500 on a coastal road in Capri" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(20,18,14,0.15) 0%, rgba(20,18,14,0) 40%, rgba(20,18,14,0.35) 100%)' }} />
         </div>
         <div style={{ backgroundColor: colors.parchment, borderBottom: `1px solid ${colors.sand}`, padding: '5rem 2rem 4rem' }}>
