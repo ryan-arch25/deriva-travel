@@ -985,81 +985,142 @@ function renderItineraryHtml(it) {
   const dates = escapeHtml(it.dates || '')
   const travelers = escapeHtml(it.travelers || '')
 
-  const hotelsHtml = (it.hotels || []).length === 0 ? '' : `
-    <section class="section">
-      <h2 class="section-label">Hotels</h2>
-      ${(it.hotels || []).map(h => `
-        <div class="card">
-          <div class="card-head">
-            <p class="card-title">${escapeHtml(h.name || 'Hotel')}</p>
-            <p class="card-sub">${escapeHtml(h.city || '')}</p>
-          </div>
-          <div class="card-grid">
-            ${h.checkIn ? `<div><span class="meta-label">Check-in</span><span class="meta-value">${escapeHtml(formatIsoDate(h.checkIn))}</span></div>` : ''}
-            ${h.checkOut ? `<div><span class="meta-label">Check-out</span><span class="meta-value">${escapeHtml(formatIsoDate(h.checkOut))}</span></div>` : ''}
-            ${h.confirmation ? `<div><span class="meta-label">Confirmation</span><span class="meta-value">${escapeHtml(h.confirmation)}</span></div>` : ''}
-          </div>
-          ${h.link ? `<p><a class="link" href="${escapeHtml(safeUrl(h.link))}" target="_blank" rel="noopener">View booking →</a></p>` : ''}
-        </div>
-      `).join('')}
-    </section>
+  const metaParts = []
+  if (destination) metaParts.push(destination)
+  if (dates) metaParts.push(dates)
+  if (travelers) metaParts.push(`${travelers} Traveler${travelers === '1' ? '' : 's'}`)
+  const metaLine = metaParts.join(' &nbsp;·&nbsp; ')
+
+  const sectionHeader = (label, name = '') => `
+    <div class="section-header">
+      <span class="tag">${escapeHtml(label)}</span>
+      ${name ? `<h2 class="section-name">${escapeHtml(name)}</h2>` : ''}
+      <span class="rule"></span>
+    </div>
   `
 
   const flightsHtml = (it.flights || []).length === 0 ? '' : `
-    <section class="section">
-      <h2 class="section-label">Flights</h2>
+    <section class="block">
+      ${sectionHeader('Flights')}
       ${(it.flights || []).map(f => `
         <div class="card">
-          <div class="card-head">
-            <p class="card-title">${escapeHtml(f.airline || 'Flight')} ${escapeHtml(f.flightNumber || '')}</p>
-            <p class="card-sub">${escapeHtml(f.from || '')}${f.to ? ' → ' + escapeHtml(f.to) : ''}</p>
+          <div class="card-header-row">
+            <div>
+              <p class="card-title">${escapeHtml(f.airline || 'Flight')}${f.flightNumber ? ' ' + escapeHtml(f.flightNumber) : ''}</p>
+              <p class="card-route">${escapeHtml(f.from || '')}${f.to ? ' &nbsp;→&nbsp; ' + escapeHtml(f.to) : ''}</p>
+            </div>
+            ${f.confirmation ? `<div class="confirmation"><span class="conf-label">Confirmation</span><span class="conf-value">${escapeHtml(f.confirmation)}</span></div>` : ''}
           </div>
-          <div class="card-grid">
-            ${f.departDate ? `<div><span class="meta-label">Depart</span><span class="meta-value">${escapeHtml(formatIsoDate(f.departDate))}${f.departTime ? ' · ' + escapeHtml(f.departTime) : ''}</span></div>` : ''}
-            ${f.arriveDate ? `<div><span class="meta-label">Arrive</span><span class="meta-value">${escapeHtml(formatIsoDate(f.arriveDate))}${f.arriveTime ? ' · ' + escapeHtml(f.arriveTime) : ''}</span></div>` : ''}
-            ${f.confirmation ? `<div><span class="meta-label">Confirmation</span><span class="meta-value">${escapeHtml(f.confirmation)}</span></div>` : ''}
+          <div class="card-body">
+            <div class="card-grid">
+              ${f.departDate ? `<div><span class="meta-label">Depart</span><span class="meta-value">${escapeHtml(formatIsoDate(f.departDate))}${f.departTime ? ' · ' + escapeHtml(f.departTime) : ''}</span></div>` : ''}
+              ${f.arriveDate ? `<div><span class="meta-label">Arrive</span><span class="meta-value">${escapeHtml(formatIsoDate(f.arriveDate))}${f.arriveTime ? ' · ' + escapeHtml(f.arriveTime) : ''}</span></div>` : ''}
+            </div>
           </div>
         </div>
       `).join('')}
     </section>
   `
 
-  const itemTypeClass = { meal: 'item-meal', activity: 'item-activity', transport: 'item-transport', note: 'item-note' }
-
-  const daysHtml = (it.days || []).length === 0 ? '' : `
-    <section class="section">
-      <h2 class="section-label">Day by Day</h2>
-      ${(it.days || []).map((d, i) => `
-        <div class="day-card">
-          <div class="day-head">
-            <p class="day-number">Day ${i + 1}</p>
-            <p class="day-title">${escapeHtml(d.title || '')}</p>
-            <p class="day-meta">${[formatIsoDate(d.date), d.city].filter(Boolean).map(escapeHtml).join(' · ')}</p>
-          </div>
-          ${(d.items || []).length === 0 ? '' : `
-            <div class="day-items">
-              ${(d.items || []).map(item => `
-                <div class="item ${itemTypeClass[item.type] || 'item-activity'}">
-                  <div class="item-time">${escapeHtml(item.time || '')}</div>
-                  <div class="item-body">
-                    <p class="item-type">${escapeHtml(item.type || 'activity')}</p>
-                    <p class="item-label">${item.link ? `<a class="link" href="${escapeHtml(safeUrl(item.link))}" target="_blank" rel="noopener">${escapeHtml(item.label || '')}</a>` : escapeHtml(item.label || '')}</p>
-                  </div>
-                </div>
-              `).join('')}
+  const hotelsHtml = (it.hotels || []).length === 0 ? '' : `
+    <section class="block">
+      ${sectionHeader('Hotels')}
+      ${(it.hotels || []).map(h => `
+        <div class="card">
+          <div class="card-header-row">
+            <div>
+              <p class="card-title">${escapeHtml(h.name || 'Hotel')}</p>
+              <p class="card-route">${escapeHtml(h.city || '')}</p>
             </div>
-          `}
+            ${h.confirmation ? `<div class="confirmation"><span class="conf-label">Confirmation</span><span class="conf-value">${escapeHtml(h.confirmation)}</span></div>` : ''}
+          </div>
+          <div class="card-body">
+            <div class="card-grid">
+              ${h.checkIn ? `<div><span class="meta-label">Check-in</span><span class="meta-value">${escapeHtml(formatIsoDate(h.checkIn))}</span></div>` : ''}
+              ${h.checkOut ? `<div><span class="meta-label">Check-out</span><span class="meta-value">${escapeHtml(formatIsoDate(h.checkOut))}</span></div>` : ''}
+            </div>
+            ${h.link ? `<p class="booking-link-wrap"><a class="booking-link" href="${escapeHtml(safeUrl(h.link))}" target="_blank" rel="noopener">View Booking →</a></p>` : ''}
+          </div>
         </div>
       `).join('')}
+    </section>
+  `
+
+  // Group consecutive days with the same city into city groups so each city
+  // in a multi-city itinerary gets its own terracotta city header.
+  const groups = []
+  for (const day of (it.days || [])) {
+    const city = day.city || ''
+    if (!groups.length || groups[groups.length - 1].city !== city) {
+      groups.push({ city, days: [] })
+    }
+    groups[groups.length - 1].days.push(day)
+  }
+
+  const renderItem = (item) => {
+    const typeClass = {
+      meal: 'item item-meal',
+      activity: 'item item-activity',
+      transport: 'item item-transport',
+      note: 'item item-note',
+    }[item.type] || 'item item-activity'
+    const labelHtml = item.link
+      ? `<a class="item-link" href="${escapeHtml(safeUrl(item.link))}" target="_blank" rel="noopener">${escapeHtml(item.label || '')}</a>`
+      : escapeHtml(item.label || '')
+    return `
+      <div class="${typeClass}">
+        <div class="item-time">${escapeHtml(item.time || '')}</div>
+        <div class="item-body">
+          <p class="item-type">${escapeHtml(item.type || 'activity')}</p>
+          <p class="item-label">${labelHtml}</p>
+        </div>
+      </div>
+    `
+  }
+
+  let dayIndex = 0
+  const daysHtml = (it.days || []).length === 0 ? '' : `
+    <section class="block">
+      ${sectionHeader('Day by Day')}
+      ${groups.map(group => {
+        const cityHeader = group.city ? `
+          <div class="city-header">
+            <span class="tag">City</span>
+            <h3 class="city-name">${escapeHtml(group.city)}</h3>
+            <span class="rule"></span>
+          </div>
+        ` : ''
+        const dayCards = group.days.map(d => {
+          dayIndex += 1
+          const num = String(dayIndex).padStart(2, '0')
+          return `
+            <div class="day-card">
+              <div class="day-header">
+                <div class="day-number">${num}</div>
+                <div class="day-title">
+                  ${d.date ? `<p class="day-date">${escapeHtml(formatIsoDate(d.date))}</p>` : ''}
+                  ${d.title ? `<h3 class="day-theme">${escapeHtml(d.title)}</h3>` : ''}
+                </div>
+              </div>
+              ${(d.items || []).length === 0 ? '' : `
+                <div class="day-body">
+                  ${(d.items || []).map(renderItem).join('')}
+                </div>
+              `}
+            </div>
+          `
+        }).join('')
+        return cityHeader + dayCards
+      }).join('')}
     </section>
   `
 
   const documentsHtml = (it.documents || []).length === 0 ? '' : `
-    <section class="section">
-      <h2 class="section-label">Documents</h2>
+    <section class="block">
+      ${sectionHeader('Documents')}
       <ul class="doc-list">
         ${(it.documents || []).map(d => `
-          <li><a class="link" href="${escapeHtml(safeUrl(d.url))}" target="_blank" rel="noopener">${escapeHtml(d.label || d.url || 'Document')}</a></li>
+          <li><a class="booking-link" href="${escapeHtml(safeUrl(d.url))}" target="_blank" rel="noopener">${escapeHtml(d.label || d.url || 'Document')} →</a></li>
         `).join('')}
       </ul>
     </section>
@@ -1073,241 +1134,436 @@ function renderItineraryHtml(it) {
 <title>${title} · Deriva Itinerary</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
+  :root {
+    --ink: #1e1a16;
+    --cream: #f5f0e8;
+    --white: #fdfaf5;
+    --parchment: #ede5d0;
+    --sand: #d8ccba;
+    --tan: #c8b89a;
+    --stone: #a89a82;
+    --gold: #9e8660;
+    --terracotta: #c0614a;
+    --body: #3a3630;
+    --muted: #7a6e62;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--cream); }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background-color: #F5F0E8;
-    color: #3A3630;
-    line-height: 1.6;
+    font-family: 'Jost', -apple-system, system-ui, sans-serif;
+    color: var(--body);
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
   }
-  .page { max-width: 780px; margin: 0 auto; padding: 60px 40px 80px; }
+  a { color: inherit; text-decoration: none; }
 
-  .header { border-bottom: 1px solid #D8CCBA; padding-bottom: 32px; margin-bottom: 48px; }
-  .wordmark {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 14px;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: #1E1C18;
-    margin-bottom: 40px;
+  /* Hero */
+  .hero {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 88px 48px 56px;
+    text-align: center;
   }
-  .eyebrow {
+  .hero-wordmark {
+    font-family: 'Jost', sans-serif;
     font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #C8B89A;
-    margin-bottom: 12px;
-  }
-  h1 {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 44px;
     font-weight: 500;
-    color: #1E1C18;
-    line-height: 1.1;
-    margin-bottom: 16px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 48px;
   }
-  .trip-meta { font-size: 14px; color: #7A6E62; line-height: 1.8; }
-  .trip-meta span { color: #C8B89A; margin: 0 10px; }
-
-  .section { margin-bottom: 56px; }
-  .section-label {
-    font-family: -apple-system, system-ui, sans-serif;
+  .hero-eyebrow {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--tan);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(44px, 7vw, 82px);
+    line-height: 1.05;
+    color: var(--cream);
+    margin-bottom: 28px;
+  }
+  .hero-meta {
+    font-family: 'Jost', sans-serif;
     font-size: 11px;
     font-weight: 400;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #9E8660;
-    padding-bottom: 12px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid #9E8660;
+    color: var(--gold);
+    margin-bottom: 40px;
+  }
+  .hero-divider {
+    display: block;
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto;
   }
 
-  .card {
-    background-color: #FDFAF5;
-    border: 1px solid #D8CCBA;
-    padding: 24px 28px;
-    margin-bottom: 16px;
+  /* Contact strip */
+  .contact-strip {
+    background: var(--terracotta);
+    color: var(--cream);
+    text-align: center;
+    padding: 16px 24px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
   }
-  .card-head { margin-bottom: 16px; }
+  .contact-strip a {
+    color: var(--cream);
+    border-bottom: 1px solid rgba(245, 240, 232, 0.4);
+    padding-bottom: 2px;
+  }
+
+  /* Page */
+  .page { max-width: 820px; margin: 0 auto; padding: 72px 48px 32px; }
+  .block { margin-bottom: 64px; }
+
+  /* Section + city headers */
+  .section-header, .city-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .city-header { margin-top: 36px; margin-bottom: 20px; }
+
+  .tag {
+    display: inline-block;
+    background: var(--terracotta);
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    flex-shrink: 0;
+  }
+
+  .section-header .rule,
+  .city-header .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--sand);
+  }
+
+  .section-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 34px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .city-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 38px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* Hotel + flight cards */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  .card-header-row {
+    background: var(--parchment);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--sand);
+  }
   .card-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 500;
-    color: #1E1C18;
+    color: var(--ink);
+    line-height: 1.2;
     margin-bottom: 4px;
   }
-  .card-sub {
-    font-size: 11px;
-    letter-spacing: 0.1em;
+  .card-route {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #C8B89A;
+    color: var(--muted);
   }
+  .confirmation {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .conf-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .conf-value {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .card-body { padding: 22px 28px; }
   .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px 24px;
-    padding-top: 12px;
-    border-top: 1px solid #EDE6D8;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px 32px;
   }
-  .card-grid > div { display: flex; flex-direction: column; }
+  .card-grid > div { display: flex; flex-direction: column; gap: 4px; }
   .meta-label {
-    font-size: 10px;
-    letter-spacing: 0.15em;
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #C8B89A;
-    margin-bottom: 4px;
+    color: var(--muted);
   }
   .meta-value {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 15px;
-    color: #1E1C18;
+    font-size: 17px;
+    color: var(--ink);
   }
-  .card p:last-child { margin-top: 12px; }
 
-  .day-card {
-    background-color: #FDFAF5;
-    border: 1px solid #D8CCBA;
-    padding: 28px 32px;
-    margin-bottom: 20px;
-  }
-  .day-head { border-bottom: 1px solid #EDE6D8; padding-bottom: 16px; margin-bottom: 20px; }
-  .day-number {
+  .booking-link-wrap { margin-top: 18px; }
+  .booking-link {
+    font-family: 'Jost', sans-serif;
     font-size: 10px;
+    font-weight: 500;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #9E8660;
-    margin-bottom: 8px;
-  }
-  .day-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 26px;
-    font-weight: 500;
-    color: #1E1C18;
-    line-height: 1.2;
-    margin-bottom: 6px;
-  }
-  .day-meta {
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #7A6E62;
+    color: var(--terracotta);
+    border-bottom: 1px solid var(--terracotta);
+    padding-bottom: 2px;
   }
 
-  .day-items { display: flex; flex-direction: column; gap: 12px; }
+  /* Day cards */
+  .day-card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .day-header {
+    background: var(--parchment);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    border-bottom: 1px solid var(--sand);
+  }
+  .day-number {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 68px;
+    font-weight: 500;
+    color: var(--stone);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+  .day-title { flex: 1; }
+  .day-date {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 6px;
+  }
+  .day-theme {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.15;
+  }
+
+  .day-body {
+    padding: 24px 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Items */
   .item {
     display: grid;
-    grid-template-columns: 70px 1fr;
-    gap: 16px;
-    padding: 14px 16px;
-    border-left: 3px solid #D8CCBA;
-    background-color: #F5F0E8;
+    grid-template-columns: 80px 1fr;
+    gap: 20px;
+    padding: 16px 20px;
+    border-left: 3px solid var(--sand);
+    background: var(--cream);
   }
   .item-time {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 16px;
-    color: #9E8660;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--gold);
     padding-top: 2px;
   }
   .item-type {
+    font-family: 'Jost', sans-serif;
     font-size: 9px;
-    letter-spacing: 0.18em;
+    font-weight: 500;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #C8B89A;
+    color: var(--muted);
     margin-bottom: 4px;
   }
   .item-label {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 17px;
-    color: #1E1C18;
+    font-size: 19px;
+    color: var(--ink);
     line-height: 1.4;
   }
-  .item-meal {
-    border-left-color: #9E8660;
-    background-color: #FDFAF5;
+  .item-link {
+    color: var(--ink);
+    border-bottom: 1px solid var(--terracotta);
+    padding-bottom: 1px;
   }
-  .item-meal .item-type { color: #9E8660; }
+
+  .item-meal {
+    border-left-color: var(--gold);
+    background: #faf4e6;
+  }
+  .item-meal .item-type { color: var(--gold); }
+
   .item-transport {
-    background-color: transparent;
-    border-left-color: #C8B89A;
+    background: transparent;
+    border-left-color: var(--tan);
   }
   .item-transport .item-label {
     font-style: italic;
-    color: #7A6E62;
-  }
-  .item-note {
-    background-color: transparent;
-    border-left-color: #EDE6D8;
-  }
-  .item-note .item-label {
-    font-size: 14px;
-    color: #7A6E62;
-    font-family: -apple-system, system-ui, sans-serif;
+    color: var(--muted);
   }
 
+  .item-note {
+    background: transparent;
+    border-left-color: var(--terracotta);
+  }
+  .item-note .item-type { color: var(--terracotta); }
+  .item-note .item-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* Documents */
   .doc-list { list-style: none; }
   .doc-list li {
-    padding: 14px 0;
-    border-bottom: 1px solid #EDE6D8;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--sand);
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 18px;
+    font-size: 20px;
   }
   .doc-list li:last-child { border-bottom: none; }
 
-  .link {
-    color: #9E8660;
-    text-decoration: none;
-    border-bottom: 1px solid #9E8660;
-    padding-bottom: 1px;
-  }
-  .link:hover { color: #8A7550; }
-
+  /* Footer */
   .footer {
-    margin-top: 80px;
-    padding-top: 40px;
-    border-top: 1px solid #D8CCBA;
+    background: var(--ink);
+    color: var(--cream);
     text-align: center;
+    padding: 56px 32px 48px;
+    margin-top: 48px;
   }
   .footer-wordmark {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 12px;
-    letter-spacing: 0.35em;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: #1E1C18;
-    margin-bottom: 8px;
+    color: var(--cream);
+    margin-bottom: 16px;
   }
-  .footer-contact { font-size: 12px; color: #9E8660; }
-  .footer-contact a { color: #9E8660; text-decoration: none; border-bottom: 1px solid #9E8660; }
+  .footer-contact {
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .footer-contact a {
+    color: var(--gold);
+    border-bottom: 1px solid rgba(158, 134, 96, 0.5);
+    padding-bottom: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 48px 24px 24px; }
+    .hero { padding: 64px 24px 40px; }
+    .day-header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px 24px; }
+    .day-number { font-size: 48px; min-width: 0; }
+    .day-body { padding: 20px 24px 24px; }
+    .card-header-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .confirmation { align-items: flex-start; text-align: left; }
+    .section-name, .city-name { font-size: 26px; }
+    .item { grid-template-columns: 60px 1fr; gap: 14px; padding: 14px 16px; }
+  }
 </style>
 </head>
 <body>
-<div class="page">
-  <header class="header">
-    <p class="wordmark">Deriva</p>
-    <p class="eyebrow">Itinerary</p>
-    <h1>${title}</h1>
-    <p class="trip-meta">
-      ${destination ? destination : ''}
-      ${destination && dates ? '<span>·</span>' : ''}
-      ${dates ? dates : ''}
-      ${(destination || dates) && travelers ? '<span>·</span>' : ''}
-      ${travelers ? `${travelers} traveler${travelers === '1' ? '' : 's'}` : ''}
-    </p>
-  </header>
 
+<header class="hero">
+  <p class="hero-wordmark">Deriva</p>
+  <p class="hero-eyebrow">Itinerary</p>
+  <h1>${title}</h1>
+  ${metaLine ? `<p class="hero-meta">${metaLine}</p>` : ''}
+  <span class="hero-divider"></span>
+</header>
+
+<div class="contact-strip">
+  <a href="mailto:hello@deriva.travel">hello@deriva.travel</a>
+</div>
+
+<main class="page">
   ${flightsHtml}
   ${hotelsHtml}
   ${daysHtml}
   ${documentsHtml}
+</main>
 
-  <footer class="footer">
-    <p class="footer-wordmark">Deriva</p>
-    <p class="footer-contact">
-      <a href="mailto:hello@deriva.travel">hello@deriva.travel</a>
-    </p>
-  </footer>
-</div>
+<footer class="footer">
+  <p class="footer-wordmark">Deriva</p>
+  <p class="footer-contact">
+    <a href="mailto:hello@deriva.travel">hello@deriva.travel</a>
+  </p>
+</footer>
+
 </body>
 </html>`
 }
