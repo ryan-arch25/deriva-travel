@@ -37,15 +37,47 @@ const gnews = (q) =>
   `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`
 
 const FEED_SOURCES = [
-  ...['Italy travel', 'Rome restaurants', 'Florence travel', 'Amalfi coast', 'Sicily travel', 'Lake Como'].map((q) => ({ url: gnews(q), tag: 'Italy' })),
-  ...['Lisbon restaurants', 'Portugal travel', 'Porto travel', 'Algarve'].map((q) => ({ url: gnews(q), tag: 'Portugal' })),
-  ...['Spain travel', 'Madrid restaurants', 'Barcelona travel', 'San Sebastian food'].map((q) => ({ url: gnews(q), tag: 'Spain' })),
-  ...['Iceland travel', 'Reykjavik restaurants', 'Iceland tourism'].map((q) => ({ url: gnews(q), tag: 'Iceland' })),
-  { url: 'https://www.eater.com/rss/index.xml', tag: 'General' },
+  ...[
+    'Rome restaurant opening 2026',
+    'Florence food scene 2026',
+    'Sicily travel guide',
+    'Lake Como hotel',
+    'Amalfi coast restaurants',
+    'Rome neighborhood guide',
+    'Milan design food culture',
+    'Puglia travel',
+  ].map((q) => ({ url: gnews(q), tag: 'Italy' })),
+  ...[
+    'Lisbon restaurant opening 2026',
+    'Porto food scene',
+    'Portugal boutique hotel',
+    'Lisbon neighborhood guide',
+    'Algarve travel 2026',
+    'Alentejo wine food',
+  ].map((q) => ({ url: gnews(q), tag: 'Portugal' })),
+  ...[
+    'Barcelona restaurant 2026',
+    'Madrid food scene',
+    'San Sebastian gastronomy',
+    'Spain boutique hotel',
+    'Seville travel guide',
+  ].map((q) => ({ url: gnews(q), tag: 'Spain' })),
+  ...[
+    'Reykjavik restaurant 2026',
+    'Iceland travel guide',
+    'Iceland boutique hotel',
+    'Iceland food culture',
+  ].map((q) => ({ url: gnews(q), tag: 'Iceland' })),
+  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Travel.xml', tag: 'General' },
+  { url: 'https://www.theguardian.com/travel/rss', tag: 'General' },
   { url: 'https://www.cntraveler.com/feed/rss', tag: 'General' },
-  { url: 'https://www.travelandleisure.com/rss', tag: 'General' },
+  { url: 'https://www.eater.com/rss/index.xml', tag: 'General' },
+  { url: 'https://www.foodandwine.com/rss', tag: 'General' },
+  { url: 'https://monocle.com/feed/', tag: 'General' },
   { url: 'https://www.timeout.com/travel/rss', tag: 'General' },
-  { url: 'https://www.lonelyplanet.com/news/feed', tag: 'General' },
+  { url: 'https://www.theflorentine.net/feed', tag: 'Italy' },
+  { url: 'https://www.portugalresident.com/feed', tag: 'Portugal' },
+  { url: 'https://www.icelandreview.com/feed', tag: 'Iceland' },
 ]
 
 const DEFAULT_FOLLOWING = [
@@ -70,6 +102,81 @@ const DEFAULT_INSTAGRAM = [
   { id: 'ig11', handle: 'tablethotels', tag: 'Hotels', notes: '' },
   { id: 'ig12', handle: 'eater', tag: 'Food', notes: '' },
   { id: 'ig13', handle: 'bonappetit', tag: 'Food', notes: '' },
+]
+
+const DESTINATIONS_INFO = [
+  {
+    id: 'italy',
+    name: 'Italy',
+    overview: [
+      "Italy is not one country, it is a stack of regions that happen to share a passport. The north and the south can feel like different worlds, with different food, different rhythms, and different relationships to time. A trip that treats Florence and Palermo as variations on a theme will miss almost everything that matters. The first thing to internalize is that local and seasonal are not buzzwords here, they are how the entire culture organizes its day. If a restaurant in Bologna is serving the same menu it served in July, something is wrong.",
+      "Rome and Florence pull a lot of the same clients but they reward completely different approaches. Rome is layered, scrappy, and best when you let it set the pace. Florence is compact and precise, and the trick there is staying long enough to leave the historical center for a real meal. Both cities have a heavy daytripper problem and both punish people who try to hit the highlights in two days.",
+      "Lake Como is a specific kind of luxury that does not translate well to people who think luxury means a five star buffet. The point is the proportion, the lemons, the slow boat from Bellagio, and a long lunch on a terrace where nothing is rushing you. Sicily and Puglia are the regions to send curious clients who already know Italy and want something that feels less performed.",
+    ],
+    keyThings: [
+      'Tipping is not expected. Rounding up the bill or leaving a euro or two for excellent service is plenty. Coperto on the bill is a cover charge, not a tip.',
+      'Lunch is the main meal in many regions, especially Sunday lunch. Dinner can be lighter and later, often starting at 8pm or 9pm.',
+      'Aperitivo is a real cultural ritual between roughly 6pm and 8pm, not just a marketing term. In Milan it can replace dinner if you commit to it.',
+      'Avoid restaurants with photo menus, multilingual chalkboards, and hosts pulling people in off the street, especially within 200 meters of a major landmark.',
+      'August is when Italians leave the cities for the coast. Many of the best restaurants close for two or three weeks. Plan around it.',
+      'Churches enforce dress codes. Shoulders and knees covered, no exceptions at the Vatican or the Duomo.',
+      'On regional trains you must validate paper tickets in the green or yellow machines on the platform before boarding. Fines for skipping this are real.',
+    ],
+  },
+  {
+    id: 'portugal',
+    name: 'Portugal',
+    overview: [
+      "Portugal punches well above its weight, and Lisbon is the clearest example. It is a small capital with the food scene of a city three times its size, an architecture and tile tradition that rewards walking with no plan, and a music tradition (fado) that holds the city's emotional center. The melancholy people talk about is real, and so is the warmth that sits right next to it. The country is gentler than Spain and slower than Italy, and that is the feature, not the bug.",
+      "Porto is consistently underrated. It feels more honest than Lisbon, more compact, and the food and wine are doing more interesting things than most visitors realize. The Douro Valley is one of the great wine regions in Europe and almost no one outside the trade treats it that way. Send curious eaters and drinkers there with two or three nights at minimum.",
+      "The Alentejo is the quiet choice for serious travelers. Wide open landscape, ancient hilltop towns, very good wine, and almost no crowds. It rewards people who want to slow down and read the room. The Algarve is its own thing, beach-driven and seasonal, best in shoulder months when the heat and the crowds back off.",
+    ],
+    keyThings: [
+      'Tipping is not mandatory but 5 to 10 percent is appreciated for good service. Round up at cafes.',
+      'Dinner starts late by Northern European standards, usually 8pm or after. Make reservations the day of for anywhere serious.',
+      'Lisbon is built on hills and the cobblestones are slick when wet. Bring shoes with grip.',
+      'Uber and Bolt both work well in Lisbon and Porto. Cheaper and easier than taxis.',
+      'The Time Out Market is fine for a beer and a snack. Do not make it your primary food experience in Lisbon.',
+      'Many of the best small restaurants do not take reservations and fill up by 8pm. Show up early or be ready to wait.',
+      'Pastel de nata is famous for a reason but the food culture goes much deeper. Seafood, bifana, ameijoas, the cheeses from the Serra da Estrela. Push past the obvious.',
+    ],
+  },
+  {
+    id: 'spain',
+    name: 'Spain',
+    overview: [
+      "Spain is regional in a way most American travelers underestimate. Barcelona and Madrid are not two flavors of the same city, they are genuinely different places with different languages, different politics, different food, and different ideas about how to be a city. The same is true comparing Andalusia to the Basque Country or Galicia to Catalonia. A trip that treats Spain as a single country will miss the point.",
+      "San Sebastian is one of the world's great food destinations and it earns the reputation. The pintxos bars in the Parte Vieja are the obvious starting point but the real story is the density of serious restaurants in and around the city. People plan entire trips around it and they are right to. Madrid does not get the credit it deserves for its food scene either, especially the markets and the older taverns.",
+      "Spanish meal culture is intense and on its own clock. Lunch is long and serious, dinner is late and social, and the spaces between are filled with coffee, wine, and small bites. Trying to force the day into a North American or even Northern European rhythm is the single fastest way to have a bad time. Spain is also routinely underplanned, especially Andalusia in spring and the Basque Country in summer.",
+    ],
+    keyThings: [
+      'Lunch runs roughly 2pm to 4pm. Dinner starts at 9pm and a 10pm or 11pm reservation is normal. Adjust the day around it.',
+      'Tipping is not expected. A euro or two on a coffee or beer, a few euros on a nice dinner is generous.',
+      'Pintxos is the Basque word and the format is small bites on bread, often with a toothpick. Tapas is the southern format and is broader. They are not interchangeable.',
+      'Siesta is real outside the big cities. Many shops and small restaurants close from roughly 2pm to 5pm. Plan errands and museums around it.',
+      'Barcelona pickpocketing is real, especially on La Rambla, the metro, and around Sagrada Familia. Front pockets, no phone on the table at outdoor cafes.',
+      'San Sebastian restaurants book months out, especially the three star tier and the well known mid range spots. Reserve before booking flights for serious food trips.',
+      'In Andalusia in July and August the heat is no joke. Mornings, late evenings, and indoor lunches are how locals do it.',
+    ],
+  },
+  {
+    id: 'iceland',
+    name: 'Iceland',
+    overview: [
+      "Iceland operates at a scale that is hard to grasp from photos. The landscape is bigger and emptier than first time visitors expect, and that is the entire point. People come for waterfalls and glaciers and end up most affected by the long stretches of nothing in between. The country rewards travelers who let the landscape do the work and resist the urge to overschedule.",
+      "The Ring Road is a great trip if you have at least eight to ten days. For shorter visits it is overrated and turns into a driving marathon that misses the actual experience. A more honest plan for a four to seven day trip is to base out of Reykjavik and the south coast, or to fly to Akureyri and explore the north. Reykjavik itself is smaller than people imagine, more like a creative neighborhood than a capital, and that is part of the charm.",
+      "The seasons here are not metaphors. Winter is dark and dramatic and the right call for Northern Lights and ice caves. Summer is bright around the clock and the right call for hiking, puffins, and the highlands. Choosing the wrong season for the wrong reason is the most common mistake. Iceland rewards curiosity over itinerary, and the best moments are usually the unscheduled ones.",
+    ],
+    keyThings: [
+      'Tipping is not customary anywhere. Service is included and rounding up is the most you would do.',
+      'Everything is expensive. Budget accordingly, especially restaurants and alcohol. A nice dinner for two can easily run 200 dollars or more.',
+      'Weather changes fast and often. Dress in layers, always have a waterproof shell, and check road and weather conditions daily on vedur.is and road.is.',
+      'Northern Lights tours and ice cave tours book up. Reserve before the trip if either is a priority.',
+      'A rental car is strongly recommended outside Reykjavik. Tour buses are an option but limit you. A 4x4 is needed for any F road or the highlands in summer.',
+      'Tap water is among the best in the world. Skip the bottled water entirely.',
+      'In June and July the sun barely sets. Blackout curtains, a sleep mask, and a flexible idea of bedtime matter more than people expect.',
+    ],
+  },
 ]
 
 const EXAMPLE_PROMPTS = [
@@ -722,10 +829,95 @@ function SavedTab({ savedItems, setSavedItems }) {
   )
 }
 
+// ── DESTINATIONS TAB ────────────────────────────────────────────────────────
+function DestinationsTab() {
+  const [notes, setNotes] = useLocalStorage('deriva_research_destination_notes', {})
+  const [open, setOpen] = useState(() => ({ italy: true, portugal: false, spain: false, iceland: false }))
+
+  const toggle = (id) => setOpen({ ...open, [id]: !open[id] })
+  const updateNote = (id, value) => setNotes({ ...notes, [id]: value })
+
+  return (
+    <div>
+      <SectionHeader label="Destinations" title="Knowledge reference for the four." />
+      {DESTINATIONS_INFO.map((d) => {
+        const isOpen = open[d.id]
+        return (
+          <div key={d.id} style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white, marginBottom: '1rem' }}>
+            <button
+              onClick={() => toggle(d.id)}
+              style={{
+                width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                padding: '1.1rem 1.5rem',
+                borderBottom: isOpen ? `1px solid ${C.sand}` : 'none',
+              }}
+            >
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '1.25rem', color: C.ink }}>{d.name}</span>
+              <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', color: C.tan, letterSpacing: '0.1em' }}>
+                {isOpen ? '−' : '+'}
+              </span>
+            </button>
+            {isOpen && (
+              <div style={{ padding: '1.5rem' }}>
+                <div style={{ marginBottom: '2rem' }}>
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.75rem' }}>
+                    Overview
+                  </p>
+                  {d.overview.map((para, i) => (
+                    <p key={i} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.85', marginBottom: '1rem' }}>
+                      {para}
+                    </p>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: '2rem' }}>
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.75rem' }}>
+                    Key Things to Know
+                  </p>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                    {d.keyThings.map((item, i) => (
+                      <li
+                        key={i}
+                        style={{
+                          fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300',
+                          color: C.charcoal, lineHeight: '1.7', marginBottom: '0.7rem',
+                          paddingLeft: '1rem', position: 'relative',
+                        }}
+                      >
+                        <span style={{ position: 'absolute', left: 0, color: C.terracotta }}>·</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.75rem' }}>
+                    Your Notes
+                  </p>
+                  <textarea
+                    value={notes[d.id] || ''}
+                    onChange={(e) => updateNote(d.id, e.target.value)}
+                    placeholder="Add your own notes, observations, and things you have learned about this destination..."
+                    rows={6}
+                    style={{ ...inp, resize: 'vertical', lineHeight: '1.7' }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── ROOT ────────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'feed', label: 'Feed' },
   { id: 'following', label: 'Following' },
+  { id: 'destinations', label: 'Destinations' },
   { id: 'research', label: 'Research' },
   { id: 'instagram', label: 'Instagram' },
   { id: 'saved', label: 'Saved' },
@@ -762,6 +954,7 @@ export default function Research() {
 
       {tab === 'feed' && <FeedTab savedItems={savedItems} setSavedItems={setSavedItems} />}
       {tab === 'following' && <FollowingTab savedItems={savedItems} setSavedItems={setSavedItems} />}
+      {tab === 'destinations' && <DestinationsTab />}
       {tab === 'research' && <ResearchSearchTab savedItems={savedItems} setSavedItems={setSavedItems} />}
       {tab === 'instagram' && <InstagramTab />}
       {tab === 'saved' && <SavedTab savedItems={savedItems} setSavedItems={setSavedItems} />}
