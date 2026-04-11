@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
+import Playbook from './Playbook'
+import Clients from './Clients'
+import Affiliates from './Affiliates'
+import Research from './Research'
 import * as icelandData from '../data/iceland'
 import * as italyData from '../data/italy'
 import * as spainData from '../data/spain'
@@ -101,15 +105,15 @@ function ClientBriefTool() {
     <div>
       <SectionHeader label="New Client Brief" title="Generate a research brief." />
       <form onSubmit={handleSubmit} style={{ maxWidth: '560px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Client name</label><input value={form.name} onChange={set('name')} required style={inp} placeholder="Jane Smith" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Destinations</label><input value={form.destinations} onChange={set('destinations')} required style={inp} placeholder="Portugal, Spain" /></div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travel dates</label><input value={form.dates} onChange={set('dates')} style={inp} placeholder="May 10-24" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Trip length</label><input value={form.length} onChange={set('length')} style={inp} placeholder="2 weeks" /></div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Party</label><input value={form.party} onChange={set('party')} style={inp} placeholder="Couple" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Budget</label><input value={form.budget} onChange={set('budget')} style={inp} placeholder="Mid-range, occasional splurge" /></div>
         </div>
@@ -200,7 +204,7 @@ function MySpots() {
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem', maxWidth: '560px', marginBottom: '2rem' }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem', maxWidth: '560px', marginBottom: '2rem' }}>
         <div>
           <label style={lbl}>Country</label>
           <select value={countryFilter} onChange={e => setCountryFilter(e.target.value)} style={sel}>
@@ -218,11 +222,11 @@ function MySpots() {
       {adding && (
         <form onSubmit={addSpot} style={{ marginBottom: '2rem', padding: '2rem', border: `1px solid ${C.sand}`, backgroundColor: C.parchment }}>
           <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', fontWeight: '400', color: C.ink, marginBottom: '1.5rem' }}>New Custom Spot</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Name</label><input value={form.name} onChange={set('name')} required style={inp} placeholder="Restaurant or hotel name" /></div>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>City</label><input value={form.city} onChange={set('city')} required style={inp} placeholder="Lisbon" /></div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+          <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Neighborhood</label><input value={form.neighborhood} onChange={set('neighborhood')} style={inp} placeholder="Chiado" /></div>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Address</label><input value={form.address} onChange={set('address')} style={inp} placeholder="Rua de..." /></div>
           </div>
@@ -481,7 +485,7 @@ function ClientNotes() {
           <button type="button" onClick={() => setAdding(false)} style={ghostBtn}>Cancel</button>
         </form>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: clients.length > 0 ? '200px 1fr' : '1fr', gap: '2rem' }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: clients.length > 0 ? '200px 1fr' : '1fr', gap: '2rem' }}>
         {clients.length > 0 && (
           <div style={{ borderRight: `1px solid ${C.sand}`, paddingRight: '1.5rem' }}>
             {clients.map(c => (
@@ -801,11 +805,11 @@ function ItineraryEdit({ itinerary, onChange }) {
       {/* Trip Details */}
       <section>
         <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: `1px solid ${C.sand}` }}>Trip Details</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Client name</label><input value={itinerary.clientName || ''} onChange={e => patch({ clientName: e.target.value })} style={inp} placeholder="Jane Smith" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Destination(s)</label><input value={itinerary.destination || ''} onChange={e => patch({ destination: e.target.value })} style={inp} placeholder="Italy" /></div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travel dates</label><input value={itinerary.dates || ''} onChange={e => patch({ dates: e.target.value })} style={inp} placeholder="June 12-22, 2026" /></div>
           <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Travelers</label><input value={itinerary.travelers || ''} onChange={e => patch({ travelers: e.target.value })} style={inp} placeholder="2" /></div>
         </div>
@@ -822,11 +826,11 @@ function ItineraryEdit({ itinerary, onChange }) {
         {(itinerary.hotels || []).length === 0 && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.mid }}>No hotels yet.</p>}
         {(itinerary.hotels || []).map(h => (
           <div key={h.id} style={{ padding: '1.5rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, marginBottom: '1rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Hotel name</label><input value={h.name} onChange={e => updateHotel(h.id, { name: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>City</label><input value={h.city} onChange={e => updateHotel(h.id, { city: e.target.value })} style={inp} /></div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Check-in</label><input type="date" value={h.checkIn} onChange={e => updateHotel(h.id, { checkIn: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Check-out</label><input type="date" value={h.checkOut} onChange={e => updateHotel(h.id, { checkOut: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Confirmation #</label><input value={h.confirmation} onChange={e => updateHotel(h.id, { confirmation: e.target.value })} style={inp} /></div>
@@ -846,15 +850,15 @@ function ItineraryEdit({ itinerary, onChange }) {
         {(itinerary.flights || []).length === 0 && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.mid }}>No flights yet.</p>}
         {(itinerary.flights || []).map(f => (
           <div key={f.id} style={{ padding: '1.5rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, marginBottom: '1rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0 1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Airline</label><input value={f.airline} onChange={e => updateFlight(f.id, { airline: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Flight #</label><input value={f.flightNumber} onChange={e => updateFlight(f.id, { flightNumber: e.target.value })} style={inp} placeholder="AA 100" /></div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>From</label><input value={f.from} onChange={e => updateFlight(f.id, { from: e.target.value })} style={inp} placeholder="JFK" /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>To</label><input value={f.to} onChange={e => updateFlight(f.id, { to: e.target.value })} style={inp} placeholder="FCO" /></div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0 1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0 1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Depart date</label><input type="date" value={f.departDate} onChange={e => updateFlight(f.id, { departDate: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Depart time</label><input type="time" value={f.departTime} onChange={e => updateFlight(f.id, { departTime: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Arrive date</label><input type="date" value={f.arriveDate} onChange={e => updateFlight(f.id, { arriveDate: e.target.value })} style={inp} /></div>
@@ -883,7 +887,7 @@ function ItineraryEdit({ itinerary, onChange }) {
                 <button type="button" onClick={() => removeDay(d.id)} style={{ ...ghostBtn, padding: '0.4rem 0.75rem' }}>Delete</button>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '0 1.5rem' }}>
+            <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '0 1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Date</label><input type="date" value={d.date} onChange={e => updateDay(d.id, { date: e.target.value })} style={inp} /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>City</label><input value={d.city} onChange={e => updateDay(d.id, { city: e.target.value })} style={inp} placeholder="Florence" /></div>
               <div style={{ marginBottom: '1rem' }}><label style={lbl}>Title / theme</label><input value={d.title} onChange={e => updateDay(d.id, { title: e.target.value })} style={inp} placeholder="Arrival in Florence" /></div>
@@ -1741,13 +1745,14 @@ function LeadsDashboard() {
 
       {leads.length > 0 && (
         <div style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1.4fr 1fr 110px 110px', gap: '1rem', padding: '0.85rem 1.25rem', borderBottom: `1px solid ${C.sand}`, backgroundColor: C.parchment, fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
+          <div className="lead-row lead-row-header" style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1.4fr 1fr 110px 110px', gap: '1rem', padding: '0.85rem 1.25rem', borderBottom: `1px solid ${C.sand}`, backgroundColor: C.parchment, fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
             <div>Type</div><div>Name</div><div>Email</div><div>Destination</div><div>Submitted</div><div>Status</div>
           </div>
           {leads.map(lead => (
             <button
               key={lead.id}
               onClick={() => setActiveId(lead.id)}
+              className="lead-row"
               style={{
                 display: 'grid', gridTemplateColumns: '120px 1fr 1.4fr 1fr 110px 110px', gap: '1rem',
                 padding: '1rem 1.25rem', borderBottom: `1px solid ${C.sand}`, width: '100%',
@@ -1773,8 +1778,11 @@ function LeadsDashboard() {
 
 const NAV = [
   { id: 'leads', label: 'Leads' },
+  { id: 'clients', label: 'Clients' },
+  { id: 'affiliates', label: 'Affiliates' },
   { id: 'brief', label: 'New Client Brief' },
   { id: 'itinerary', label: 'Itinerary Builder' },
+  { id: 'playbook', label: 'Playbook' },
   { id: 'spots', label: 'My Spots' },
   { id: 'research', label: 'Research Tool' },
   { id: 'notes', label: 'Client Notes' },
@@ -1782,7 +1790,19 @@ const NAV = [
 
 export default function AdvisorDashboard() {
   const navigate = useNavigate()
-  const [section, setSection] = useState('leads')
+  const location = useLocation()
+  const sectionFromPath = (pathname) => {
+    if (pathname === '/advisor/playbook') return 'playbook'
+    if (pathname === '/advisor/affiliates') return 'affiliates'
+    if (pathname === '/advisor/research') return 'research'
+    if (pathname.startsWith('/advisor/clients')) return 'clients'
+    return 'leads'
+  }
+  const [section, setSection] = useState(sectionFromPath(location.pathname))
+
+  useEffect(() => {
+    setSection(sectionFromPath(location.pathname))
+  }, [location.pathname])
 
   useEffect(() => {
     if (!sessionStorage.getItem('deriva_advisor')) navigate('/advisor')
@@ -1792,27 +1812,43 @@ export default function AdvisorDashboard() {
 
   return (
     <div style={{ backgroundColor: C.cream, minHeight: '100vh' }}>
-      <div style={{ borderBottom: `1px solid ${C.sand}`, padding: '0 2rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.cream, position: 'sticky', top: 0, zIndex: 10 }}>
+      <div className="advisor-topbar" style={{ borderBottom: `1px solid ${C.sand}`, padding: '0 2rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.cream, position: 'sticky', top: 0, zIndex: 10 }}>
         <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: C.ink }}>Deriva Advisor</p>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
           <Link to="/" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, textDecoration: 'none' }}>Public Site</Link>
           <button onClick={handleLogout} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.mid, background: 'none', border: 'none', cursor: 'pointer' }}>Sign Out</button>
         </div>
       </div>
-      <div style={{ display: 'flex', maxWidth: '1300px', margin: '0 auto' }}>
-        <div style={{ width: '220px', flexShrink: 0, borderRight: `1px solid ${C.sand}`, padding: '2.5rem 0', minHeight: 'calc(100vh - 60px)', position: 'sticky', top: '60px', alignSelf: 'flex-start' }}>
-          {NAV.map(item => (
-            <button key={item.id} onClick={() => setSection(item.id)} style={{ display: 'block', width: '100%', textAlign: 'left', fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', letterSpacing: '0.1em', color: section === item.id ? C.ink : C.tan, fontWeight: section === item.id ? '400' : '300', backgroundColor: 'transparent', border: 'none', borderLeft: section === item.id ? `2px solid ${C.gold}` : '2px solid transparent', padding: '0.75rem 1.5rem', cursor: 'pointer' }}>
-              {item.label}
-            </button>
-          ))}
+      <div className="advisor-shell" style={{ display: 'flex', maxWidth: '1300px', margin: '0 auto' }}>
+        <div className="advisor-sidebar" style={{ width: '220px', flexShrink: 0, borderRight: `1px solid ${C.sand}`, padding: '2.5rem 0', minHeight: 'calc(100vh - 60px)', position: 'sticky', top: '60px', alignSelf: 'flex-start' }}>
+          {NAV.map(item => {
+            const handleClick = () => {
+              const pathMap = {
+                clients: '/advisor/clients',
+                affiliates: '/advisor/affiliates',
+                playbook: '/advisor/playbook',
+                research: '/advisor/research',
+              }
+              if (pathMap[item.id]) navigate(pathMap[item.id])
+              else if (location.pathname !== '/advisor/dashboard') navigate('/advisor/dashboard')
+              setSection(item.id)
+            }
+            return (
+              <button key={item.id} onClick={handleClick} style={{ display: 'block', width: '100%', textAlign: 'left', fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', letterSpacing: '0.1em', color: section === item.id ? C.ink : C.tan, fontWeight: section === item.id ? '400' : '300', backgroundColor: 'transparent', border: 'none', borderLeft: section === item.id ? `2px solid ${C.gold}` : '2px solid transparent', padding: '0.75rem 1.5rem', cursor: 'pointer' }}>
+                {item.label}
+              </button>
+            )
+          })}
         </div>
-        <div style={{ flex: 1, padding: '2.5rem 3rem', minWidth: 0 }}>
+        <div className="advisor-main" style={{ flex: 1, padding: '2.5rem 3rem', minWidth: 0 }}>
           {section === 'leads' && <LeadsDashboard />}
+          {section === 'clients' && <Clients />}
+          {section === 'affiliates' && <Affiliates />}
           {section === 'brief' && <ClientBriefTool />}
           {section === 'itinerary' && <ItineraryBuilder />}
+          {section === 'playbook' && <Playbook />}
           {section === 'spots' && <MySpots />}
-          {section === 'research' && <ResearchTool />}
+          {section === 'research' && <Research />}
           {section === 'notes' && <ClientNotes />}
         </div>
       </div>

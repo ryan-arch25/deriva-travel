@@ -21,6 +21,11 @@ export default function App() {
         <Route path="/destinations/spain" element={<Spain />} />        <Route path="/work-with-me" element={<WorkWithMe />} />
         <Route path="/advisor" element={<AdvisorLogin />} />
         <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />
+        <Route path="/advisor/playbook" element={<AdvisorDashboard />} />
+        <Route path="/advisor/clients" element={<AdvisorDashboard />} />
+        <Route path="/advisor/clients/:id" element={<AdvisorDashboard />} />
+        <Route path="/advisor/affiliates" element={<AdvisorDashboard />} />
+        <Route path="/advisor/research" element={<AdvisorDashboard />} />
       </Routes>
     </BrowserRouter>
   )
