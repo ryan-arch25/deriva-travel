@@ -16,7 +16,7 @@ export default function Footer() {
           <div>
             <Link to="/destinations" style={lk}>Destinations</Link>
             <Link to="/work-with-me" style={lk}>Work With Me</Link>
-            <a href="https://instagram.com" style={lk} target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a href="https://derivatravel.substack.com" style={lk} target="_blank" rel="noopener noreferrer">Subscribe on Substack</a>
           </div>
         </div>
         <div style={{ borderTop:'1px solid #3A3630', paddingTop:'1.5rem', display:'flex',
