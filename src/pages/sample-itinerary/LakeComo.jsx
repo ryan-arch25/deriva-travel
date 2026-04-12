@@ -20,21 +20,21 @@ const CATEGORY_COLORS = {
 
 const LAKE_STOPS = [
   // Restaurants
-  { name: 'Giulietta al Lago', lat: 45.814, lng: 9.082, category: 'restaurant', note: 'Lakefront promenade. Campari spritz. The ritual.' },
-  { name: 'Ristorante Gatto Nero', lat: 45.841, lng: 9.063, category: 'restaurant', note: 'Hillside views over the lake. Classic northern Italian.' },
-  { name: 'Figli dei Fiori Osteria', lat: 45.820, lng: 9.087, category: 'restaurant', note: 'The best dinner in Como proper.' },
-  { name: 'Trattoria San Giacomo', lat: 45.986, lng: 9.259, category: 'restaurant', note: 'Risotto and lake fish in Bellagio. Locals eat here.' },
-  { name: 'Federico Cernobbio', lat: 45.844, lng: 9.062, category: 'restaurant', note: 'Modern northern Italian, beautiful room.' },
-  { name: 'Il Cavatappi', lat: 46.016, lng: 9.287, category: 'restaurant', note: 'Lakefront terrace in Varenna. Best meal of the trip.' },
-  { name: 'Hostaria Cernobbio', lat: 45.839, lng: 9.061, category: 'restaurant', note: 'Outdoor seating, traditional northern Italian.' },
-  { name: 'Grotto della Salute', lat: 46.011, lng: 8.963, category: 'restaurant', note: 'The Swiss-Italian version of a trattoria. This one is real.' },
+  { name: 'Giulietta al Lago', lat: 45.814, lng: 9.082, category: 'restaurant', note: 'Sit outside, order a Campari spritz, and do nothing for an hour. The lake is right there. This is how the trip starts.' },
+  { name: 'Ristorante Gatto Nero', lat: 45.841, lng: 9.063, category: 'restaurant', note: 'The view is probably the main event, hillside above the lake, panoramic, genuinely one of the best settings on Como. The shrimp tartare risotto is worth ordering and the tiramisu held its own. Book ahead, it fills up.' },
+  { name: 'Figli dei Fiori Osteria', lat: 45.820, lng: 9.087, category: 'restaurant', note: "The best dinner in Como. The room is beautifully done without trying too hard, the wine list is serious, and the octopus appetizer is non-negotiable. This is the one you'll be talking about on the flight home." },
+  { name: 'Trattoria San Giacomo', lat: 45.986, lng: 9.259, category: 'restaurant', note: 'Steps from the main square but somehow not a tourist trap. Risotto and lake fish, honest prices, locals eat here. Go early or you will wait.' },
+  { name: 'Federico Cernobbio', lat: 45.844, lng: 9.062, category: 'restaurant', note: 'Modern northern Italian in a beautiful room. The pasta is excellent and the wine list is well thought out. More refined than Hostaria, different vibe entirely. Reserve ahead.' },
+  { name: 'Il Cavatappi', lat: 46.016, lng: 9.287, category: 'restaurant', note: 'Lakefront terrace, local crowd, nobody is sending you here from a travel site. Order the lake fish. This is the meal most people on a standard Como trip never have, which is exactly why we go to Varenna.' },
+  { name: 'Hostaria Cernobbio', lat: 45.839, lng: 9.061, category: 'restaurant', note: "Every dish landed. The fish comes in fresh, the risotto is old school northern Italian the way it's supposed to be, and the service actually felt like they cared. A must in Cernobbio." },
+  { name: 'Grotto della Salute', lat: 46.011, lng: 8.963, category: 'restaurant', note: 'A grotto is the Swiss-Italian version of a trattoria, stone walls, short menu, good wine, no pretense. This one is the real thing. Book ahead, it is small.' },
   // Hotels
-  { name: 'Palace Hotel Como', lat: 45.811, lng: 9.085, category: 'hotel', note: 'Right on the lake. Ask for a lake-facing room.' },
+  { name: 'Palace Hotel Como', lat: 45.811, lng: 9.085, category: 'hotel', note: 'Right on the lake, pool with views straight across the water. Ask for a lake-facing room. The one everyone photographs from the water, staying here is a different experience from staying in the town.' },
   // Experiences
-  { name: 'Vaporina Boat Tour', lat: 45.811, lng: 9.085, category: 'experience', note: 'Private wooden motorboat. Two hours. Non-negotiable. Pickup in Como.' },
-  { name: 'Villa Melzi Gardens', lat: 45.981, lng: 9.259, category: 'experience', note: 'Lakeside gardens at water level. Bellagio.' },
-  { name: 'Villa Monastero', lat: 46.014, lng: 9.287, category: 'experience', note: 'Gardens running along the lake edge. Varenna.' },
-  { name: 'Piazza della Riforma', lat: 46.004, lng: 8.951, category: 'experience', note: 'Coffee in Switzerland. Completely different energy.' },
+  { name: 'Vaporina Boat Tour', lat: 45.811, lng: 9.085, category: 'experience', note: 'A vintage wooden motorboat, completely private, two hours on the lake. You stop at Villa del Balbianello, you have seen the photos, it is better in person. Nothing on this trip comes close. If you do one thing I tell you to do, make it this one.' },
+  { name: 'Villa Melzi Gardens', lat: 45.981, lng: 9.259, category: 'experience', note: "The gardens run at lake level along the water's edge, different from anything else on the lake. A Japanese garden section that has no business being this good. Buy tickets at the gate, go in the morning before the tour groups arrive." },
+  { name: 'Villa Monastero', lat: 46.014, lng: 9.287, category: 'experience', note: 'The gardens run right along the shoreline for about a kilometer. Quieter than Villa Melzi, fewer people, completely different feel. This is the one that makes Varenna worth the ferry.' },
+  { name: 'Piazza della Riforma', lat: 46.004, lng: 8.951, category: 'experience', note: 'Get a coffee, sit down, and feel how different the energy is from Italy. Same language, completely different world. This is the whole point of adding Lugano to the trip.' },
 ]
 
 let mapboxLoadPromise = null
@@ -634,7 +634,7 @@ export default function LakeComo() {
         <div className="base-camp-block">
           <span className="bc-label">Base Camp — All Five Nights</span>
           <span className="bc-name"><a href="https://www.palacehotel.it/" target="_blank" rel="noopener noreferrer">Palace Hotel Como</a></span>
-          <p className="bc-detail">Right on the lake, outdoor pool with views straight across the water. Ask for a lake-facing room. This is the one everyone photographs from the water, staying here is a different experience from staying in the town.</p>
+          <p className="bc-detail">Right on the lake, pool with views straight across the water. Ask for a lake-facing room. The one everyone photographs from the water, staying here is a different experience from staying in the town.</p>
         </div>
 
         {/* COMO */}
@@ -656,13 +656,13 @@ export default function LakeComo() {
               type="aperitivo"
               label="Aperitivo"
               name={<a href="https://www.giuliettaallago.it" target="_blank" rel="noopener noreferrer">Giulietta al Lago</a>}
-              note="Lakefront promenade, outdoor seating directly on the water. Order a Campari spritz and watch the light change. No reservations needed for the bar. This is where the trip starts properly."
+              note="Sit outside, order a Campari spritz, and do nothing for an hour. The lake is right there. This is how the trip starts."
             />
             <Meal
               type="dinner"
               label="Dinner"
               name="Ristorante Gatto Nero"
-              note="Cernobbio, on the hillside above the lake with panoramic views. Classic northern Italian cooking. One of the best views from any restaurant on Como. Book well ahead."
+              note="The view is probably the main event, hillside above the lake, panoramic, genuinely one of the best settings on Como. The shrimp tartare risotto is worth ordering and the tiramisu held its own. Book ahead, it fills up."
             />
           </DayCard>
 
@@ -674,10 +674,11 @@ export default function LakeComo() {
               type="lunch"
               label="Lunch"
               name="Bar Giuliani"
-              note="Como town center. Keep it light. You have the boat this afternoon."
+              note="Casual lunch in Como town. Keep it light, you have the boat this afternoon."
             />
             <ActivityList items={[
               'Private Vaporina boat tour — two hours, book via Lake Como Travel, bring a jacket even in May',
+              <><a href="https://www.fondoambiente.it/luoghi/villa-del-balbianello" target="_blank" rel="noopener noreferrer">Villa del Balbianello</a> — the most photographed villa on Lake Como and it earns every shot. Gardens cascade down to the water\u2019s edge, the setting is absurd. Most people see it from the boat. If you want to walk the grounds, book entry in advance. Worth both.</>,
             ]} />
             <LockedBlock
               title="The Boat Tour — Full Details"
@@ -692,13 +693,13 @@ export default function LakeComo() {
               type="dinner"
               label="Dinner"
               name={<a href="https://figlideifiorirestaurants.com/osteria/" target="_blank" rel="noopener noreferrer">Figli dei Fiori Osteria</a>}
-              note="Via Volta, Como. The best dinner in Como proper. Beautifully designed room, excellent wine list, completely unpretentious. Book ahead. This is the one you will talk about."
+              note={"The best dinner in Como. The room is beautifully done without trying too hard, the wine list is serious, and the octopus appetizer is non-negotiable. This is the one you\u2019ll be talking about on the flight home."}
             />
             <Meal
               type="aperitivo"
               label="Drinks After"
               name={<a href="https://www.giuliettaallago.it" target="_blank" rel="noopener noreferrer">Giulietta al Lago</a>}
-              note="By this point it becomes the ritual. Same spot, different light."
+              note="Sit outside, order a Campari spritz, and do nothing for an hour. The lake is right there. This is how the trip starts."
             />
           </DayCard>
 
@@ -721,21 +722,22 @@ export default function LakeComo() {
             </AdvisorNote>
             <Transport title="Aliscafo ferry from Como to Bellagio — about 45 minutes" detail="Buy round-trip at the Navigazione Laghi office near the hotel." />
             <ActivityList items={[
-              <><a href="https://www.giardinidivillamelzi.it" target="_blank" rel="noopener noreferrer">Villa Melzi Gardens</a> — lakeside gardens, Japanese garden section, views that justify the crossing. Tickets at the gate.</>,
+              <><a href="https://www.giardinidivillamelzi.it" target="_blank" rel="noopener noreferrer">Villa Melzi Gardens</a> — the gardens run at lake level along the water\u2019s edge, different from anything else on the lake. A Japanese garden section that has no business being this good. Buy tickets at the gate, go in the morning before the tour groups arrive.</>,
+              <><a href="https://www.villacarlotta.it" target="_blank" rel="noopener noreferrer">Villa Carlotta, Tremezzo</a> — botanical gardens on the western shore. In May the rhododendrons are extraordinary, it\u2019s one of those things that sounds like a tourist activity until you\u2019re standing in front of it. Worth the short detour from Como.</>,
               'Walk the lanes above the main strip — steeper, quieter, better',
             ]} />
             <Meal
               type="lunch"
               label="Lunch in Bellagio"
               name="Trattoria San Giacomo"
-              note="Steps from the main square. Risotto and lake fish. Locals eat here. Go early."
+              note="Steps from the main square but somehow not a tourist trap. Risotto and lake fish, honest prices, locals eat here. Go early or you will wait."
             />
             <ActivityList items={[ 'Ferry back to Como mid-afternoon' ]} />
             <Meal
               type="dinner"
               label="Dinner"
               name={<a href="https://www.federicocernobbio.it/" target="_blank" rel="noopener noreferrer">Federico Cernobbio</a>}
-              note="Cernobbio. Modern northern Italian, beautiful room, excellent pasta. Reserve ahead."
+              note="Modern northern Italian in a beautiful room. The pasta is excellent and the wine list is well thought out. More refined than Hostaria, different vibe entirely. Reserve ahead."
             />
           </DayCard>
         </section>
@@ -757,27 +759,28 @@ export default function LakeComo() {
             </AdvisorNote>
             <Transport title="Ferry from Como to Varenna — about 45 minutes" detail="Check the Navigazione Laghi schedule, ferries run regularly." />
             <ActivityList items={[
-              'Villa Monastero gardens — the gardens run right along the lake edge, unlike anything at Bellagio. Buy tickets at the entrance.',
+              'Villa Monastero — the gardens run right along the shoreline for about a kilometer. Quieter than Villa Melzi, fewer people, completely different feel. This is the one that makes Varenna worth the ferry.',
+              'Sentiero del Viandante — the old mule path that runs along the eastern shore, connecting villages the road does not reach easily. Sections of it are centuries old. You can walk a stretch between Varenna and the next village north without committing to the full route. Serious hikers can do the whole thing over two days.',
               'Walk the village — steep lanes, the castle ruins above town, the small harbor',
             ]} />
             <Meal
               type="lunch"
               label="Lunch"
               name="Ristorante Il Cavatappi"
-              note="Via XX Settembre, Varenna. Lakefront terrace, local crowd, not on most tourist radars. Order the lake fish. This is the meal most people on standard Como trips never have. Book ahead, it fills up even on weekdays."
+              note="Lakefront terrace, local crowd, nobody is sending you here from a travel site. Order the lake fish. This is the meal most people on a standard Como trip never have, which is exactly why we go to Varenna."
             />
             <ActivityList items={[ 'Ferry back to Como, arrive late afternoon' ]} />
             <Meal
               type="aperitivo"
               label="Aperitivo"
               name={<a href="https://www.giuliettaallago.it" target="_blank" rel="noopener noreferrer">Giulietta al Lago</a>}
-              note="Last Como evening. Same ritual, final time."
+              note="Sit outside, order a Campari spritz, and do nothing for an hour. The lake is right there. This is how the trip starts."
             />
             <Meal
               type="dinner"
               label="Dinner"
               name="Hostaria Cernobbio"
-              note="Cernobbio. Outdoor seating, traditional northern Italian, good wine list. The right pace for a penultimate night."
+              note={"Every dish landed. The fish comes in fresh, the risotto is old school northern Italian the way it\u2019s supposed to be, and the service actually felt like they cared. A must in Cernobbio."}
             />
             <LockedBlock
               title="Varenna Logistics"
@@ -804,21 +807,21 @@ export default function LakeComo() {
 
           <DayCard number="5" date="Tuesday, May 5" theme="Day trip to Lugano · Last night in Como" badge="Switzerland">
             <AdvisorNote>
-              Lugano is small enough to cover in a day without rushing. Start at Piazza della Riforma, coffee, sit, feel how different the energy is from Italy. Then walk toward the lake. The funicular up Monte San Salvatore is worth 20 minutes if the sky is clear.
+              Lugano is small enough to cover in a day without rushing. Start at Piazza della Riforma, coffee, sit, feel how different the energy is from Italy. Then walk toward the lake. Take the funicular up Monte Brè if the sky is clear, it is the best vantage point in the region.
             </AdvisorNote>
             <Transport title="Como San Giovanni → Lugano — about 1 hour" detail="Regional train, runs frequently. Bring your passport, you are crossing into Switzerland." />
             <ActivityList items={[
-              'Piazza della Riforma — coffee, feel the Swiss-Italian mix',
+              'Piazza della Riforma — get a coffee, sit down, and feel how different the energy is from Italy. Same language, completely different world. This is the whole point of adding Lugano to the trip.',
               'Parco Ciani along the lake — beautiful gardens, free',
               'Cattedrale di San Lorenzo — the facade alone is worth the detour',
-              'Funicular up Monte San Salvatore — panoramic views over the lake and Alps on a clear day',
+              'Funicular up Monte Brè — seven minutes from the center of Lugano. Views over the lake and the Alps on a clear day are the best vantage point in the region. Most people in Lugano for a day skip it. Don\u2019t.',
               'Chocolate shops on Via Nassa — this is Switzerland. Take it seriously.',
             ]} />
             <Meal
               type="lunch"
               label="Lunch"
               name="Grotto della Salute"
-              note="Stone walls, simple menu, good wine. A grotto is the Swiss-Italian version of a trattoria. This one is the real thing. Book ahead."
+              note="A grotto is the Swiss-Italian version of a trattoria, stone walls, short menu, good wine, no pretense. This one is the real thing. Book ahead, it is small."
             />
             <Transport title="Train back to Como — late afternoon" detail="Back in time for a final dinner." />
             <Meal
