@@ -12,12 +12,29 @@ const SECTIONS = [
   { id: 'lugano', label: 'Lugano' },
 ]
 
+const CATEGORY_COLORS = {
+  restaurant: '#c0614a',
+  hotel: '#b8963e',
+  experience: '#6b7a45',
+}
+
 const LAKE_STOPS = [
-  { name: 'Como', lat: 45.8108, lng: 9.0851, note: 'Your base for the whole trip' },
-  { name: 'Vaporina', lat: 46.0021, lng: 9.2154, isBoat: true, note: 'Two hours on private water. The non-negotiable.' },
-  { name: 'Bellagio', lat: 45.9862, lng: 9.2618, note: 'The postcard version of the lake. It earns it.' },
-  { name: 'Varenna', lat: 46.0153, lng: 9.2873, note: 'The village most guides skip. This is the one.' },
-  { name: 'Lugano', lat: 46.0037, lng: 8.9511, note: 'One day across the border into Switzerland.' },
+  // Restaurants
+  { name: 'Giulietta al Lago', lat: 45.8142, lng: 9.0798, category: 'restaurant', note: 'Lakefront promenade. Campari spritz. The ritual.' },
+  { name: 'Ristorante Gatto Nero', lat: 45.8388, lng: 9.0711, category: 'restaurant', note: 'Hillside views over the lake. Classic northern Italian.' },
+  { name: 'Figli dei Fiori Osteria', lat: 45.8198, lng: 9.0867, category: 'restaurant', note: 'The best dinner in Como proper.' },
+  { name: 'Trattoria San Giacomo', lat: 45.9867, lng: 9.2622, category: 'restaurant', note: 'Risotto and lake fish in Bellagio. Locals eat here.' },
+  { name: 'Federico Cernobbio', lat: 45.8438, lng: 9.0698, category: 'restaurant', note: 'Modern northern Italian, beautiful room.' },
+  { name: 'Il Cavatappi', lat: 46.0158, lng: 9.2868, category: 'restaurant', note: 'Lakefront terrace in Varenna. Best meal of the trip.' },
+  { name: 'Hostaria Cernobbio', lat: 45.8392, lng: 9.0695, category: 'restaurant', note: 'Outdoor seating, traditional northern Italian.' },
+  { name: 'Grotto della Salute', lat: 46.0112, lng: 8.9634, category: 'restaurant', note: 'The Swiss-Italian version of a trattoria. This one is real.' },
+  // Hotels
+  { name: 'Palace Hotel Como', lat: 45.8108, lng: 9.0851, category: 'hotel', note: 'Right on the lake. Ask for a lake-facing room.' },
+  // Experiences
+  { name: 'Vaporina Boat Tour', lat: 46.0021, lng: 9.2154, category: 'experience', note: 'Private wooden motorboat. Two hours. Non-negotiable.' },
+  { name: 'Villa Melzi Gardens', lat: 45.9812, lng: 9.2594, category: 'experience', note: 'Lakeside gardens at water level. Bellagio.' },
+  { name: 'Villa Monastero', lat: 46.0142, lng: 9.2881, category: 'experience', note: 'Gardens running along the lake edge. Varenna.' },
+  { name: 'Piazza della Riforma', lat: 46.0037, lng: 8.9511, category: 'experience', note: 'Coffee in Switzerland. Completely different energy.' },
 ]
 
 let mapboxLoadPromise = null
@@ -92,8 +109,8 @@ function StaticLakeMap() {
       const map = new mapboxgl.Map({
         container: containerRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
-        center: [9.18, 45.95],
-        zoom: 9.5,
+        center: [9.18, 45.92],
+        zoom: 10,
         interactive: true,
         scrollZoom: false,
         dragRotate: false,
@@ -123,47 +140,17 @@ function StaticLakeMap() {
       })
 
       map.on('load', () => {
-        // Route line connecting stops in order
-        map.addSource('lake-route', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'LineString',
-              coordinates: LAKE_STOPS.map((s) => [s.lng, s.lat]),
-            },
-          },
-        })
-        map.addLayer({
-          id: 'lake-route-line',
-          type: 'line',
-          source: 'lake-route',
-          paint: {
-            'line-color': '#c0614a',
-            'line-width': 2,
-            'line-dasharray': [2, 2],
-            'line-opacity': 0.75,
-          },
-        })
-
-        // Custom markers with clickable popups
+        // Custom category-colored markers with clickable popups. No route lines.
         LAKE_STOPS.forEach((stop) => {
+          const color = CATEGORY_COLORS[stop.category] || '#c0614a'
           const wrap = document.createElement('div')
           wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
           const pin = document.createElement('div')
-          if (stop.isBoat) {
-            pin.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-family:Jost,sans-serif;font-size:11px;font-weight:500;line-height:1;'
-            pin.textContent = '~'
-          } else {
-            pin.style.cssText = 'width:20px;height:20px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;'
-            const dot = document.createElement('div')
-            dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#fff;'
-            pin.appendChild(dot)
-          }
+          pin.style.cssText = `width:16px;height:16px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.28);`
           wrap.appendChild(pin)
           const label = document.createElement('span')
           label.textContent = stop.name
-          label.style.cssText = "font-family:'Jost',sans-serif;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#1e1a16;background:rgba(245,240,232,0.94);padding:3px 8px;margin-top:5px;border-radius:2px;white-space:nowrap;font-weight:500;"
+          label.style.cssText = `font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${color};background:rgba(245,240,232,0.94);padding:2px 7px;margin-top:4px;border-radius:2px;white-space:nowrap;font-weight:500;`
           wrap.appendChild(label)
 
           const popupHtml = `
@@ -208,6 +195,22 @@ function StaticLakeMap() {
         {(!validToken || tokenError) && (
           <div className="lake-map-fallback">
             <p>Map preview unavailable. Add a valid Mapbox token to Vercel env (VITE_MAPBOX_TOKEN) and redeploy.</p>
+          </div>
+        )}
+        {validToken && !tokenError && (
+          <div className="lake-map-legend">
+            <div className="lake-legend-row">
+              <span className="lake-legend-dot" style={{ background: '#c0614a' }} />
+              <span>Restaurants</span>
+            </div>
+            <div className="lake-legend-row">
+              <span className="lake-legend-dot" style={{ background: '#b8963e' }} />
+              <span>Hotels</span>
+            </div>
+            <div className="lake-legend-row">
+              <span className="lake-legend-dot" style={{ background: '#6b7a45' }} />
+              <span>Experiences</span>
+            </div>
           </div>
         )}
       </div>
@@ -399,6 +402,10 @@ export default function LakeComo() {
         .sample-itinerary .lake-map-caption { max-width: 560px; margin: 14px auto 0; font-size: 12px; color: var(--stone); line-height: 1.65; font-style: italic; text-align: center; font-family: 'Jost', sans-serif; }
         .sample-itinerary .lake-map-caption a { color: var(--terracotta); text-decoration: none; border-bottom: 1px solid rgba(192,97,74,0.35); font-style: italic; }
         .sample-itinerary .lake-map-caption a:hover { color: #a84f3a; border-color: #a84f3a; }
+        .sample-itinerary .lake-map-legend { position: absolute; left: 12px; bottom: 12px; background: rgba(30,26,22,0.78); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border-radius: 3px; padding: 10px 12px; z-index: 5; pointer-events: none; }
+        .sample-itinerary .lake-legend-row { display: flex; align-items: center; gap: 8px; font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cream); font-weight: 400; margin-bottom: 6px; }
+        .sample-itinerary .lake-legend-row:last-child { margin-bottom: 0; }
+        .sample-itinerary .lake-legend-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid #fff; flex-shrink: 0; }
 
         /* Override default Mapbox popup chrome to match Deriva */
         .mapboxgl-popup.deriva-popup-wrap .mapboxgl-popup-tip { display: none; }
