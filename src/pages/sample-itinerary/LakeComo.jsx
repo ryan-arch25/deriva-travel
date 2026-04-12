@@ -15,7 +15,7 @@ const SECTIONS = [
 const CATEGORY_COLORS = {
   restaurant: '#c0614a',
   hotel: '#b8963e',
-  experience: '#6b7a45',
+  experience: '#2c4a6e',
 }
 
 const LAKE_STOPS = [
@@ -108,7 +108,7 @@ function StaticLakeMap() {
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: 'mapbox://styles/mapbox/streets-v12',
         center: [9.18, 45.93],
         zoom: 9.5,
         interactive: true,
@@ -185,13 +185,24 @@ function StaticLakeMap() {
             .addTo(map)
         })
 
-        // Tint the light-v11 water layer so Lake Como is instantly
-        // recognizable without breaking the clean parchment aesthetic.
+        // Tint the water layer to a clean Deriva-matching blue.
         try {
           map.setPaintProperty('water', 'fill-color', '#a8c8d8')
         } catch (err) {
           // eslint-disable-next-line no-console
           console.warn('[Deriva LakeComo map] setPaintProperty failed:', err)
+        }
+
+        // Dynamically fit the view to every pin. This is the only call
+        // that determines the final center/zoom, so the constructor
+        // center/zoom are just a placeholder until this runs.
+        try {
+          const bounds = new mapboxgl.LngLatBounds()
+          LAKE_STOPS.forEach((s) => bounds.extend([s.lng, s.lat]))
+          map.fitBounds(bounds, { padding: 60, animate: false, maxZoom: 11 })
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[Deriva LakeComo map] fitBounds failed:', err)
         }
       })
     }).catch(() => { if (!cancelled) setTokenError(true) })
@@ -228,7 +239,7 @@ function StaticLakeMap() {
               <span>Hotels</span>
             </div>
             <div className="lake-legend-row">
-              <span className="lake-legend-dot" style={{ background: '#6b7a45' }} />
+              <span className="lake-legend-dot" style={{ background: '#2c4a6e' }} />
               <span>Experiences</span>
             </div>
           </div>
