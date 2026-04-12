@@ -123,6 +123,104 @@ function loadMapbox() {
   return mapboxLoadPromise
 }
 
+// ── Country bounding boxes and city centers ─────────────────────────────
+// Bounding boxes are [minLng, minLat, maxLng, maxLat] and are used to
+// validate geocoded results (drop any feature outside the country) and as
+// the `bbox` parameter on the Mapbox Geocoding request itself.
+const COUNTRY_BBOX = {
+  italy: [6.6, 35.4, 18.6, 47.2],
+  portugal: [-9.6, 36.9, -6.1, 42.2],
+  spain: [-9.4, 35.9, 4.4, 43.8],
+  iceland: [-24.7, 63.2, -13.3, 66.7],
+}
+
+// City center fallback coordinates. When geocoding fails completely, the
+// spot gets placed at the center of its listed city so it still appears
+// on the map instead of disappearing.
+const CITY_CENTERS = {
+  // Italy
+  rome: { lat: 41.9028, lng: 12.4964 },
+  roma: { lat: 41.9028, lng: 12.4964 },
+  florence: { lat: 43.7696, lng: 11.2558 },
+  firenze: { lat: 43.7696, lng: 11.2558 },
+  venice: { lat: 45.4408, lng: 12.3155 },
+  venezia: { lat: 45.4408, lng: 12.3155 },
+  milan: { lat: 45.4642, lng: 9.1900 },
+  milano: { lat: 45.4642, lng: 9.1900 },
+  como: { lat: 45.8081, lng: 9.0852 },
+  cernobbio: { lat: 45.8435, lng: 9.0792 },
+  bellagio: { lat: 45.9862, lng: 9.2618 },
+  varenna: { lat: 46.0103, lng: 9.2837 },
+  menaggio: { lat: 46.0221, lng: 9.2416 },
+  lenno: { lat: 45.9817, lng: 9.2135 },
+  naples: { lat: 40.8518, lng: 14.2681 },
+  napoli: { lat: 40.8518, lng: 14.2681 },
+  positano: { lat: 40.6281, lng: 14.4848 },
+  amalfi: { lat: 40.6333, lng: 14.6029 },
+  palermo: { lat: 38.1157, lng: 13.3615 },
+  catania: { lat: 37.5079, lng: 15.0830 },
+  taormina: { lat: 37.8516, lng: 15.2853 },
+  noto: { lat: 36.8910, lng: 15.0697 },
+  lecce: { lat: 40.3515, lng: 18.1750 },
+  ostuni: { lat: 40.7298, lng: 17.5810 },
+  // Portugal
+  lisbon: { lat: 38.7223, lng: -9.1393 },
+  lisboa: { lat: 38.7223, lng: -9.1393 },
+  porto: { lat: 41.1579, lng: -8.6291 },
+  sintra: { lat: 38.8029, lng: -9.3817 },
+  cascais: { lat: 38.6979, lng: -9.4215 },
+  lagos: { lat: 37.1028, lng: -8.6720 },
+  faro: { lat: 37.0194, lng: -7.9322 },
+  tavira: { lat: 37.1250, lng: -7.6500 },
+  evora: { lat: 38.5667, lng: -7.9000 },
+  // Spain
+  madrid: { lat: 40.4168, lng: -3.7038 },
+  barcelona: { lat: 41.3851, lng: 2.1734 },
+  seville: { lat: 37.3886, lng: -5.9953 },
+  sevilla: { lat: 37.3886, lng: -5.9953 },
+  'san sebastian': { lat: 43.3183, lng: -1.9812 },
+  'san sebastián': { lat: 43.3183, lng: -1.9812 },
+  donostia: { lat: 43.3183, lng: -1.9812 },
+  bilbao: { lat: 43.2630, lng: -2.9350 },
+  granada: { lat: 37.1773, lng: -3.5986 },
+  cordoba: { lat: 37.8882, lng: -4.7794 },
+  málaga: { lat: 36.7213, lng: -4.4214 },
+  malaga: { lat: 36.7213, lng: -4.4214 },
+  valencia: { lat: 39.4699, lng: -0.3763 },
+  // Iceland
+  reykjavik: { lat: 64.1466, lng: -21.9426 },
+  reykjavík: { lat: 64.1466, lng: -21.9426 },
+  akureyri: { lat: 65.6835, lng: -18.1091 },
+  vik: { lat: 63.4186, lng: -19.0064 },
+  vík: { lat: 63.4186, lng: -19.0064 },
+  selfoss: { lat: 63.9333, lng: -20.9974 },
+  hvolsvöllur: { lat: 63.7502, lng: -20.2193 },
+  hvolsvollur: { lat: 63.7502, lng: -20.2193 },
+  'stykkishólmur': { lat: 65.0754, lng: -22.7270 },
+  stykkisholmur: { lat: 65.0754, lng: -22.7270 },
+  arnarstapi: { lat: 64.7697, lng: -23.6306 },
+  hellnar: { lat: 64.7562, lng: -23.6465 },
+}
+
+function getCityCenter(city, country) {
+  if (!city) {
+    // No city, fall back to country center (approximate)
+    const bbox = COUNTRY_BBOX[country?.toLowerCase()]
+    if (bbox) return { lat: (bbox[1] + bbox[3]) / 2, lng: (bbox[0] + bbox[2]) / 2 }
+    return null
+  }
+  const key = city.toLowerCase().trim()
+  if (CITY_CENTERS[key]) return CITY_CENTERS[key]
+  // Try partial match
+  for (const [k, v] of Object.entries(CITY_CENTERS)) {
+    if (key.includes(k) || k.includes(key)) return v
+  }
+  // Fall back to country center
+  const bbox = COUNTRY_BBOX[country?.toLowerCase()]
+  if (bbox) return { lat: (bbox[1] + bbox[3]) / 2, lng: (bbox[0] + bbox[2]) / 2 }
+  return null
+}
+
 // ── Spot source: bundled curated data + localStorage custom spots ────────
 function getAllSpotsForCountry(countryId) {
   const sources = { italy: italyData, portugal: portugalData, spain: spainData, iceland: icelandData }
@@ -155,46 +253,127 @@ function spotCacheKey(spot) {
   return `${(spot.name || '').toLowerCase()}|${(spot.city || '').toLowerCase()}|${(spot.country || '').toLowerCase()}`
 }
 
-async function geocodeOne(spot) {
-  if (!MAPBOX_TOKEN) return null
-  const parts = [spot.name, spot.address, spot.city, spot.country].filter(Boolean).join(', ')
-  const q = encodeURIComponent(parts)
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${MAPBOX_TOKEN}&limit=1`
-  try {
-    const res = await fetch(url)
-    if (!res.ok) return null
-    const data = await res.json()
-    const feat = data.features?.[0]
-    if (!feat?.center) return null
-    const [lng, lat] = feat.center
-    return { lat, lng }
-  } catch {
-    return null
-  }
+function isInBbox(lng, lat, bbox) {
+  if (!bbox) return true
+  return lng >= bbox[0] && lng <= bbox[2] && lat >= bbox[1] && lat <= bbox[3]
 }
 
-// Throttled batch: geocodes up to `concurrency` spots at a time, caches each result.
-async function geocodeAll(spots, onProgress, concurrency = 4) {
-  const cache = getGeocodeCache()
-  const todo = spots.filter((s) => !cache[spotCacheKey(s)])
-  const done = spots.filter((s) => cache[spotCacheKey(s)]).map((s) => ({ ...s, ...cache[spotCacheKey(s)] }))
-  onProgress(done)
+// Try multiple query variants in order of specificity. Returns the first
+// result whose coordinates fall inside the country bounding box.
+async function geocodeOne(spot, countryId) {
+  if (!MAPBOX_TOKEN) return null
+  const bbox = COUNTRY_BBOX[countryId]
+  const bboxParam = bbox ? `&bbox=${bbox.join(',')}` : ''
+  const countryParam = countryId === 'italy' ? '&country=it'
+    : countryId === 'portugal' ? '&country=pt'
+    : countryId === 'spain' ? '&country=es'
+    : countryId === 'iceland' ? '&country=is'
+    : ''
 
-  let idx = 0
-  async function worker() {
-    while (idx < todo.length) {
-      const my = idx++
-      const spot = todo[my]
-      const coords = await geocodeOne(spot)
-      if (coords) {
-        cache[spotCacheKey(spot)] = coords
-        saveGeocodeCache(cache)
-        done.push({ ...spot, ...coords })
-        onProgress([...done])
+  // Build query variants from most to least specific. Address is preferred
+  // when available per spec.
+  const variants = []
+  if (spot.address && spot.city) variants.push(`${spot.address}, ${spot.city}`)
+  if (spot.name && spot.city) variants.push(`${spot.name}, ${spot.city}`)
+  if (spot.address) variants.push(spot.address)
+  if (spot.name && spot.country) variants.push(`${spot.name}, ${spot.country}`)
+  if (spot.name) variants.push(spot.name)
+
+  for (const v of variants) {
+    const q = encodeURIComponent(v)
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${q}.json?access_token=${MAPBOX_TOKEN}&limit=3${countryParam}${bboxParam}`
+    try {
+      const res = await fetch(url)
+      if (!res.ok) continue
+      const data = await res.json()
+      // Pick the first feature that is inside the country bbox
+      const feats = Array.isArray(data.features) ? data.features : []
+      for (const feat of feats) {
+        if (!feat?.center) continue
+        const [lng, lat] = feat.center
+        if (isInBbox(lng, lat, bbox)) return { lat, lng, source: 'geocoded', query: v }
+      }
+    } catch {
+      // try next variant
+    }
+  }
+  return null
+}
+
+// Throttled batch: geocodes up to `concurrency` spots at a time, caches each
+// result, and falls back to city center for anything that still fails.
+// Returns { spots, counts } where counts is a per-country summary.
+async function geocodeAll(spots, countryId, onProgress, concurrency = 4) {
+  const cache = getGeocodeCache()
+  let existingCount = 0
+  let fromCacheCount = 0
+  let geocodedCount = 0
+  let failedCount = 0
+  let fallbackCount = 0
+
+  // Classify spots
+  const withExistingCoords = []
+  const withCachedCoords = []
+  const needsGeocode = []
+  for (const s of spots) {
+    if (typeof s.lat === 'number' && typeof s.lng === 'number') {
+      withExistingCoords.push(s)
+      existingCount++
+    } else {
+      const cached = cache[spotCacheKey(s)]
+      if (cached && typeof cached.lat === 'number' && typeof cached.lng === 'number') {
+        withCachedCoords.push({ ...s, ...cached })
+        fromCacheCount++
+      } else {
+        needsGeocode.push(s)
       }
     }
   }
+
+  // Initial progress render: bundled coords + cached coords
+  const done = [...withExistingCoords, ...withCachedCoords]
+  onProgress([...done])
+
+  // Geocode everything that needs it
+  let idx = 0
+  async function worker() {
+    while (idx < needsGeocode.length) {
+      const my = idx++
+      const spot = needsGeocode[my]
+      const coords = await geocodeOne(spot, countryId)
+      if (coords) {
+        cache[spotCacheKey(spot)] = { lat: coords.lat, lng: coords.lng }
+        saveGeocodeCache(cache)
+        done.push({ ...spot, lat: coords.lat, lng: coords.lng })
+        geocodedCount++
+      } else {
+        // Fallback to city center so the pin still appears on the map
+        const fallback = getCityCenter(spot.city, spot.country)
+        if (fallback) {
+          done.push({ ...spot, lat: fallback.lat, lng: fallback.lng, _fallback: true })
+          fallbackCount++
+        } else {
+          failedCount++
+          // eslint-disable-next-line no-console
+          console.warn(`[Deriva Maps] Could not geocode or place: ${spot.name} (${spot.city || 'no city'})`)
+        }
+      }
+      onProgress([...done])
+    }
+  }
   await Promise.all(Array.from({ length: concurrency }, worker))
+
+  return {
+    spots: done,
+    counts: {
+      total: spots.length,
+      existingCoords: existingCount,
+      fromCache: fromCacheCount,
+      geocoded: geocodedCount,
+      fallback: fallbackCount,
+      failed: failedCount,
+    },
+  }
   return done
 }
 
@@ -232,15 +411,34 @@ export default function Maps() {
     setLoadingSpots(true)
     setGeocodedSpots([])
     const spots = getAllSpotsForCountry(countryId)
+
     // eslint-disable-next-line no-console
-    console.log(`[Deriva Maps] ${country.name}: ${spots.length} spots to process`)
-    geocodeAll(spots, (progress) => {
+    console.log(`[Deriva Maps] ${country.name}: loaded ${spots.length} spots`)
+
+    // Florence-specific diagnostic per spec. Log every spot with city
+    // matching Florence or Firenze so we can confirm they are in the pipeline.
+    if (countryId === 'italy') {
+      const florence = spots.filter((s) => /^(florence|firenze)$/i.test((s.city || '').trim()))
+      // eslint-disable-next-line no-console
+      console.log(`[Deriva Maps] Italy · Florence/Firenze spots: ${florence.length}`)
+      florence.forEach((s, i) => {
+        // eslint-disable-next-line no-console
+        console.log(`  ${i + 1}. ${s.name} (${s.category || 'Restaurant'}) — ${s.neighborhood || '—'} — ${s.address || 'no address'}`)
+      })
+    }
+
+    geocodeAll(spots, countryId, (progress) => {
       if (!cancelled) setGeocodedSpots(progress)
-    }).then((final) => {
+    }).then(({ spots: final, counts }) => {
       if (!cancelled) {
         setLoadingSpots(false)
         // eslint-disable-next-line no-console
-        console.log(`[Deriva Maps] ${country.name}: ${final.length} spots geocoded and rendered`)
+        console.log(
+          `[Deriva Maps] ${country.name} summary → total ${counts.total}, ` +
+          `bundled coords ${counts.existingCoords}, from cache ${counts.fromCache}, ` +
+          `newly geocoded ${counts.geocoded}, fallback to city center ${counts.fallback}, ` +
+          `dropped ${counts.failed} · rendered ${final.length} pins`
+        )
       }
     })
     return () => { cancelled = true }
@@ -359,6 +557,7 @@ export default function Maps() {
             <div class="dm-name">${escapeHtml(spot.name)}</div>
             ${spot.neighborhood ? `<div class="dm-neighborhood">${escapeHtml(spot.neighborhood)}${spot.city ? ' · ' + escapeHtml(spot.city) : ''}</div>` : (spot.city ? `<div class="dm-neighborhood">${escapeHtml(spot.city)}</div>` : '')}
             ${spot.note ? `<div class="dm-note">"${escapeHtml(spot.note)}"</div>` : ''}
+            ${spot._fallback ? '<div class="dm-fallback">Approximate location, placed at city center</div>' : ''}
             <button class="dm-add-btn" data-spot-id="${escapeHtml(spot.id)}">Add to Itinerary</button>
           </div>
         `
@@ -432,6 +631,7 @@ export default function Maps() {
         .deriva-map-popup .dm-iata { font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; color: #6a5a7a; margin-left: 4px; }
         .deriva-map-popup .dm-neighborhood { font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #8c7b6b; margin-bottom: 8px; }
         .deriva-map-popup .dm-note { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 13px; font-style: italic; color: #3a3028; line-height: 1.55; padding-left: 10px; border-left: 2px solid #c0614a; margin-bottom: 10px; }
+        .deriva-map-popup .dm-fallback { font-family: 'Jost', sans-serif; font-size: 10px; color: #8c7b6b; background: rgba(140,123,107,0.1); padding: 6px 8px; border-left: 2px solid #8c7b6b; margin-bottom: 10px; font-style: italic; }
         .deriva-map-popup .dm-add-btn { display: block; width: 100%; font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #fff; background: #c0614a; border: none; padding: 9px 12px; cursor: pointer; border-radius: 2px; }
         .deriva-map-popup .dm-add-btn:hover { background: #a84f3a; }
 
