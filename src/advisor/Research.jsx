@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { SEASONAL_DATA } from '../data/seasonal'
 
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
@@ -1074,6 +1075,124 @@ function SavedTab({ savedItems, setSavedItems }) {
   )
 }
 
+// ── WHEN TO GO ─────────────────────────────────────────────────────────────
+const SEASON_STYLES = {
+  peak: { label: 'Peak', color: '#fff', bg: C.terracotta },
+  shoulder: { label: 'Shoulder', color: '#fff', bg: C.gold },
+  off: { label: 'Off Season', color: '#fff', bg: C.mid },
+}
+
+const pillStyle = {
+  display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem',
+  letterSpacing: '0.08em', padding: '0.2rem 0.55rem', marginRight: '0.35rem',
+  marginBottom: '0.35rem', border: `1px solid ${C.sand}`, color: C.charcoal,
+  backgroundColor: C.parchment, lineHeight: '1.5',
+}
+
+const levelColors = { Low: C.mid, Medium: C.gold, High: C.terracotta, 'Very High': '#9E4040' }
+function LevelBadge({ label, value }) {
+  return (
+    <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: levelColors[value] || C.mid }}>
+      {label}: {value}
+    </span>
+  )
+}
+
+function WhenToGo({ destId }) {
+  const data = SEASONAL_DATA[destId]
+  if (!data) return null
+
+  return (
+    <div style={{ marginTop: '2rem' }}>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.75rem' }}>
+        When to Go
+      </p>
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.mid, lineHeight: '1.65', marginBottom: '1.5rem', backgroundColor: C.parchment, padding: '0.75rem 1rem', border: `1px solid ${C.sand}` }}>
+        Shoulder seasons generally offer the best combination of good conditions, lower prices, and authentic local atmosphere. For Italy and Portugal: April to May and September to October. For Spain: March to May in the south, September to October everywhere. For Iceland: May to June and September.
+      </p>
+
+      <div style={{ backgroundColor: C.parchment, border: `1px solid ${C.sand}`, padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.6rem' }}>Pricing Overview</p>
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+          {[
+            ['Cheapest months', data.pricing.cheapest],
+            ['Most expensive months', data.pricing.expensive],
+            ['Book far ahead for', data.pricing.bookAhead],
+            ['Shoulder sweet spot', data.pricing.shoulder],
+          ].map(([label, val]) => (
+            <li key={label} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.65', marginBottom: '0.5rem', paddingLeft: '1rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0, color: C.terracotta }}>·</span>
+              <strong style={{ fontWeight: '400', color: C.ink }}>{label}:</strong> {val}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75', marginBottom: '1.5rem' }}>
+        {data.shoulderSummary}
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+        {data.months.map((m) => {
+          const ss = SEASON_STYLES[m.season] || SEASON_STYLES.off
+          const isEclipse = m.bookAhead === 'eclipse'
+          const showBookAhead = !!m.bookAhead
+          return (
+            <div key={m.name} style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', color: C.ink }}>{m.name}</span>
+                <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: ss.color, backgroundColor: ss.bg, padding: '0.2rem 0.6rem' }}>
+                  {ss.label}
+                </span>
+              </div>
+
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.6', marginBottom: '0.5rem' }}>
+                {m.weather}
+              </p>
+
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                <LevelBadge label="Crowds" value={m.crowds} />
+                <LevelBadge label="Price" value={m.price} />
+              </div>
+
+              {showBookAhead && (
+                <div style={{
+                  display: 'inline-block', fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem',
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: '#fff', backgroundColor: isEclipse ? '#B03030' : C.terracotta,
+                  padding: '0.25rem 0.65rem', marginBottom: '0.5rem',
+                  fontWeight: isEclipse ? '600' : '400',
+                }}>
+                  {isEclipse ? 'Book Immediately' : 'Book Ahead'}
+                </div>
+              )}
+
+              {m.phenomena?.length > 0 && (
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.25rem' }}>Natural Phenomena</p>
+                  {m.phenomena.map((p, i) => <span key={i} style={pillStyle}>{p}</span>)}
+                </div>
+              )}
+
+              {m.events?.length > 0 && (
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.25rem' }}>Events</p>
+                  {m.events.map((e, i) => <span key={i} style={{ ...pillStyle, backgroundColor: C.white }}>{e}</span>)}
+                </div>
+              )}
+
+              <div style={{ borderTop: `1px solid ${C.sand}`, paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.15rem' }}>Best For</p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.5', margin: 0 }}>{m.bestFor}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── DESTINATIONS TAB ────────────────────────────────────────────────────────
 function DestinationsTab() {
   const [notes, setNotes] = useLocalStorage('deriva_research_destination_notes', {})
@@ -1149,6 +1268,8 @@ function DestinationsTab() {
                     style={{ ...inp, resize: 'vertical', lineHeight: '1.7' }}
                   />
                 </div>
+
+                <WhenToGo destId={d.id} />
               </div>
             )}
           </div>
