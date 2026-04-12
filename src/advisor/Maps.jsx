@@ -221,24 +221,133 @@ function getCityCenter(city, country) {
   return null
 }
 
+// ── Normalization ────────────────────────────────────────────────────────
+// Map any variation of a category name to one of the four internal buckets
+// the filter uses. Defaults to 'Restaurant' for empty or unrecognized values.
+function normalizeCategory(raw) {
+  const s = (raw || '').toString().trim().toLowerCase()
+  if (!s) return 'Restaurant'
+  if (/(^|\s)(restaurant|restaurants|food|dining|trattoria|osteria|pizzeria)(\s|$)/.test(s)) return 'Restaurant'
+  if (/(^|\s)(hotel|hotels|accommodation|stay|stays|lodging|inn|resort)(\s|$)/.test(s)) return 'Hotel'
+  if (/(^|\s)(experience|experiences|activity|activities|tour|tours|gardens?|museum|thing to do)(\s|$)/.test(s)) return 'Experience'
+  if (/(^|\s)(cafe|cafes|café|cafés|bar|bars|cafes? & bars?|cafe & bar|drink|drinks|cocktail|wine|espresso)(\s|$)/.test(s)) return 'Cafe & Bar'
+  // Fallback substring checks
+  if (s.includes('restaurant') || s.includes('food') || s.includes('dining')) return 'Restaurant'
+  if (s.includes('hotel') || s.includes('stay')) return 'Hotel'
+  if (s.includes('experience') || s.includes('activity') || s.includes('tour')) return 'Experience'
+  if (s.includes('cafe') || s.includes('bar') || s.includes('drink')) return 'Cafe & Bar'
+  return 'Restaurant'
+}
+
+// Map any variation of a destination or a city name to one of the four
+// countries Maps supports. Returns null if indeterminable.
+function normalizeDestination(rawCountry, rawCity) {
+  const strs = [rawCountry, rawCity].map((x) => (x || '').toString().trim().toLowerCase())
+  const blob = strs.join(' ')
+  if (!blob.trim()) return null
+
+  const italyCities = ['italy', 'italia', 'rome', 'roma', 'florence', 'firenze', 'venice', 'venezia', 'milan', 'milano', 'como', 'cernobbio', 'bellagio', 'varenna', 'menaggio', 'lenno', 'lake como', 'naples', 'napoli', 'positano', 'amalfi', 'palermo', 'catania', 'taormina', 'noto', 'lecce', 'ostuni', 'sicily', 'sicilia', 'tuscany', 'puglia']
+  const portugalCities = ['portugal', 'lisbon', 'lisboa', 'porto', 'oporto', 'sintra', 'cascais', 'lagos', 'faro', 'tavira', 'algarve', 'evora', 'azores', 'madeira']
+  const spainCities = ['spain', 'españa', 'espana', 'madrid', 'barcelona', 'seville', 'sevilla', 'san sebastian', 'san sebastián', 'donostia', 'bilbao', 'granada', 'cordoba', 'córdoba', 'malaga', 'málaga', 'valencia', 'andalusia', 'catalonia', 'basque']
+  const icelandCities = ['iceland', 'reykjavik', 'reykjavík', 'akureyri', 'vik', 'vík', 'selfoss', 'hvolsvöllur', 'hvolsvollur', 'stykkishólmur', 'stykkisholmur', 'arnarstapi', 'hellnar', 'snaefellsnes', 'snæfellsnes']
+
+  if (italyCities.some((c) => blob.includes(c))) return 'Italy'
+  if (portugalCities.some((c) => blob.includes(c))) return 'Portugal'
+  if (spainCities.some((c) => blob.includes(c))) return 'Spain'
+  if (icelandCities.some((c) => blob.includes(c))) return 'Iceland'
+  return null
+}
+
 // ── Spot source: bundled curated data + localStorage custom spots ────────
-function getAllSpotsForCountry(countryId) {
-  const sources = { italy: italyData, portugal: portugalData, spain: spainData, iceland: icelandData }
-  const src = sources[countryId]
-  const countryName = countryId.charAt(0).toUpperCase() + countryId.slice(1)
-  const restaurants = (src.restaurants || []).map((s) => ({ ...s, country: countryName, category: s.category || 'Restaurant' }))
-  const stays = (src.stays || []).map((s) => ({ ...s, country: countryName, category: 'Hotel' }))
+// Returns ALL spots across all countries with normalized category and
+// destination fields. The Maps component then filters by country.
+function getAllSpotsNormalized() {
+  const sources = { Italy: italyData, Portugal: portugalData, Spain: spainData, Iceland: icelandData }
+  const bundled = []
+  for (const [countryName, src] of Object.entries(sources)) {
+    for (const r of src.restaurants || []) {
+      bundled.push({ ...r, _source: 'bundled', _raw_category: r.category, _raw_country: countryName })
+    }
+    for (const h of src.stays || []) {
+      bundled.push({ ...h, _source: 'bundled', _raw_category: h.category || 'Hotel', _raw_country: countryName, category: h.category || 'Hotel' })
+    }
+  }
+
   let custom = []
   try {
     const raw = JSON.parse(localStorage.getItem('deriva_spots') || '[]')
-    custom = (Array.isArray(raw) ? raw : [])
-      .map((s) => ({ ...s, category: s.category || 'Restaurant' }))
-      .filter((s) => (s.country || '').toLowerCase() === countryId)
+    custom = (Array.isArray(raw) ? raw : []).map((s) => ({
+      ...s,
+      _source: 'custom',
+      _raw_category: s.category,
+      _raw_country: s.country,
+    }))
   } catch {}
-  return [...restaurants, ...stays, ...custom].map((s, i) => ({
-    ...s,
-    id: s.id || `${countryId}_${s.name}_${i}`.replace(/\s+/g, '_'),
-  }))
+
+  return [...bundled, ...custom].map((s, i) => {
+    const normalizedCategory = normalizeCategory(s._raw_category || s.category)
+    const normalizedCountry = normalizeDestination(s._raw_country || s.country, s.city)
+    return {
+      ...s,
+      category: normalizedCategory,
+      country: normalizedCountry || s._raw_country || '',
+      id: s.id || `spot_${i}_${(s.name || '').replace(/\s+/g, '_')}`,
+    }
+  })
+}
+
+function getAllSpotsForCountry(countryId) {
+  const countryName = countryId.charAt(0).toUpperCase() + countryId.slice(1)
+  return getAllSpotsNormalized().filter((s) => s.country === countryName)
+}
+
+// One-time diagnostic dump so we can see exactly what loaded and how it
+// classified. Runs once per page load.
+let _didDumpSpots = false
+function dumpSpotsDiagnostic() {
+  if (_didDumpSpots) return
+  _didDumpSpots = true
+  const all = getAllSpotsNormalized()
+  // eslint-disable-next-line no-console
+  console.group('[Deriva Maps] Full spot inventory (normalized)')
+  // eslint-disable-next-line no-console
+  console.log(`Loaded ${all.length} total spots (bundled + localStorage deriva_spots)`)
+  // eslint-disable-next-line no-console
+  console.log('My Spots and Maps read from the same two sources: src/data/*.js and localStorage.deriva_spots')
+
+  const byCountry = { Italy: [], Portugal: [], Spain: [], Iceland: [], Unknown: [] }
+  for (const s of all) {
+    const bucket = byCountry[s.country] ? s.country : 'Unknown'
+    byCountry[bucket].push(s)
+  }
+
+  for (const [country, list] of Object.entries(byCountry)) {
+    if (list.length === 0) continue
+    // eslint-disable-next-line no-console
+    console.groupCollapsed(`${country}: ${list.length} spots`)
+    for (const s of list) {
+      // eslint-disable-next-line no-console
+      console.log({
+        name: s.name,
+        raw_category: s._raw_category,
+        category: s.category,
+        raw_country: s._raw_country,
+        country: s.country,
+        city: s.city,
+        lat: typeof s.lat === 'number' ? s.lat : '(needs geocode)',
+        lng: typeof s.lng === 'number' ? s.lng : '(needs geocode)',
+        source: s._source,
+      })
+    }
+    // Category breakdown
+    const byCat = list.reduce((acc, s) => { acc[s.category] = (acc[s.category] || 0) + 1; return acc }, {})
+    // eslint-disable-next-line no-console
+    console.log('By category:', byCat)
+    // eslint-disable-next-line no-console
+    console.groupEnd()
+  }
+  // eslint-disable-next-line no-console
+  console.groupEnd()
 }
 
 // ── Geocode cache (client-side localStorage) ─────────────────────────────
@@ -410,6 +519,10 @@ export default function Maps() {
     let cancelled = false
     setLoadingSpots(true)
     setGeocodedSpots([])
+
+    // One-time full inventory dump for debugging. Runs once per session.
+    dumpSpotsDiagnostic()
+
     const spots = getAllSpotsForCountry(countryId)
 
     // eslint-disable-next-line no-console
