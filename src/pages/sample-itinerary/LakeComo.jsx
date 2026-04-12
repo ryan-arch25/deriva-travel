@@ -31,7 +31,7 @@ const LAKE_STOPS = [
   // Hotels
   { name: 'Palace Hotel Como', lat: 45.8108, lng: 9.0851, category: 'hotel', note: 'Right on the lake. Ask for a lake-facing room.' },
   // Experiences
-  { name: 'Vaporina Boat Tour', lat: 46.0021, lng: 9.2154, category: 'experience', note: 'Private wooden motorboat. Two hours. Non-negotiable.' },
+  { name: 'Vaporina Boat Tour', lat: 45.8108, lng: 9.0851, category: 'experience', note: 'Private wooden motorboat. Two hours. Non-negotiable. Pickup in Como.' },
   { name: 'Villa Melzi Gardens', lat: 45.9812, lng: 9.2594, category: 'experience', note: 'Lakeside gardens at water level. Bellagio.' },
   { name: 'Villa Monastero', lat: 46.0142, lng: 9.2881, category: 'experience', note: 'Gardens running along the lake edge. Varenna.' },
   { name: 'Piazza della Riforma', lat: 46.0037, lng: 8.9511, category: 'experience', note: 'Coffee in Switzerland. Completely different energy.' },
@@ -126,6 +126,17 @@ function StaticLakeMap() {
         map.touchZoomRotate.disableRotation()
       } catch {}
 
+      // Add zoom control buttons in top right
+      try {
+        map.addControl(new mapboxgl.NavigationControl({ showCompass: false, showZoom: true, visualizePitch: false }), 'top-right')
+      } catch {}
+
+      // Enable scroll zoom only after the user clicks the map once
+      const enableScrollOnce = () => {
+        try { map.scrollZoom.enable() } catch {}
+      }
+      map.once('click', enableScrollOnce)
+
       map.on('error', (e) => {
         // eslint-disable-next-line no-console
         console.warn('[Deriva LakeComo map] mapbox error:', e?.error?.status, e?.error?.message)
@@ -173,6 +184,16 @@ function StaticLakeMap() {
             .setPopup(popup)
             .addTo(map)
         })
+
+        // Fit the view to all pins with 60px padding on every side
+        try {
+          const bounds = new mapboxgl.LngLatBounds()
+          LAKE_STOPS.forEach((s) => bounds.extend([s.lng, s.lat]))
+          map.fitBounds(bounds, { padding: 60, duration: 0, maxZoom: 12 })
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[Deriva LakeComo map] fitBounds failed:', err)
+        }
       })
     }).catch(() => { if (!cancelled) setTokenError(true) })
 
@@ -406,6 +427,15 @@ export default function LakeComo() {
         .sample-itinerary .lake-legend-row { display: flex; align-items: center; gap: 8px; font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cream); font-weight: 400; margin-bottom: 6px; }
         .sample-itinerary .lake-legend-row:last-child { margin-bottom: 0; }
         .sample-itinerary .lake-legend-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid #fff; flex-shrink: 0; }
+
+        /* Mapbox NavigationControl override to match Deriva */
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-top-right { top: 10px; right: 10px; }
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-group { background: transparent; box-shadow: none; border-radius: 3px; overflow: hidden; border: 1px solid rgba(245,240,232,0.15); }
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-group button { background-color: #1e1a16; width: 32px; height: 32px; border: none; border-bottom: 1px solid rgba(245,240,232,0.12); box-shadow: 0 2px 8px rgba(30,26,22,0.2); }
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-group button:last-child { border-bottom: none; }
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-group button:hover { background-color: #2a2520; }
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-group button:focus:not(:focus-visible) { box-shadow: 0 2px 8px rgba(30,26,22,0.2); }
+        .sample-itinerary .lake-map-canvas .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon { filter: invert(95%) sepia(10%) saturate(155%) hue-rotate(350deg) brightness(99%) contrast(91%); }
 
         /* Override default Mapbox popup chrome to match Deriva */
         .mapboxgl-popup.deriva-popup-wrap .mapboxgl-popup-tip { display: none; }
