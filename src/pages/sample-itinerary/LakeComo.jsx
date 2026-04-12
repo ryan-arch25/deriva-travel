@@ -11,9 +11,23 @@ const SECTIONS = [
 
 function DayCard({ number, date, theme, badge, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen)
+  const toggle = () => setOpen((prev) => !prev)
+  const onKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      toggle()
+    }
+  }
   return (
     <div className="day-card" data-open={open}>
-      <button type="button" className="day-header" onClick={() => setOpen(!open)} aria-expanded={open}>
+      <div
+        role="button"
+        tabIndex={0}
+        className="day-header"
+        onClick={toggle}
+        onKeyDown={onKey}
+        aria-expanded={open}
+      >
         <div className="day-num-col">
           <span className="day-number">{number}</span>
           <span className="day-num-label">Day</span>
@@ -24,7 +38,7 @@ function DayCard({ number, date, theme, badge, defaultOpen = true, children }) {
         </div>
         <span className="day-badge">{badge}</span>
         <span className="day-toggle" aria-hidden="true">{open ? '–' : '+'}</span>
-      </button>
+      </div>
       {open && <div className="day-body">{children}</div>}
     </div>
   )
@@ -335,11 +349,11 @@ export default function LakeComo() {
         {/* COMO */}
         <section className="city-section" id="como">
           <div className="city-header">
-            <span className="city-tag">Days 1 – 3</span>
+            <span className="city-tag">Days 1 – 2</span>
             <h2 className="city-name">Como</h2>
             <hr className="city-rule" />
           </div>
-          <p className="city-intro">Three days based in Como gives you the right rhythm for the lake. You arrive, settle in, spend a full day on the water, and use the town as the hub it was always meant to be.</p>
+          <p className="city-intro">Two full days based in Como sets the rhythm for the lake. You arrive, settle in, and spend a full day on the water. The town is the hub it was always meant to be.</p>
 
           <DayCard number="1" date="Friday, May 1" theme="Fly into Milan · Train to Como · First evening on the lake" badge="Arrival">
             <Transport title="Milan Malpensa → Como San Giovanni — about 1 hour" detail="Train via Milan Centrale. Buy tickets in advance." />
@@ -396,6 +410,19 @@ export default function LakeComo() {
               note="By this point it becomes the ritual. Same spot, different light."
             />
           </DayCard>
+
+        </section>
+
+        <hr className="section-rule" />
+
+        {/* BELLAGIO */}
+        <section className="city-section" id="bellagio">
+          <div className="city-header">
+            <span className="city-tag">Day 3</span>
+            <h2 className="city-name">Bellagio</h2>
+            <hr className="city-rule" />
+          </div>
+          <p className="city-intro">The postcard version of Lake Como, and it earns it. Cross the lake, walk Villa Melzi at water level, get one street back from the main strip where the steep lanes above town are quieter and more interesting than anything on the waterfront.</p>
 
           <DayCard number="3" date="Sunday, May 3" theme="Ferry across · Villa Melzi · Federico Cernobbio" badge="Bellagio">
             <AdvisorNote>
