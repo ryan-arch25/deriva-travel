@@ -1808,10 +1808,15 @@ export default function AdvisorDashboard() {
   }, [location.pathname])
 
   useEffect(() => {
-    if (!sessionStorage.getItem('deriva_advisor')) navigate('/advisor')
+    fetch('/api/auth/session').then((r) => r.json()).then((data) => {
+      if (!data.authenticated) navigate('/advisor')
+    }).catch(() => navigate('/advisor'))
   }, [])
 
-  const handleLogout = () => { sessionStorage.removeItem('deriva_advisor'); navigate('/advisor') }
+  const handleLogout = async () => {
+    try { await fetch('/api/auth/session', { method: 'DELETE' }) } catch {}
+    navigate('/advisor')
+  }
 
   return (
     <div style={{ backgroundColor: C.cream, minHeight: '100vh' }}>

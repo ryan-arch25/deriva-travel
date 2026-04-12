@@ -5,6 +5,13 @@ import { listItineraries, getItinerary, createItinerary, updateItinerary, delete
 import rssHandler from './api/rss.js'
 import researchSearchHandler from './api/research-search.js'
 import contentHandler from './api/content.js'
+import authLoginHandler from './api/auth/login.js'
+import authSetupHandler from './api/auth/setup.js'
+import authVerify2faHandler from './api/auth/verify-2fa.js'
+import authResendCodeHandler from './api/auth/resend-code.js'
+import authForgotHandler from './api/auth/forgot.js'
+import authResetHandler from './api/auth/reset.js'
+import authSessionHandler from './api/auth/session.js'
 
 const ADVISOR_TOKEN = process.env.ADVISOR_AUTH_TOKEN || 'deriva2024'
 const isAuthorized = (req) => req.headers['x-advisor-auth'] === ADVISOR_TOKEN
@@ -121,6 +128,15 @@ app.delete('/api/itineraries', async (req, res) => {
 app.post('/api/rss', (req, res) => rssHandler(req, res))
 app.get('/api/rss', (req, res) => rssHandler(req, res))
 app.post('/api/research-search', (req, res) => researchSearchHandler(req, res))
+app.post('/api/auth/login', (req, res) => authLoginHandler(req, res))
+app.post('/api/auth/setup', (req, res) => authSetupHandler(req, res))
+app.post('/api/auth/verify-2fa', (req, res) => authVerify2faHandler(req, res))
+app.post('/api/auth/resend-code', (req, res) => authResendCodeHandler(req, res))
+app.post('/api/auth/forgot', (req, res) => authForgotHandler(req, res))
+app.get('/api/auth/reset', (req, res) => authResetHandler(req, res))
+app.post('/api/auth/reset', (req, res) => authResetHandler(req, res))
+app.get('/api/auth/session', (req, res) => authSessionHandler(req, res))
+app.delete('/api/auth/session', (req, res) => authSessionHandler(req, res))
 app.get('/api/content', (req, res) => contentHandler(req, res))
 app.post('/api/content', (req, res) => contentHandler(req, res))
 app.patch('/api/content', (req, res) => contentHandler(req, res))

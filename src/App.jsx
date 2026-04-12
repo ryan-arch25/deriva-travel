@@ -20,6 +20,7 @@ export default function App() {
         <Route path="/destinations/iceland" element={<Iceland />} />
         <Route path="/destinations/spain" element={<Spain />} />        <Route path="/work-with-me" element={<WorkWithMe />} />
         <Route path="/advisor" element={<AdvisorLogin />} />
+        <Route path="/advisor/reset-password" element={<AdvisorLogin />} />
         <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />
         <Route path="/advisor/playbook" element={<AdvisorDashboard />} />
         <Route path="/advisor/clients" element={<AdvisorDashboard />} />
