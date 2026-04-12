@@ -45,6 +45,7 @@ export default function App() {
         <Route path="/advisor/affiliates" element={<AdvisorDashboard />} />
         <Route path="/advisor/research" element={<AdvisorDashboard />} />
         <Route path="/advisor/content" element={<AdvisorDashboard />} />
+        <Route path="/advisor/maps" element={<AdvisorDashboard />} />
       </Routes>
     </BrowserRouter>
   )

@@ -6,6 +6,7 @@ import Affiliates from './Affiliates'
 import Research from './Research'
 import Content from './Content'
 import ClientPortals from './ClientPortals'
+import Maps from './Maps'
 import * as icelandData from '../data/iceland'
 import * as italyData from '../data/italy'
 import * as spainData from '../data/spain'
@@ -1787,6 +1788,7 @@ const NAV = [
   { id: 'itinerary', label: 'Itinerary Builder' },
   { id: 'playbook', label: 'Playbook' },
   { id: 'spots', label: 'My Spots' },
+  { id: 'maps', label: 'Maps' },
   { id: 'research', label: 'Research Tool' },
   { id: 'content', label: 'Content' },
   { id: 'notes', label: 'Client Notes' },
@@ -1800,6 +1802,7 @@ export default function AdvisorDashboard() {
     if (pathname === '/advisor/affiliates') return 'affiliates'
     if (pathname === '/advisor/research') return 'research'
     if (pathname === '/advisor/content') return 'content'
+    if (pathname === '/advisor/maps') return 'maps'
     if (pathname.startsWith('/advisor/clients')) return 'clients'
     return 'leads'
   }
@@ -1839,6 +1842,7 @@ export default function AdvisorDashboard() {
                 playbook: '/advisor/playbook',
                 research: '/advisor/research',
                 content: '/advisor/content',
+                maps: '/advisor/maps',
               }
               if (pathMap[item.id]) navigate(pathMap[item.id])
               else if (location.pathname !== '/advisor/dashboard') navigate('/advisor/dashboard')
@@ -1859,6 +1863,7 @@ export default function AdvisorDashboard() {
           {section === 'itinerary' && <ItineraryBuilder />}
           {section === 'playbook' && <Playbook />}
           {section === 'spots' && <MySpots />}
+          {section === 'maps' && <Maps />}
           {section === 'research' && <Research />}
           {section === 'content' && <Content />}
           {section === 'portals' && <ClientPortals />}
