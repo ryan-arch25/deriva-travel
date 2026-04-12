@@ -192,10 +192,10 @@ function StaticLakeMap() {
         try {
           map.fitBounds(
             [
-              [8.85, 45.75], // southwest corner
-              [9.45, 46.08], // northeast corner
+              [8.70, 45.70], // southwest corner
+              [9.50, 46.10], // northeast corner
             ],
-            { padding: 40, animate: false }
+            { padding: 20, animate: false }
           )
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -211,7 +211,7 @@ function StaticLakeMap() {
   }, [validToken])
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
-  const mapHeight = isMobile ? 220 : 280
+  const mapHeight = isMobile ? 220 : 380
 
   return (
     <div className="lake-map-section">
@@ -425,7 +425,7 @@ export default function LakeComo() {
         .sample-itinerary main { max-width: 900px; margin: 0 auto; padding: 0 24px 100px; }
 
         .sample-itinerary .lake-map-section { margin: 48px 0 0; }
-        .sample-itinerary .lake-map-canvas { position: relative; width: 100%; height: 280px; border-radius: 3px; overflow: hidden; border: 1px solid var(--parchment-dark); background: var(--parchment); }
+        .sample-itinerary .lake-map-canvas { position: relative; width: 100%; height: 380px; border-radius: 3px; overflow: hidden; border: 1px solid var(--parchment-dark); background: var(--parchment); }
         .sample-itinerary .lake-map-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--stone); font-size: 12px; font-style: italic; }
         .sample-itinerary .lake-map-caption { max-width: 560px; margin: 14px auto 0; font-size: 12px; color: var(--stone); line-height: 1.65; font-style: italic; text-align: center; font-family: 'Jost', sans-serif; }
         .sample-itinerary .lake-map-caption a { color: var(--terracotta); text-decoration: none; border-bottom: 1px solid rgba(192,97,74,0.35); font-style: italic; }
