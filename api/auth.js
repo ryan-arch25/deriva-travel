@@ -48,15 +48,6 @@ export default async function handler(req, res) {
       return res.json({ ok: true, step: '2fa' })
     }
 
-    if (action === 'init-seed') {
-      const { secret } = req.body || {}
-      if (secret !== process.env.AUTH_JWT_SECRET) return res.status(403).json({ error: 'Forbidden' })
-      const user = await getUser()
-      if (!user.needsSetup) return res.json({ ok: true, message: 'Password already set' })
-      await setPassword('Deriva2024!')
-      return res.json({ ok: true, message: 'Initial password set' })
-    }
-
     if (action === 'setup') {
       const { email, password } = req.body || {}
       if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
