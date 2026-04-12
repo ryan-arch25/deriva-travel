@@ -6,6 +6,7 @@ import Italy from './pages/Italy'
 import Iceland from './pages/Iceland'
 import Spain from './pages/Spain'
 import WorkWithMe from './pages/WorkWithMe'
+import SampleItinerary from './pages/SampleItinerary'
 import AdvisorLogin from './advisor/AdvisorLogin'
 import AdvisorDashboard from './advisor/AdvisorDashboard'
 
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/destinations/italy" element={<Italy />} />
         <Route path="/destinations/iceland" element={<Iceland />} />
         <Route path="/destinations/spain" element={<Spain />} />        <Route path="/work-with-me" element={<WorkWithMe />} />
+        <Route path="/sample-itinerary" element={<SampleItinerary />} />
         <Route path="/advisor" element={<AdvisorLogin />} />
         <Route path="/advisor/reset-password" element={<AdvisorLogin />} />
         <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />

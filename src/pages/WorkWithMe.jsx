@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 
@@ -132,8 +133,11 @@ export default function WorkWithMe() {
           <div style={{ borderTop: `1px solid ${colors.sand}`, paddingTop: '4rem' }}>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.75rem' }}>Start Here</p>
             <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.8rem', fontWeight: '400', color: colors.ink, marginBottom: '1rem' }}>Tell me about your trip. The more specific you are, the better the plan.</h2>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem' }}>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', maxWidth: '560px', marginBottom: '1rem' }}>
               Fill out the form below and we'll set up a short call to talk through your trip. No commitment required. Just a conversation.
+            </p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem' }}>
+              Not sure what you're getting? <Link to="/sample-itinerary" style={{ color: '#B85C45', textDecoration: 'underline' }}>View a sample itinerary.</Link>
             </p>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>

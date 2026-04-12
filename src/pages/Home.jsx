@@ -86,6 +86,21 @@ export default function Home() {
         </div>
       </section>
 
+      <section style={{ backgroundColor: colors.cream, padding: '5rem 2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '620px', margin: '0 auto' }}>
+          <p style={sectionLabelStyle}>Sample Itinerary</p>
+          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', fontWeight: '400', color: colors.ink, lineHeight: '1.3', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
+            See what a Deriva itinerary looks like.
+          </h2>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.75', marginBottom: '2rem' }}>
+            Ten days in Italy — Rome, Florence, Lake Como, and Lugano. Every restaurant, every hotel, every hour accounted for.
+          </p>
+          <Link to="/sample-itinerary" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: '#B85C45', padding: '1rem 2rem', textDecoration: 'none', display: 'inline-block' }}>
+            View Sample Itinerary
+          </Link>
+        </div>
+      </section>
+
       <section style={{ backgroundColor: colors.parchment, borderTop: '1px solid #D8CCBA', borderBottom: '1px solid #D8CCBA', padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
           <p style={sectionLabelStyle}>About Deriva</p>
