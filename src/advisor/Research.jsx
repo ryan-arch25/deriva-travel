@@ -195,6 +195,7 @@ function classifyItem(item, source) {
 const TOPIC_CATEGORIES = ['All Topics', 'Food and Drink', 'Hotels', 'Culture', 'Travel Trends', 'Advisory']
 
 const DEFAULT_FOLLOWING = [
+  // Existing
   { id: 'f1', name: 'Hotels Above Par', url: 'https://hotelsaboveparweekly.substack.com/feed', tag: 'Hotels' },
   { id: 'f2', name: 'Katie Parla', url: 'https://katieparla.substack.com/feed', tag: 'Italy' },
   { id: 'f3', name: 'Elizabeth Minchilli', url: 'https://elizabethminchilli.substack.com/feed', tag: 'Italy' },
@@ -210,9 +211,58 @@ const DEFAULT_FOLLOWING = [
   { id: 'f13', name: 'Jessica Nabongo', url: 'https://jessicanabongo.substack.com/feed', tag: 'General' },
   { id: 'f14', name: 'Oneika the Traveller', url: 'https://oneika.substack.com/feed', tag: 'General' },
   { id: 'f15', name: 'The Browser', url: 'https://thebrowser.com/rss', tag: 'General' },
+  // Italy
+  { id: 'f16', name: "Danielle Oteri's Italy", url: 'https://danielleoteri.substack.com/feed', tag: 'Italy' },
+  { id: 'f17', name: 'Love to Visit Italy', url: 'https://lovetovisititaly.substack.com/feed', tag: 'Italy' },
+  { id: 'f18', name: 'Delicious Italy', url: 'https://deliciousitaly.substack.com/feed', tag: 'Italy' },
+  { id: 'f19', name: 'Crystal King', url: 'https://thecrystalking.substack.com/feed', tag: 'Italy' },
+  { id: 'f20', name: 'Paradise of Exiles', url: 'https://paradiseofexiles.substack.com/feed', tag: 'Italy' },
+  { id: 'f21', name: 'Dream of Italy', url: 'https://dreamofitaly.com/feed', tag: 'Italy' },
+  { id: 'f22', name: 'MilanoStyle', url: 'https://milanostyle.com/feed', tag: 'Italy' },
+  { id: 'f23', name: 'Life in Italy', url: 'https://lifeinitaly.com/feed', tag: 'Italy' },
+  { id: 'f24', name: 'Italy Magazine', url: 'https://italymagazine.com/feed', tag: 'Italy' },
+  { id: 'f25', name: 'Our Escape Clause Italy', url: 'https://www.ourescapeclause.com/feed', tag: 'Italy' },
+  { id: 'f26', name: 'Judy Witts Francini Divina Cucina', url: 'https://divinavucina.substack.com/feed', tag: 'Italy' },
+  { id: 'f27', name: 'Claudia Vannucci Florence', url: 'https://claudiavannucci.substack.com/feed', tag: 'Italy' },
+  // Portugal
+  { id: 'f28', name: 'Emily in Lisbon', url: 'https://emilyinlisbon.substack.com/feed', tag: 'Portugal' },
+  { id: 'f29', name: 'Dan Flying Solo', url: 'https://danflyingsolo.substack.com/feed', tag: 'Portugal' },
+  { id: 'f30', name: 'Food From Portugal', url: 'https://www.foodfromportugal.com/feed', tag: 'Portugal' },
+  // Spain
+  { id: 'f31', name: 'The New Paris Dispatch', url: 'https://newparisdispatch.substack.com/feed', tag: 'General' },
+  { id: 'f32', name: 'Shortlisted by Rebekah Peppler', url: 'https://shortlisted.substack.com/feed', tag: 'General' },
+  { id: 'f33', name: 'Spain Food Sherpas', url: 'https://www.spainfoodsherpas.com/feed', tag: 'Spain' },
+  // Iceland
+  { id: 'f34', name: 'Iceland With a View', url: 'https://icelandwithaview.substack.com/feed', tag: 'Iceland' },
+  { id: 'f35', name: 'Guide to Iceland Blog', url: 'https://guidetoiceland.is/feed', tag: 'Iceland' },
+  { id: 'f36', name: 'Arctic Adventures Blog', url: 'https://adventures.is/blog/feed', tag: 'Iceland' },
+  // General European Travel
+  { id: 'f37', name: 'The Contender', url: 'https://thecontender.substack.com/feed', tag: 'General' },
+  { id: 'f38', name: 'Departure', url: 'https://departure.substack.com/feed', tag: 'General' },
+  { id: 'f39', name: 'Talking Travel Writing', url: 'https://talkingtravel.substack.com/feed', tag: 'General' },
+  { id: 'f40', name: 'Travelogue Newsletter', url: 'https://travelogue.substack.com/feed', tag: 'General' },
+  { id: 'f41', name: 'The Venetian Pantry', url: 'https://venetianpantry.substack.com/feed', tag: 'Italy' },
+  { id: 'f42', name: 'Professional Traveler', url: 'https://professionaltraveler.substack.com/feed', tag: 'General' },
+  { id: 'f43', name: 'Rebecca Holland', url: 'https://rebeccaholland.substack.com/feed', tag: 'General' },
+  // Wine and Drink
+  { id: 'f44', name: 'Decanter', url: 'https://www.decanter.com/feed', tag: 'General' },
+  { id: 'f45', name: 'VinePair', url: 'https://vinepair.com/feed', tag: 'General' },
+  { id: 'f46', name: 'Wine Folly', url: 'https://winefolly.com/feed', tag: 'General' },
+  { id: 'f47', name: 'Jancis Robinson', url: 'https://www.jancisrobinson.com/rss', tag: 'General' },
+  // Hotels
+  { id: 'f48', name: 'Tablet Hotels', url: 'https://www.tablethotels.com/blog/feed', tag: 'Hotels' },
+  { id: 'f49', name: 'Mr & Mrs Smith', url: 'https://www.mrandmrssmith.com/feed', tag: 'Hotels' },
+  { id: 'f50', name: 'Hideaway Report', url: 'https://www.hideawayreport.com/feed', tag: 'Hotels' },
+  { id: 'f51', name: 'Secret Escapes', url: 'https://www.secretescapes.com/editorial/feed', tag: 'Hotels' },
+  // Lifestyle and Culture
+  { id: 'f52', name: 'Kinfolk', url: 'https://www.kinfolk.com/feed', tag: 'General' },
+  { id: 'f53', name: 'Cereal Magazine', url: 'https://readcereal.com/feed', tag: 'General' },
+  { id: 'f54', name: 'Roads and Kingdoms', url: 'https://roadsandkingdoms.com/feed', tag: 'General' },
+  { id: 'f55', name: 'Skift', url: 'https://skift.com/feed', tag: 'General' },
 ]
 
 const DEFAULT_INSTAGRAM = [
+  // Existing
   { id: 'ig1', handle: 'italytravel', tag: 'Italy', notes: '' },
   { id: 'ig2', handle: 'rome.guide', tag: 'Italy', notes: '' },
   { id: 'ig3', handle: 'florenceitaly', tag: 'Italy', notes: '' },
@@ -226,6 +276,47 @@ const DEFAULT_INSTAGRAM = [
   { id: 'ig11', handle: 'tablethotels', tag: 'Hotels', notes: '' },
   { id: 'ig12', handle: 'eater', tag: 'Food', notes: '' },
   { id: 'ig13', handle: 'bonappetit', tag: 'Food', notes: '' },
+  // Italy
+  { id: 'ig14', handle: 'elizabethminchilli', tag: 'Italy', notes: '' },
+  { id: 'ig15', handle: 'katieparla', tag: 'Italy', notes: '' },
+  { id: 'ig16', handle: 'benkielesinski', tag: 'Italy', notes: '' },
+  { id: 'ig17', handle: 'julskitchen', tag: 'Italy', notes: '' },
+  { id: 'ig18', handle: 'milanostyle', tag: 'Italy', notes: '' },
+  { id: 'ig19', handle: 'chefstable', tag: 'Italy', notes: '' },
+  { id: 'ig20', handle: 'divinavucina', tag: 'Italy', notes: '' },
+  // Portugal
+  { id: 'ig21', handle: 'danflyingsolo', tag: 'Portugal', notes: '' },
+  { id: 'ig22', handle: 'diogo.carrilho', tag: 'Portugal', notes: '' },
+  { id: 'ig23', handle: 'insidelisbon', tag: 'Portugal', notes: '' },
+  { id: 'ig24', handle: 'portugalist', tag: 'Portugal', notes: '' },
+  // Spain
+  { id: 'ig25', handle: 'devourspain', tag: 'Spain', notes: '' },
+  { id: 'ig26', handle: 'barcelonafoodexperience', tag: 'Spain', notes: '' },
+  { id: 'ig27', handle: 'eatmadrid', tag: 'Spain', notes: '' },
+  // Iceland
+  { id: 'ig28', handle: 'asasteinars', tag: 'Iceland', notes: '' },
+  { id: 'ig29', handle: 'chrisburkard', tag: 'Iceland', notes: '' },
+  { id: 'ig30', handle: 'lebackpacker', tag: 'Iceland', notes: '' },
+  { id: 'ig31', handle: 'icelandwithaview', tag: 'Iceland', notes: '' },
+  { id: 'ig32', handle: 'gislimatt', tag: 'Iceland', notes: '' },
+  // Wine and Drink
+  { id: 'ig33', handle: 'decanter', tag: 'General', notes: '' },
+  { id: 'ig34', handle: 'vinepair', tag: 'General', notes: '' },
+  { id: 'ig35', handle: 'winefolly', tag: 'General', notes: '' },
+  { id: 'ig36', handle: 'jancisrobinson', tag: 'General', notes: '' },
+  // Hotels
+  { id: 'ig37', handle: 'mrandmrssmith', tag: 'Hotels', notes: '' },
+  { id: 'ig38', handle: 'secretescapes', tag: 'Hotels', notes: '' },
+  // General
+  { id: 'ig39', handle: 'professionaltraveler', tag: 'General', notes: '' },
+  { id: 'ig40', handle: 'culinarybackstreets', tag: 'General', notes: '' },
+  { id: 'ig41', handle: 'theinfatuation', tag: 'General', notes: '' },
+  { id: 'ig42', handle: 'cntraveler', tag: 'General', notes: '' },
+  { id: 'ig43', handle: 'afar', tag: 'General', notes: '' },
+  { id: 'ig44', handle: 'kinfolk', tag: 'General', notes: '' },
+  { id: 'ig45', handle: 'roadsandkingdoms', tag: 'General', notes: '' },
+  { id: 'ig46', handle: 'oneikathetraveller', tag: 'General', notes: '' },
+  { id: 'ig47', handle: 'jessicanabongo', tag: 'General', notes: '' },
 ]
 
 const DESTINATIONS_INFO = [
@@ -552,7 +643,7 @@ function FeedTab({ savedItems, setSavedItems }) {
 
 // ── FOLLOWING TAB ───────────────────────────────────────────────────────────
 function FollowingTab({ savedItems, setSavedItems }) {
-  const [sources, setSources] = useLocalStorage('deriva_research_following_v2', DEFAULT_FOLLOWING)
+  const [sources, setSources] = useLocalStorage('deriva_research_following_v3', DEFAULT_FOLLOWING)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -815,7 +906,7 @@ function ResearchSearchTab({ savedItems, setSavedItems }) {
 
 // ── INSTAGRAM TAB ───────────────────────────────────────────────────────────
 function InstagramTab() {
-  const [accounts, setAccounts] = useLocalStorage('deriva_research_instagram', DEFAULT_INSTAGRAM)
+  const [accounts, setAccounts] = useLocalStorage('deriva_research_instagram_v2', DEFAULT_INSTAGRAM)
   const [dest, setDest] = useState('All')
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ handle: '', tag: 'Italy', notes: '' })
