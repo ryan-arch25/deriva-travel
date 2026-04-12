@@ -301,7 +301,7 @@ export default function LakeComo() {
             <span className="hero-badge">Standard Tier</span>
           </div>
           <h1>Five Days<br /><em>on the Lake</em></h1>
-          <p className="hero-route">Lake Como &nbsp;&middot;&nbsp; Bellagio &nbsp;&middot;&nbsp; Varenna &nbsp;&middot;&nbsp; Lugano</p>
+          <p className="hero-route">Como &nbsp;&middot;&nbsp; Bellagio &nbsp;&middot;&nbsp; Varenna &nbsp;&middot;&nbsp; Lugano</p>
           <div className="hero-divider"></div>
           <div className="hero-stats">
             <div className="stat-item"><span className="stat-label">Cities</span><span className="stat-value">4</span></div>
