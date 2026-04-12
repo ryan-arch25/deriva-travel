@@ -434,6 +434,30 @@ function formatDate(raw) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function cleanAnswerText(raw) {
+  if (!raw) return ['']
+  let text = raw
+    .replace(/\r\n/g, '\n')
+    .replace(/^\s*[.,;:]\s*$/gm, '')
+  const blocks = text.split(/\n{2,}/)
+  const paragraphs = []
+  for (const block of blocks) {
+    const cleaned = block
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .join(' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+    if (cleaned) paragraphs.push(cleaned)
+  }
+  if (paragraphs.length === 0) {
+    const fallback = text.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim()
+    return fallback ? [fallback] : ['']
+  }
+  return paragraphs
+}
+
 function cleanHost(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, '')
@@ -864,44 +888,59 @@ function ResearchSearchTab({ savedItems, setSavedItems }) {
       )}
 
       {loading && (
-        <div style={{ padding: '1.25rem', border: `1px solid ${C.sand}`, backgroundColor: C.parchment, marginBottom: '1rem' }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.tan, margin: 0 }}>Searching the web and thinking this through...</p>
+        <div style={{ border: `1px solid ${C.sand}`, backgroundColor: C.parchment, padding: '1.5rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            {[100, 95, 80, 100, 60].map((w, i) => (
+              <div key={i} style={{ height: '0.75rem', width: `${w}%`, backgroundColor: C.sand, borderRadius: '3px', animation: 'shimmer 1.5s ease-in-out infinite', opacity: 0.6 }} />
+            ))}
+          </div>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', color: C.tan, marginTop: '1rem', margin: 0, marginTop: '1rem' }}>Searching the web and thinking this through...</p>
+          <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.7; } }`}</style>
         </div>
       )}
       {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: '#9E6060', marginBottom: '1rem' }}>{error}</p>}
 
-      {history.map((entry) => (
-        <div key={entry.id} style={{ marginBottom: '1.75rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1.25rem 1.5rem' }}>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.4rem' }}>Question</p>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.05rem', color: C.ink, marginBottom: '1rem', lineHeight: '1.5' }}>{entry.query}</p>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.4rem' }}>Answer</p>
-          <div style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.8', whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
-            {entry.answer}
-          </div>
-          {entry.citations?.length > 0 && (
+      {history.map((entry) => {
+        const paragraphs = cleanAnswerText(entry.answer)
+        return (
+          <div key={entry.id} style={{ marginBottom: '1.75rem', border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1.25rem 1.5rem' }}>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.4rem' }}>Question</p>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.05rem', color: C.ink, marginBottom: '1rem', lineHeight: '1.5' }}>{entry.query}</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.6rem' }}>Answer</p>
             <div style={{ marginBottom: '1rem' }}>
-              <p style={{ ...lbl, marginBottom: '0.4rem' }}>Sources</p>
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                {entry.citations.map((c, i) => (
-                  <li key={i} style={{ marginBottom: '0.25rem' }}>
-                    <a href={c.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: C.terracotta, textDecoration: 'none' }}>
+              {paragraphs.map((p, i) => (
+                <p key={i} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.8', marginBottom: '0.85rem', margin: 0, marginBottom: i < paragraphs.length - 1 ? '0.85rem' : 0 }}>
+                  {p}
+                </p>
+              ))}
+            </div>
+            {entry.citations?.length > 0 && (
+              <div style={{ marginBottom: '1rem' }}>
+                <p style={{ ...lbl, marginBottom: '0.5rem' }}>Sources</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                  {entry.citations.map((c, i) => (
+                    <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{
+                      fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', color: C.terracotta,
+                      textDecoration: 'none', border: `1px solid ${C.sand}`, padding: '0.3rem 0.65rem',
+                      backgroundColor: C.parchment, display: 'inline-block',
+                    }}>
                       {c.title || cleanHost(c.url)}
                     </a>
-                  </li>
-                ))}
-              </ul>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={() => saveResult(entry)} style={{ ...softBtn, color: isEntrySaved(entry) ? C.terracotta : C.mid, borderColor: isEntrySaved(entry) ? C.terracotta : C.sand }}>
+                {isEntrySaved(entry) ? 'Saved' : 'Save'}
+              </button>
+              <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', color: C.tan, alignSelf: 'center' }}>
+                {formatDate(entry.at)}
+              </span>
             </div>
-          )}
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={() => saveResult(entry)} style={{ ...softBtn, color: isEntrySaved(entry) ? C.terracotta : C.mid, borderColor: isEntrySaved(entry) ? C.terracotta : C.sand }}>
-              {isEntrySaved(entry) ? 'Saved' : 'Save'}
-            </button>
-            <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', color: C.tan, alignSelf: 'center' }}>
-              {formatDate(entry.at)}
-            </span>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
