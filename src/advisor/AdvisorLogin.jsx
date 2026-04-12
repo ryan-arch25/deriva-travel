@@ -56,10 +56,10 @@ function LoginForm({ onSuccess, onForgot, needsSetup }) {
       if (password.length < 8) { setError('Password must be at least 8 characters.'); setLoading(false); return }
       if (password !== confirm) { setError('Passwords do not match.'); setLoading(false); return }
       try {
-        const res = await fetch('/api/auth/setup', {
+        const res = await fetch('/api/auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim(), password }),
+          body: JSON.stringify({ action: 'setup', email: email.trim(), password }),
         })
         const data = await res.json()
         if (!res.ok) { setError(data.error); setLoading(false); return }
@@ -69,10 +69,10 @@ function LoginForm({ onSuccess, onForgot, needsSetup }) {
     }
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ action: 'login', email: email.trim(), password }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error); setLoading(false); return }
@@ -122,10 +122,10 @@ function TwoFactorForm({ onSuccess, onRestart }) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/verify-2fa', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim() }),
+        body: JSON.stringify({ action: 'verify-2fa', code: code.trim() }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -141,7 +141,7 @@ function TwoFactorForm({ onSuccess, onRestart }) {
   const handleResend = async () => {
     setResending(true)
     try {
-      await fetch('/api/auth/resend-code', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resend-code' }) })
       setResent(true)
       setTimeout(() => setResent(false), 3000)
     } catch {}
@@ -182,10 +182,10 @@ function ForgotForm({ onBack }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await fetch('/api/auth/forgot', {
+      await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ action: 'forgot', email: email.trim() }),
       })
     } catch {}
     setSent(true)
@@ -230,7 +230,7 @@ function ResetPasswordForm({ token }) {
   const [invalid, setInvalid] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/auth/reset?token=${token}`).then((r) => {
+    fetch(`/api/auth?action=validate-reset&token=${token}`).then((r) => {
       if (!r.ok) setInvalid(true)
     }).catch(() => setInvalid(true))
   }, [token])
@@ -264,10 +264,10 @@ function ResetPasswordForm({ token }) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/reset', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ action: 'reset-password', token, password }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error); setLoading(false); return }
@@ -302,7 +302,7 @@ export default function AdvisorLogin() {
 
   useEffect(() => {
     if (resetToken) { setStep('reset'); return }
-    fetch('/api/auth/session').then((r) => r.json()).then((data) => {
+    fetch('/api/auth?action=session').then((r) => r.json()).then((data) => {
       if (data.authenticated) { navigate('/advisor/dashboard'); return }
       if (data.needsSetup) { setNeedsSetup(true); setStep('login'); return }
       setStep('login')

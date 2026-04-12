@@ -1808,13 +1808,13 @@ export default function AdvisorDashboard() {
   }, [location.pathname])
 
   useEffect(() => {
-    fetch('/api/auth/session').then((r) => r.json()).then((data) => {
+    fetch('/api/auth?action=session').then((r) => r.json()).then((data) => {
       if (!data.authenticated) navigate('/advisor')
     }).catch(() => navigate('/advisor'))
   }, [])
 
   const handleLogout = async () => {
-    try { await fetch('/api/auth/session', { method: 'DELETE' }) } catch {}
+    try { await fetch('/api/auth?action=logout', { method: 'DELETE' }) } catch {}
     navigate('/advisor')
   }
 
