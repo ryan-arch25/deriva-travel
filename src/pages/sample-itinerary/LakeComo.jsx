@@ -108,9 +108,9 @@ function StaticLakeMap() {
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [9.18, 45.92],
-        zoom: 10,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [9.18, 45.93],
+        zoom: 9.5,
         interactive: true,
         scrollZoom: false,
         dragRotate: false,
@@ -185,18 +185,13 @@ function StaticLakeMap() {
             .addTo(map)
         })
 
-        // Fixed bounding box centered squarely on Lake Como's Y-shape.
+        // Tint the light-v11 water layer so Lake Como is instantly
+        // recognizable without breaking the clean parchment aesthetic.
         try {
-          map.fitBounds(
-            [
-              [9.00, 45.78], // southwest corner
-              [9.40, 46.18], // northeast corner
-            ],
-            { animate: false }
-          )
+          map.setPaintProperty('water', 'fill-color', '#a8c8d8')
         } catch (err) {
           // eslint-disable-next-line no-console
-          console.warn('[Deriva LakeComo map] fitBounds failed:', err)
+          console.warn('[Deriva LakeComo map] setPaintProperty failed:', err)
         }
       })
     }).catch(() => { if (!cancelled) setTokenError(true) })
