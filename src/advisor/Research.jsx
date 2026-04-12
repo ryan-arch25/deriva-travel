@@ -68,17 +68,25 @@ const FEED_SOURCES = [
     'Iceland boutique hotel',
     'Iceland food culture',
   ].map((q) => ({ url: gnews(q), tag: 'Iceland' })),
-  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Travel.xml', tag: 'General' },
+  { url: 'https://www.eater.com/rss/index.xml', tag: 'General' },
   { url: 'https://www.theguardian.com/travel/rss', tag: 'General' },
   { url: 'https://www.cntraveler.com/feed/rss', tag: 'General' },
-  { url: 'https://www.eater.com/rss/index.xml', tag: 'General' },
-  { url: 'https://www.foodandwine.com/rss', tag: 'General' },
-  { url: 'https://monocle.com/feed/', tag: 'General' },
-  { url: 'https://www.timeout.com/travel/rss', tag: 'General' },
   { url: 'https://www.theflorentine.net/feed', tag: 'Italy' },
   { url: 'https://www.portugalresident.com/feed', tag: 'Portugal' },
   { url: 'https://www.icelandreview.com/feed', tag: 'Iceland' },
 ]
+
+const RELEVANCE_KEYWORDS = [
+  'italy', 'italian', 'portugal', 'portuguese', 'spain', 'spanish',
+  'iceland', 'icelandic', 'rome', 'roman', 'lisbon', 'barcelona',
+  'madrid', 'florence', 'sicily', 'sicilian', 'porto', 'reykjavik',
+  'europe', 'european',
+]
+
+const isRelevantGeneralItem = (item) => {
+  const haystack = `${item.title || ''} ${item.description || ''}`.toLowerCase()
+  return RELEVANCE_KEYWORDS.some((kw) => haystack.includes(kw))
+}
 
 const DEFAULT_FOLLOWING = [
   { id: 'f1', name: 'Hotels Above Par', url: 'https://hotelsaboveparweekly.substack.com/feed', tag: 'Hotels' },
@@ -326,9 +334,9 @@ function FeedTab({ savedItems, setSavedItems }) {
       })
       if (!res.ok) throw new Error((await res.json()).error || 'Feed fetch failed')
       const data = await res.json()
-      const merged = (data.feeds || []).flatMap((f) =>
-        (f.items || []).map((it) => ({ ...it, tag: it.tag || f.tag }))
-      )
+      const merged = (data.feeds || [])
+        .flatMap((f) => (f.items || []).map((it) => ({ ...it, tag: it.tag || f.tag })))
+        .filter((it) => it.tag !== 'General' || isRelevantGeneralItem(it))
       merged.sort((a, b) => {
         const da = new Date(a.pubDate).getTime() || 0
         const db = new Date(b.pubDate).getTime() || 0
