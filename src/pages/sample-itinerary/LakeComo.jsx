@@ -13,11 +13,11 @@ const SECTIONS = [
 ]
 
 const LAKE_STOPS = [
-  { name: 'Como', lat: 45.8108, lng: 9.0851 },
-  { name: 'Boat Tour', lat: 46.0021, lng: 9.2154, isBoat: true },
-  { name: 'Bellagio', lat: 45.9862, lng: 9.2618 },
-  { name: 'Varenna', lat: 46.0153, lng: 9.2873 },
-  { name: 'Lugano', lat: 46.0037, lng: 8.9511 },
+  { name: 'Como', lat: 45.8108, lng: 9.0851, note: 'Your base for the whole trip' },
+  { name: 'Vaporina', lat: 46.0021, lng: 9.2154, isBoat: true, note: 'Two hours on private water. The non-negotiable.' },
+  { name: 'Bellagio', lat: 45.9862, lng: 9.2618, note: 'The postcard version of the lake. It earns it.' },
+  { name: 'Varenna', lat: 46.0153, lng: 9.2873, note: 'The village most guides skip. This is the one.' },
+  { name: 'Lugano', lat: 46.0037, lng: 8.9511, note: 'One day across the border into Switzerland.' },
 ]
 
 function loadMapbox() {
@@ -37,22 +37,45 @@ function loadMapbox() {
 function StaticLakeMap() {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
+  const [tokenError, setTokenError] = useState(false)
+
+  const validToken = MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.') && !MAPBOX_TOKEN.includes('PLACEHOLDER')
 
   useEffect(() => {
     let cancelled = false
-    if (!MAPBOX_TOKEN) return
+    if (!validToken) return
+
     loadMapbox().then((mapboxgl) => {
-      if (cancelled || !containerRef.current) return
+      if (cancelled || !containerRef.current || !mapboxgl) return
+
+      // Set token BEFORE creating the map
       mapboxgl.accessToken = MAPBOX_TOKEN
+
       const map = new mapboxgl.Map({
         container: containerRef.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [9.18, 45.95],
         zoom: 9.5,
-        interactive: false,
+        interactive: true,
+        scrollZoom: false,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchZoomRotate: false,
         attributionControl: false,
       })
       mapRef.current = map
+
+      // Re-enable touch zoom but without rotation
+      try {
+        map.touchZoomRotate.enable()
+        map.touchZoomRotate.disableRotation()
+      } catch {}
+
+      map.on('error', (e) => {
+        if (e?.error?.status === 401 || e?.error?.status === 403) {
+          setTokenError(true)
+        }
+      })
 
       map.on('load', () => {
         // Route line connecting stops in order
@@ -78,10 +101,10 @@ function StaticLakeMap() {
           },
         })
 
-        // Custom markers
+        // Custom markers with clickable popups
         LAKE_STOPS.forEach((stop) => {
           const wrap = document.createElement('div')
-          wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;'
+          wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
           const pin = document.createElement('div')
           if (stop.isBoat) {
             pin.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-family:Jost,sans-serif;font-size:11px;font-weight:500;line-height:1;'
@@ -97,31 +120,49 @@ function StaticLakeMap() {
           label.textContent = stop.name
           label.style.cssText = "font-family:'Jost',sans-serif;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#1e1a16;background:rgba(245,240,232,0.94);padding:3px 8px;margin-top:5px;border-radius:2px;white-space:nowrap;font-weight:500;"
           wrap.appendChild(label)
+
+          const popupHtml = `
+            <div class="deriva-popup">
+              <div class="deriva-popup-name">${stop.name}</div>
+              <div class="deriva-popup-note">"${stop.note}"</div>
+            </div>
+          `
+
+          const popup = new mapboxgl.Popup({
+            offset: 26,
+            closeButton: true,
+            closeOnClick: true,
+            className: 'deriva-popup-wrap',
+            maxWidth: '260px',
+          }).setHTML(popupHtml)
+
           new mapboxgl.Marker({ element: wrap, anchor: 'top' })
             .setLngLat([stop.lng, stop.lat])
+            .setPopup(popup)
             .addTo(map)
         })
       })
-    })
+    }).catch(() => { if (!cancelled) setTokenError(true) })
+
     return () => {
       cancelled = true
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null }
     }
-  }, [])
+  }, [validToken])
 
   return (
     <div className="lake-map-section">
       <div ref={containerRef} className="lake-map-canvas">
-        {!MAPBOX_TOKEN && (
+        {(!validToken || tokenError) && (
           <div className="lake-map-fallback">
-            <p>Map unavailable, Mapbox token not configured.</p>
+            <p>Map preview unavailable. Add a valid Mapbox token to Vercel env (VITE_MAPBOX_TOKEN) and redeploy.</p>
           </div>
         )}
       </div>
       <p className="lake-map-caption">
-        Clients receive a fully{' '}
-        <Link to="/work-with-me">interactive version</Link>
-        {' '}of this map, every stop tappable and GPS-aware on their phone.
+        Your portal includes this map for every day of your trip, each stop tappable and GPS-aware on your phone.{' '}
+        <Link to="/work-with-me">Interactive version</Link>
+        {' '}available to every client.
       </p>
     </div>
   )
@@ -302,10 +343,18 @@ export default function LakeComo() {
 
         .sample-itinerary .lake-map-section { margin: 48px 0 0; }
         .sample-itinerary .lake-map-canvas { position: relative; width: 100%; height: 280px; border-radius: 3px; overflow: hidden; border: 1px solid var(--parchment-dark); background: var(--parchment); }
-        .sample-itinerary .lake-map-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--stone); font-size: 12px; font-style: italic; }
+        .sample-itinerary .lake-map-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--stone); font-size: 12px; font-style: italic; }
         .sample-itinerary .lake-map-caption { max-width: 560px; margin: 14px auto 0; font-size: 12px; color: var(--stone); line-height: 1.65; font-style: italic; text-align: center; font-family: 'Jost', sans-serif; }
         .sample-itinerary .lake-map-caption a { color: var(--terracotta); text-decoration: none; border-bottom: 1px solid rgba(192,97,74,0.35); font-style: italic; }
         .sample-itinerary .lake-map-caption a:hover { color: #a84f3a; border-color: #a84f3a; }
+
+        /* Override default Mapbox popup chrome to match Deriva */
+        .mapboxgl-popup.deriva-popup-wrap .mapboxgl-popup-tip { display: none; }
+        .mapboxgl-popup.deriva-popup-wrap .mapboxgl-popup-content { background: #fff; border: 1px solid rgba(140,123,107,0.2); border-radius: 3px; padding: 12px 14px 10px; box-shadow: 0 6px 20px rgba(30,26,22,0.12); font-family: 'Jost', sans-serif; max-width: 240px; }
+        .mapboxgl-popup.deriva-popup-wrap .mapboxgl-popup-close-button { color: #c0614a; font-size: 20px; padding: 2px 8px 4px; font-family: 'Jost', sans-serif; line-height: 1; background: none; border: none; right: 4px; top: 4px; }
+        .mapboxgl-popup.deriva-popup-wrap .mapboxgl-popup-close-button:hover { color: #a84f3a; background: none; }
+        .deriva-popup-name { font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: #1e1a16; margin-bottom: 6px; padding-right: 14px; }
+        .deriva-popup-note { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 13px; font-style: italic; color: #3a3028; line-height: 1.55; padding-left: 10px; border-left: 2px solid #c0614a; }
 
         .sample-itinerary .cta-banner { background: var(--dark); color: var(--cream); border-radius: 4px; padding: 32px 40px; margin: 56px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
         .sample-itinerary .cta-banner-text p { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
