@@ -89,11 +89,8 @@ export default function Home() {
       <section style={{ backgroundColor: colors.parchment, borderTop: '1px solid #D8CCBA', borderBottom: '1px solid #D8CCBA', padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
           <p style={sectionLabelStyle}>About Deriva</p>
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', fontWeight: '400', color: colors.ink, lineHeight: '1.75', marginBottom: '1.5rem' }}>
-            I have been to these places. Not once. Several times. I know which restaurants are worth the wait and which ones exist because tourists will sit anywhere. I know what neighborhoods feel like at 7am and what they feel like at midnight. I know the traps.
-          </p>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.8' }}>
-            Deriva exists because most travel advice is written by people who have never been, or went once and stayed in the wrong hotel. I stay current on what is actually happening, what people want to do, where they want to eat, what has changed. And I tell you what to avoid just as much as what to seek out.
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', fontWeight: '400', color: colors.ink, lineHeight: '1.75' }}>
+            Some of these places I know from years of going back. Others I know because I research differently. Past the top ten lists. Past whatever opened two years ago and still ranks first. I stay current on what is actually worth your time, and I will tell you what to avoid just as much as what to seek out.
           </p>
           <div style={{ marginTop: '2.5rem' }}>
             <Link to="/work-with-me" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: colors.gold, padding: '1rem 2rem', textDecoration: 'none', border: '1px solid #9E8660', display: 'inline-block' }}>
