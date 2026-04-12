@@ -11,14 +11,14 @@ const WHAT_I_OFFER = [
   'A day-by-day itinerary built around how you actually travel, not a template',
   'Restaurant picks that are current, not whatever topped a list two years ago',
   'Hotel recommendations chosen for character, location, and value instead of star ratings',
-  'Logistics handled so you show up knowing exactly what to do',
+  'Full service option available. I handle all bookings including tours, hotels, and ground transportation',
   'One round of revisions included',
 ]
 
 const HOW_IT_WORKS = [
-  { num: '01', text: 'Fill out the intake form below' },
-  { num: '02', text: 'Ryan reviews and follows up within 48 hours' },
-  { num: '03', text: 'Receive your custom itinerary as a clean PDF' },
+  { num: '01', text: 'Share your idea with me' },
+  { num: '02', text: 'We talk through the details' },
+  { num: '03', text: 'I take it from there' },
 ]
 
 const initialForm = { name: '', email: '', destinations: '', dates: '', partySize: '', tripNotes: '', referral: '' }
@@ -82,7 +82,7 @@ export default function WorkWithMe() {
     <div style={{ backgroundColor: colors.cream, minHeight: '100vh' }}>
       <Nav />
       <div style={{ paddingTop: '60px' }}>
-        <div style={{ position: 'relative', height: '60vh', minHeight: '420px', overflow: 'hidden' }}>
+        <div className="hero-mobile" style={{ position: 'relative', height: '60vh', minHeight: '420px', overflow: 'hidden' }}>
           <img src="/images/work-with-me-hero.jpg" alt="Vintage Fiat 500 on a coastal road in Capri" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(20,18,14,0.15) 0%, rgba(20,18,14,0) 40%, rgba(20,18,14,0.35) 100%)' }} />
         </div>
@@ -90,9 +90,10 @@ export default function WorkWithMe() {
           <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: colors.tan, marginBottom: '1rem' }}>Work With Me</p>
             <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '400', color: colors.ink, letterSpacing: '0.03em', marginBottom: '1rem', lineHeight: '1.1' }}>Europe, planned properly.</h1>
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', fontWeight: '400', color: colors.charcoal, maxWidth: '560px', lineHeight: '1.6', marginBottom: '1.5rem' }}>I have planned enough trips to know that the difference between a good one and a great one is almost never the destination. It is the details. Fill out the form and let's talk about yours.</p>
             <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.15rem', fontWeight: '400', color: colors.charcoal, maxWidth: '520px', lineHeight: '1.6', marginBottom: '1.5rem' }}>Most itineraries are built from the same ten articles. Mine aren't.</p>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8', marginBottom: '1rem' }}>I stay current on what's actually worth your time in Europe right now. The restaurants people are talking about, the neighborhoods that haven't tipped yet, the hotels that deliver. You get a real plan from someone who pays attention.</p>
-            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8' }}>I work with a limited number of clients at a time. If you're serious about the trip, fill out the form below and I'll follow up within 48 hours.</p>
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, maxWidth: '560px', lineHeight: '1.8' }}>I work with a limited number of clients at a time. If you're serious about the trip, fill out the form below and I'll be in touch to set up a call.</p>
           </div>
         </div>
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '4rem 2rem' }}>
@@ -108,8 +109,14 @@ export default function WorkWithMe() {
               </ul>
               <div style={{ marginTop: '2rem', padding: '1.25rem', border: `1px solid ${colors.sand}`, backgroundColor: colors.white }}>
                 <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.tan, marginBottom: '0.5rem' }}>Pricing</p>
-                <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: colors.ink }}>Simple pricing.</p>
-                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.35rem' }}>Custom itineraries starting at $150. Final price depends on trip length and complexity. I confirm before we begin, no surprises.</p>
+                <p style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: colors.ink }}>Two ways to work together.</p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.75rem', lineHeight: '1.65' }}>
+                  <span style={{ color: colors.ink }}>Standard.</span> Custom day by day itinerary with restaurant picks, hotel recommendations, and logistics. You handle your own bookings. Starting at $150.
+                </p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.6rem', lineHeight: '1.65' }}>
+                  <span style={{ color: colors.ink }}>Full Service.</span> Everything in the standard itinerary plus I handle all bookings for you. Starting at $250.
+                </p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginTop: '0.75rem' }}>Final price confirmed before work begins.</p>
               </div>
             </div>
             <div>
@@ -130,7 +137,7 @@ export default function WorkWithMe() {
             </p>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+              <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
                 <div><label style={labelStyle} htmlFor="name">Full name</label><input id="name" name="name" type="text" required value={form.name} onChange={handleChange} style={inputStyle} placeholder="Jane Smith" /></div>
                 <div><label style={labelStyle} htmlFor="email">Email</label><input id="email" name="email" type="email" required value={form.email} onChange={handleChange} style={inputStyle} placeholder="jane@email.com" /></div>
               </div>
@@ -138,7 +145,7 @@ export default function WorkWithMe() {
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}`, marginTop: '1rem' }}>Trip Details</p>
               <label style={labelStyle} htmlFor="destinations">Destination(s) you're considering</label>
               <input id="destinations" name="destinations" type="text" required value={form.destinations} onChange={handleChange} style={inputStyle} placeholder="Portugal, Italy, both..." />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+              <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
                 <div><label style={labelStyle} htmlFor="dates">Travel dates</label><input id="dates" name="dates" type="text" value={form.dates} onChange={handleChange} style={inputStyle} placeholder="June 2025, flexible..." /></div>
                 <div><label style={labelStyle} htmlFor="partySize">Party size</label><input id="partySize" name="partySize" type="text" value={form.partySize} onChange={handleChange} style={inputStyle} placeholder="2, 4, 6..." /></div>
               </div>
@@ -159,7 +166,7 @@ export default function WorkWithMe() {
 
               {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: '#B85C45', marginBottom: '1rem' }}>{error}</p>}
               <button type="submit" disabled={submitting} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: submitting ? colors.tan : colors.gold, border: 'none', padding: '1rem 2.5rem', cursor: submitting ? 'not-allowed' : 'pointer', marginTop: '0.5rem', transition: 'background-color 0.2s ease' }} onMouseEnter={e => { if (!submitting) e.target.style.backgroundColor = '#8A7550' }} onMouseLeave={e => { if (!submitting) e.target.style.backgroundColor = colors.gold }}>{submitting ? 'Sending...' : 'Send My Brief'}</button>
-              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginTop: '1.25rem', lineHeight: '1.6' }}>I'll respond within 48 hours. No commitment until we've talked.</p>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginTop: '1.25rem', lineHeight: '1.6' }}>I'll be in touch to set up a call. No commitment until we've talked.</p>
             </form>
           </div>
         </div>
