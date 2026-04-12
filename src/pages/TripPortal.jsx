@@ -71,18 +71,42 @@ const DEMO_PORTAL = {
   ],
 }
 
+let mapboxLoadPromise = null
 function loadMapbox() {
-  return new Promise((resolve) => {
+  if (mapboxLoadPromise) return mapboxLoadPromise
+  mapboxLoadPromise = new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') { resolve(null); return }
     if (window.mapboxgl) { resolve(window.mapboxgl); return }
-    const css = document.createElement('link')
-    css.rel = 'stylesheet'
-    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.min.css'
-    document.head.appendChild(css)
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.min.js'
-    script.onload = () => resolve(window.mapboxgl)
-    document.head.appendChild(script)
+
+    // Load CSS from the official Mapbox CDN and wait for it to finish
+    // parsing before resolving. Without the CSS applied, the internal
+    // canvas renders 0x0 inside the container and the map appears blank.
+    const cssHref = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css'
+    const existing = Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).find((l) => l.href === cssHref)
+    const cssReady = existing
+      ? Promise.resolve()
+      : new Promise((res) => {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = cssHref
+          link.onload = () => res()
+          link.onerror = () => res()
+          document.head.appendChild(link)
+        })
+
+    const jsReady = new Promise((res, rej) => {
+      const script = document.createElement('script')
+      script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'
+      script.onload = () => res(window.mapboxgl)
+      script.onerror = () => rej(new Error('Failed to load mapbox-gl script'))
+      document.head.appendChild(script)
+    })
+
+    Promise.all([cssReady, jsReady])
+      .then(([, mapboxgl]) => resolve(mapboxgl))
+      .catch(reject)
   })
+  return mapboxLoadPromise
 }
 
 function PasswordGate({ onSubmit, error }) {
@@ -114,14 +138,25 @@ function PasswordGate({ onSubmit, error }) {
   )
 }
 
+function normalizeStatus(s) {
+  if (!s) return ''
+  return String(s).trim().toLowerCase()
+}
+
 function StatusBadge({ status }) {
   if (!status) return null
-  const isConfirmed = status === 'Confirmed'
+  const normalized = normalizeStatus(status)
+  const isConfirmed = normalized === 'confirmed'
+  const isPending = normalized === 'pending'
+  if (!isConfirmed && !isPending && !/confirmed|pending/.test(normalized)) {
+    // Unrecognized status string, render as-is in muted style
+  }
   const color = isConfirmed ? '#6b7a45' : '#b8963e'
   const bg = isConfirmed ? 'rgba(107,122,69,0.12)' : 'rgba(184,150,62,0.14)'
+  const label = /confirmed|pending/.test(normalized) ? status : status
   return (
     <span style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color, backgroundColor: bg, padding: '4px 10px', border: `1px solid ${color}33`, borderRadius: '2px', whiteSpace: 'nowrap' }}>
-      {status}
+      {label}
     </span>
   )
 }
@@ -129,49 +164,44 @@ function StatusBadge({ status }) {
 function PortalMap({ stops, center, zoom, height = 320 }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
+  const validToken = MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.') && !MAPBOX_TOKEN.includes('PLACEHOLDER')
 
   useEffect(() => {
     let cancelled = false
+    if (!validToken) return
+
     loadMapbox().then((mapboxgl) => {
-      if (cancelled || !containerRef.current) return
+      if (cancelled || !containerRef.current || !mapboxgl) return
+
+      // Set token BEFORE creating the map
       mapboxgl.accessToken = MAPBOX_TOKEN
+
       if (mapRef.current) { mapRef.current.remove() }
       const map = new mapboxgl.Map({
         container: containerRef.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: 'mapbox://styles/mapbox/streets-v12',
         center: [center.lng, center.lat],
         zoom,
         attributionControl: false,
       })
       mapRef.current = map
 
-      map.on('load', () => {
-        // Route line
-        if (stops.length > 1) {
-          map.addSource('route', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: {
-                type: 'LineString',
-                coordinates: stops.map((s) => [s.coordinates.lng, s.coordinates.lat]),
-              },
-            },
-          })
-          map.addLayer({
-            id: 'route-line',
-            type: 'line',
-            source: 'route',
-            paint: {
-              'line-color': '#c0614a',
-              'line-width': 2,
-              'line-dasharray': [2, 2],
-              'line-opacity': 0.7,
-            },
-          })
-        }
+      map.on('error', (e) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Deriva TripPortal map] mapbox error:', e?.error?.status, e?.error?.message)
+      })
 
-        // Custom markers
+      map.on('style.load', () => {
+        setTimeout(() => { try { map.resize() } catch {} }, 0)
+      })
+
+      map.on('load', () => {
+        // Tint the water layer to the Deriva-matching blue
+        try {
+          map.setPaintProperty('water', 'fill-color', '#a8c8d8')
+        } catch {}
+
+        // Custom markers with clickable popups
         stops.forEach((stop, i) => {
           const wrap = document.createElement('div')
           wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
@@ -190,27 +220,40 @@ function PortalMap({ stops, center, zoom, height = 320 }) {
             .addTo(map)
         })
 
-        // Fit bounds if multiple stops
-        if (stops.length > 1) {
+        // Dynamically fit to pin bounds. Single stop handled with
+        // a small synthetic bounding box so fitBounds still runs.
+        try {
           const bounds = new mapboxgl.LngLatBounds()
           stops.forEach((s) => bounds.extend([s.coordinates.lng, s.coordinates.lat]))
-          map.fitBounds(bounds, { padding: 60, maxZoom: 13, duration: 0 })
+          if (stops.length === 1) {
+            const s = stops[0].coordinates
+            const pad = 0.005
+            bounds.extend([s.lng - pad, s.lat - pad])
+            bounds.extend([s.lng + pad, s.lat + pad])
+          }
+          map.fitBounds(bounds, { padding: 60, maxZoom: 13, animate: false })
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[Deriva TripPortal map] fitBounds failed:', err)
         }
       })
+    }).catch((e) => {
+      // eslint-disable-next-line no-console
+      console.warn('[Deriva TripPortal map] load failed:', e)
     })
 
     return () => {
       cancelled = true
       if (mapRef.current) { mapRef.current.remove(); mapRef.current = null }
     }
-  }, [stops, center.lat, center.lng, zoom])
+  }, [stops, center.lat, center.lng, zoom, validToken])
 
-  return <div ref={containerRef} style={{ width: '100%', height: `${height}px`, borderRadius: '3px', overflow: 'hidden', border: '1px solid rgba(140,123,107,0.15)' }} />
+  return <div ref={containerRef} style={{ width: '100%', height: `${height}px`, borderRadius: '3px', overflow: 'hidden', border: '1px solid rgba(140,123,107,0.15)', position: 'relative' }} />
 }
 
 function OverviewTab({ portal }) {
   const allStops = portal.days.flatMap((d, di) => d.stops.map((s) => ({ ...s, dayNumber: d.dayNumber })))
-  const confirmedCount = allStops.filter((s) => s.status === 'Confirmed').length
+  const confirmedCount = allStops.filter((s) => normalizeStatus(s.status) === 'confirmed').length
   const totalStops = allStops.length
   const cities = new Set()
   portal.days.forEach((d) => { if (d.theme) cities.add(d.theme) })
@@ -238,8 +281,8 @@ function OverviewTab({ portal }) {
       <div className="tp-section-label">Trip Timeline</div>
       <div className="tp-timeline">
         {portal.days.map((d) => {
-          const conf = d.stops.filter((s) => s.status === 'Confirmed').length
-          const pend = d.stops.filter((s) => s.status === 'Pending').length
+          const conf = d.stops.filter((s) => normalizeStatus(s.status) === 'confirmed').length
+          const pend = d.stops.filter((s) => normalizeStatus(s.status) === 'pending').length
           return (
             <div key={d.dayNumber} className="tp-timeline-row">
               <div className="tp-timeline-num">{d.dayNumber}</div>
