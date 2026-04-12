@@ -36,64 +36,180 @@ const ADD_DEST_TAGS = ['Italy', 'Portugal', 'Spain', 'Iceland', 'General', 'Hote
 const gnews = (q) =>
   `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`
 
-const FEED_SOURCES = [
-  ...[
-    'Rome restaurant opening 2026',
-    'Florence food scene 2026',
-    'Sicily travel guide',
-    'Lake Como hotel',
-    'Amalfi coast restaurants',
-    'Rome neighborhood guide',
-    'Milan design food culture',
-    'Puglia travel',
-  ].map((q) => ({ url: gnews(q), tag: 'Italy' })),
-  ...[
-    'Lisbon restaurant opening 2026',
-    'Porto food scene',
-    'Portugal boutique hotel',
-    'Lisbon neighborhood guide',
-    'Algarve travel 2026',
-    'Alentejo wine food',
-  ].map((q) => ({ url: gnews(q), tag: 'Portugal' })),
-  ...[
-    'Barcelona restaurant 2026',
-    'Madrid food scene',
-    'San Sebastian gastronomy',
-    'Spain boutique hotel',
-    'Seville travel guide',
-  ].map((q) => ({ url: gnews(q), tag: 'Spain' })),
-  ...[
-    'Reykjavik restaurant 2026',
-    'Iceland travel guide',
-    'Iceland boutique hotel',
-    'Iceland food culture',
-  ].map((q) => ({ url: gnews(q), tag: 'Iceland' })),
-  { url: 'https://www.eater.com/rss/index.xml', tag: 'General' },
-  { url: 'https://www.theguardian.com/travel/rss', tag: 'General' },
-  { url: 'https://www.cntraveler.com/feed/rss', tag: 'General' },
-  { url: 'https://www.theflorentine.net/feed', tag: 'Italy' },
-  { url: 'https://www.portugalresident.com/feed', tag: 'Portugal' },
-  { url: 'https://www.icelandreview.com/feed', tag: 'Iceland' },
+// Each source has: url, name, tag (destination or General), category, and an
+// optional `unfiltered` flag. Unfiltered sources skip the keyword relevance
+// filter (because they're already destination or topic specific).
+const SOURCE_REGISTRY = [
+  // Travel and Culture
+  { url: 'https://www.eater.com/rss/index.xml', name: 'Eater', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.theguardian.com/travel/rss', name: 'Guardian Travel', tag: 'General', category: 'Culture' },
+  { url: 'https://www.cntraveler.com/feed/rss', name: 'Condé Nast Traveler', tag: 'General', category: 'Culture' },
+  { url: 'https://www.afar.com/feeds/afar-magazine-rss-feed', name: 'Afar', tag: 'General', category: 'Culture' },
+  { url: 'https://feeds.bbci.co.uk/travel/rss.xml', name: 'BBC Travel', tag: 'General', category: 'Culture' },
+  { url: 'https://www.atlasobscura.com/feeds/latest', name: 'Atlas Obscura', tag: 'General', category: 'Culture' },
+  { url: 'https://www.nationalgeographic.com/travel/rss-feeds/', name: 'National Geographic Travel', tag: 'General', category: 'Culture' },
+  { url: 'https://skift.com/feed/', name: 'Skift', tag: 'General', category: 'Travel Trends' },
+  { url: 'https://theculturetrip.com/europe/feed', name: 'Culture Trip Europe', tag: 'General', category: 'Culture' },
+  { url: 'https://www.spottedbylocals.com/feed', name: 'Spotted by Locals', tag: 'General', category: 'Culture' },
+  { url: 'https://www.wallpaper.com/travel/rss', name: 'Wallpaper Travel', tag: 'General', category: 'Culture' },
+  { url: 'https://www.architecturaldigest.com/travel/rss', name: 'Architectural Digest Travel', tag: 'General', category: 'Culture' },
+  { url: 'https://www.phocuswire.com/rss', name: 'Phocuswire', tag: 'General', category: 'Travel Trends' },
+  { url: 'https://www.viator.com/blog/feed', name: 'Viator Travel Blog', tag: 'General', category: 'Travel Trends' },
+  { url: 'https://news.airbnb.com/feed/', name: 'Airbnb Newsroom', tag: 'General', category: 'Travel Trends' },
+  { url: 'https://www.getyourguide.com/blog/feed', name: 'GetYourGuide Newsroom', tag: 'General', category: 'Travel Trends' },
+  { url: 'https://explodingtopics.com/blog/rss.xml', name: 'Exploding Topics', tag: 'General', category: 'Travel Trends' },
+
+  // Food and Drink
+  { url: 'https://culinarybackstreets.com/feed', name: 'Culinary Backstreets', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://punchdrink.com/feed', name: 'Punch', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.saveur.com/feed', name: 'Saveur', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://vinepair.com/feed', name: 'VinePair', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.decanter.com/feed', name: 'Decanter', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.bonappetit.com/feed/rss', name: 'Bon Appétit', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.foodandwine.com/rss', name: 'Food & Wine', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.theinfatuation.com/rss', name: 'The Infatuation', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.winemag.com/feed/', name: 'Wine Enthusiast', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://winefolly.com/feed/', name: 'Wine Folly', tag: 'General', category: 'Food and Drink' },
+  { url: 'https://www.jancisrobinson.com/rss', name: 'Jancis Robinson', tag: 'General', category: 'Food and Drink' },
+
+  // Hotels and Design
+  { url: 'https://www.mrandmrssmith.com/feed', name: 'Mr & Mrs Smith', tag: 'General', category: 'Hotels' },
+  { url: 'https://www.tablethotels.com/blog/feed', name: 'Tablet Hotels', tag: 'General', category: 'Hotels' },
+  { url: 'https://www.hideawayreport.com/feed', name: 'Hideaway Report', tag: 'General', category: 'Hotels' },
+  { url: 'https://www.secretescapes.com/editorial/feed', name: 'Secret Escapes', tag: 'General', category: 'Hotels' },
+
+  // Italy destination-specific
+  { url: 'https://www.theflorentine.net/feed', name: 'The Florentine', tag: 'Italy', category: 'Culture', unfiltered: true },
+  { url: 'https://www.romerevealed.com/feed', name: 'Revealed Rome', tag: 'Italy', category: 'Culture', unfiltered: true },
+  { url: 'https://www.wantedinrome.com/rss', name: 'Wanted in Rome', tag: 'Italy', category: 'Culture', unfiltered: true },
+  { url: 'https://www.timeout.com/rome/rss', name: 'Time Out Rome', tag: 'Italy', category: 'Culture', unfiltered: true },
+  { url: 'https://www.thelocal.it/rss.php', name: 'The Local Italy', tag: 'Italy', category: 'Culture', unfiltered: true },
+  { url: 'https://devourtours.com/blog/feed/?cat=rome', name: 'Devour Rome', tag: 'Italy', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://devourtours.com/blog/feed/?cat=florence', name: 'Devour Florence', tag: 'Italy', category: 'Food and Drink', unfiltered: true },
+
+  // Portugal destination-specific
+  { url: 'https://www.insidelisbon.com/feed', name: 'Inside Lisbon', tag: 'Portugal', category: 'Culture', unfiltered: true },
+  { url: 'https://www.timeout.com/lisbon/rss', name: 'Time Out Lisbon', tag: 'Portugal', category: 'Culture', unfiltered: true },
+  { url: 'https://www.thelocal.pt/rss.php', name: 'The Local Portugal', tag: 'Portugal', category: 'Culture', unfiltered: true },
+  { url: 'https://devourtours.com/blog/feed/?cat=lisbon', name: 'Devour Lisbon', tag: 'Portugal', category: 'Food and Drink', unfiltered: true },
+
+  // Spain destination-specific
+  { url: 'https://www.timeout.com/barcelona/rss', name: 'Time Out Barcelona', tag: 'Spain', category: 'Culture', unfiltered: true },
+  { url: 'https://www.timeout.com/madrid/rss', name: 'Time Out Madrid', tag: 'Spain', category: 'Culture', unfiltered: true },
+  { url: 'https://www.thelocal.es/rss.php', name: 'The Local Spain', tag: 'Spain', category: 'Culture', unfiltered: true },
+  { url: 'https://devourtours.com/blog/feed/?cat=madrid', name: 'Devour Madrid', tag: 'Spain', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://devourtours.com/blog/feed/?cat=barcelona', name: 'Devour Barcelona', tag: 'Spain', category: 'Food and Drink', unfiltered: true },
+
+  // Iceland destination-specific
+  { url: 'https://icelandmag.is/feed', name: 'Iceland Magazine', tag: 'Iceland', category: 'Culture', unfiltered: true },
+  { url: 'https://www.whatson.is/feed', name: "What's On in Reykjavik", tag: 'Iceland', category: 'Culture', unfiltered: true },
+
+  // Substacks and personal blogs (also seeded into Following tab)
+  { url: 'https://hotelsaboveparweekly.substack.com/feed', name: 'Hotels Above Par', tag: 'General', category: 'Hotels', unfiltered: true },
+  { url: 'https://katieparla.substack.com/feed', name: 'Katie Parla', tag: 'Italy', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://elizabethminchilli.substack.com/feed', name: 'Elizabeth Minchilli', tag: 'Italy', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://www.portugalist.com/feed', name: 'Portugalist', tag: 'Portugal', category: 'Culture', unfiltered: true },
+  { url: 'https://grantourismotravels.com/feed', name: 'Grantourismo', tag: 'General', category: 'Culture', unfiltered: true },
+  { url: 'https://davidlebovitz.substack.com/feed', name: 'David Lebovitz', tag: 'General', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://emikodavies.substack.com/feed', name: 'Emiko Davies', tag: 'Italy', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://rolfpotts.substack.com/feed', name: 'Rolf Potts', tag: 'General', category: 'Culture', unfiltered: true },
+  { url: 'https://vittles.substack.com/feed', name: 'Vittles', tag: 'General', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://culinarybackstreets.substack.com/feed', name: 'Culinary Backstreets Newsletter', tag: 'General', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://fathomaway.com/feed', name: 'Fathom', tag: 'General', category: 'Culture', unfiltered: true },
+  { url: 'https://rachelroddy.substack.com/feed', name: 'Rachel Roddy', tag: 'Italy', category: 'Food and Drink', unfiltered: true },
+  { url: 'https://jessicanabongo.substack.com/feed', name: 'Jessica Nabongo', tag: 'General', category: 'Culture', unfiltered: true },
+  { url: 'https://oneika.substack.com/feed', name: 'Oneika the Traveller', tag: 'General', category: 'Culture', unfiltered: true },
+  { url: 'https://thebrowser.com/rss', name: 'The Browser', tag: 'General', category: 'Culture', unfiltered: true },
 ]
 
-const RELEVANCE_KEYWORDS = [
-  'italy', 'italian', 'portugal', 'portuguese', 'spain', 'spanish',
-  'iceland', 'icelandic', 'rome', 'roman', 'lisbon', 'barcelona',
-  'madrid', 'florence', 'sicily', 'sicilian', 'porto', 'reykjavik',
-  'europe', 'european',
+// Google News destination queries. These are already topic-specific, so they
+// bypass the keyword filter. Each query has its own destination + category.
+const GNEWS_QUERIES = [
+  { q: 'Rome restaurant opening 2026', tag: 'Italy', category: 'Food and Drink' },
+  { q: 'Florence food scene 2026', tag: 'Italy', category: 'Food and Drink' },
+  { q: 'Sicily travel guide', tag: 'Italy', category: 'Culture' },
+  { q: 'Lake Como hotel', tag: 'Italy', category: 'Hotels' },
+  { q: 'Amalfi coast restaurants', tag: 'Italy', category: 'Food and Drink' },
+  { q: 'Rome neighborhood guide', tag: 'Italy', category: 'Culture' },
+  { q: 'Milan design food culture', tag: 'Italy', category: 'Culture' },
+  { q: 'Puglia travel', tag: 'Italy', category: 'Culture' },
+  { q: 'Lisbon restaurant opening 2026', tag: 'Portugal', category: 'Food and Drink' },
+  { q: 'Porto food scene', tag: 'Portugal', category: 'Food and Drink' },
+  { q: 'Portugal boutique hotel', tag: 'Portugal', category: 'Hotels' },
+  { q: 'Lisbon neighborhood guide', tag: 'Portugal', category: 'Culture' },
+  { q: 'Algarve travel 2026', tag: 'Portugal', category: 'Culture' },
+  { q: 'Alentejo wine food', tag: 'Portugal', category: 'Food and Drink' },
+  { q: 'Barcelona restaurant 2026', tag: 'Spain', category: 'Food and Drink' },
+  { q: 'Madrid food scene', tag: 'Spain', category: 'Food and Drink' },
+  { q: 'San Sebastian gastronomy', tag: 'Spain', category: 'Food and Drink' },
+  { q: 'Spain boutique hotel', tag: 'Spain', category: 'Hotels' },
+  { q: 'Seville travel guide', tag: 'Spain', category: 'Culture' },
+  { q: 'Reykjavik restaurant 2026', tag: 'Iceland', category: 'Food and Drink' },
+  { q: 'Iceland travel guide', tag: 'Iceland', category: 'Culture' },
+  { q: 'Iceland boutique hotel', tag: 'Iceland', category: 'Hotels' },
+  { q: 'Iceland food culture', tag: 'Iceland', category: 'Food and Drink' },
 ]
 
-const isRelevantGeneralItem = (item) => {
-  const haystack = `${item.title || ''} ${item.description || ''}`.toLowerCase()
-  return RELEVANCE_KEYWORDS.some((kw) => haystack.includes(kw))
+const ALL_FEED_SOURCES = [
+  ...SOURCE_REGISTRY,
+  ...GNEWS_QUERIES.map((g) => ({
+    url: gnews(g.q),
+    name: `Google News · ${g.q}`,
+    tag: g.tag,
+    category: g.category,
+    unfiltered: true,
+  })),
+]
+
+const DESTINATION_KEYWORDS = [
+  'rome', 'lisbon', 'barcelona', 'madrid', 'florence', 'sicily', 'porto',
+  'reykjavik', 'iceland', 'italy', 'portugal', 'spain', 'tuscany', 'amalfi',
+  'venice', 'puglia', 'algarve', 'alentejo', 'lake como', 'seville',
+  'san sebastian', 'bilbao', 'sardinia', 'naples', 'bologna', 'sintra',
+  'cascais', 'douro', 'girona', 'malaga', 'granada', 'ibiza', 'mallorca',
+  'westfjords', 'akureyri', 'european', 'europe',
+]
+
+const ADVISORY_PHRASES = [
+  'travel advisory', 'entry requirements', 'visa requirements',
+  'travel restriction', 'passport requirement', 'tourist tax',
+  'entry fee', 'travel documents', 'health requirement', 'border crossing',
+]
+
+const matchesAny = (text, list) => {
+  const t = text.toLowerCase()
+  return list.some((kw) => t.includes(kw))
 }
+
+// Returns { keep, isAdvisory }. Advisory items always pass; unfiltered sources
+// always pass; everything else needs at least one destination keyword hit.
+function classifyItem(item, source) {
+  const text = `${item.title || ''} ${item.description || ''}`
+  const isAdvisory = matchesAny(text, ADVISORY_PHRASES)
+  if (isAdvisory) return { keep: true, isAdvisory: true }
+  if (source.unfiltered) return { keep: true, isAdvisory: false }
+  if (matchesAny(text, DESTINATION_KEYWORDS)) return { keep: true, isAdvisory: false }
+  return { keep: false, isAdvisory: false }
+}
+
+const TOPIC_CATEGORIES = ['All Topics', 'Food and Drink', 'Hotels', 'Culture', 'Travel Trends', 'Advisory']
 
 const DEFAULT_FOLLOWING = [
   { id: 'f1', name: 'Hotels Above Par', url: 'https://hotelsaboveparweekly.substack.com/feed', tag: 'Hotels' },
   { id: 'f2', name: 'Katie Parla', url: 'https://katieparla.substack.com/feed', tag: 'Italy' },
   { id: 'f3', name: 'Elizabeth Minchilli', url: 'https://elizabethminchilli.substack.com/feed', tag: 'Italy' },
-  { id: 'f4', name: 'Portugalist', url: 'https://www.portugalist.com/feed/', tag: 'Portugal' },
-  { id: 'f5', name: 'Grantourismo', url: 'https://grantourismotravels.com/feed/', tag: 'General' },
+  { id: 'f4', name: 'Portugalist', url: 'https://www.portugalist.com/feed', tag: 'Portugal' },
+  { id: 'f5', name: 'Grantourismo', url: 'https://grantourismotravels.com/feed', tag: 'General' },
+  { id: 'f6', name: 'David Lebovitz', url: 'https://davidlebovitz.substack.com/feed', tag: 'General' },
+  { id: 'f7', name: 'Emiko Davies', url: 'https://emikodavies.substack.com/feed', tag: 'Italy' },
+  { id: 'f8', name: 'Rolf Potts', url: 'https://rolfpotts.substack.com/feed', tag: 'General' },
+  { id: 'f9', name: 'Vittles', url: 'https://vittles.substack.com/feed', tag: 'General' },
+  { id: 'f10', name: 'Culinary Backstreets Newsletter', url: 'https://culinarybackstreets.substack.com/feed', tag: 'General' },
+  { id: 'f11', name: 'Fathom', url: 'https://fathomaway.com/feed', tag: 'General' },
+  { id: 'f12', name: 'Rachel Roddy', url: 'https://rachelroddy.substack.com/feed', tag: 'Italy' },
+  { id: 'f13', name: 'Jessica Nabongo', url: 'https://jessicanabongo.substack.com/feed', tag: 'General' },
+  { id: 'f14', name: 'Oneika the Traveller', url: 'https://oneika.substack.com/feed', tag: 'General' },
+  { id: 'f15', name: 'The Browser', url: 'https://thebrowser.com/rss', tag: 'General' },
 ]
 
 const DEFAULT_INSTAGRAM = [
@@ -280,6 +396,16 @@ function ArticleCard({ item, onSave, saved }) {
             · {item.tag}
           </span>
         )}
+        {item.category && (
+          <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
+            · {item.category}
+          </span>
+        )}
+        {item.isAdvisory && (
+          <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.terracotta }}>
+            · Advisory
+          </span>
+        )}
         {item.pubDate && (
           <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan }}>
             · {formatDate(item.pubDate)}
@@ -321,6 +447,7 @@ function FeedTab({ savedItems, setSavedItems }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dest, setDest] = useState('All')
+  const [topic, setTopic] = useState('All Topics')
   const [lastRefreshed, setLastRefreshed] = useState(null)
 
   const load = async () => {
@@ -330,13 +457,30 @@ function FeedTab({ savedItems, setSavedItems }) {
       const res = await fetch('/api/rss', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sources: FEED_SOURCES }),
+        body: JSON.stringify({
+          sources: ALL_FEED_SOURCES.map((s) => ({ url: s.url, tag: s.tag })),
+        }),
       })
       if (!res.ok) throw new Error((await res.json()).error || 'Feed fetch failed')
       const data = await res.json()
-      const merged = (data.feeds || [])
-        .flatMap((f) => (f.items || []).map((it) => ({ ...it, tag: it.tag || f.tag })))
-        .filter((it) => it.tag !== 'General' || isRelevantGeneralItem(it))
+      const merged = (data.feeds || []).flatMap((f, idx) => {
+        const source = ALL_FEED_SOURCES[idx]
+        if (!source) return []
+        return (f.items || [])
+          .map((it) => {
+            const cls = classifyItem(it, source)
+            if (!cls.keep) return null
+            return {
+              ...it,
+              tag: source.tag,
+              category: source.category,
+              feedTitle: source.name,
+              sourceUrl: source.url,
+              isAdvisory: cls.isAdvisory,
+            }
+          })
+          .filter(Boolean)
+      })
       merged.sort((a, b) => {
         const da = new Date(a.pubDate).getTime() || 0
         const db = new Date(b.pubDate).getTime() || 0
@@ -354,11 +498,12 @@ function FeedTab({ savedItems, setSavedItems }) {
   useEffect(() => { load() }, [])
 
   const filtered = useMemo(() => {
-    if (dest === 'All') return items.slice(0, 60)
-    const tagged = items.filter((it) => it.tag === dest)
-    const general = items.filter((it) => it.tag === 'General').slice(0, 5)
-    return [...tagged, ...general].slice(0, 15)
-  }, [items, dest])
+    let arr = items
+    if (dest !== 'All') arr = arr.filter((it) => it.tag === dest)
+    if (topic === 'Advisory') arr = arr.filter((it) => it.isAdvisory)
+    else if (topic !== 'All Topics') arr = arr.filter((it) => it.category === topic)
+    return arr.slice(0, 120)
+  }, [items, dest, topic])
 
   const isSaved = (it) => savedItems.some((s) => s.link === it.link)
   const toggleSave = (it) => {
@@ -388,6 +533,7 @@ function FeedTab({ savedItems, setSavedItems }) {
         </div>
       </div>
       <DestinationFilter value={dest} onChange={setDest} />
+      <DestinationFilter value={topic} onChange={setTopic} options={TOPIC_CATEGORIES} />
       {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', color: '#9E6060', marginBottom: '1rem' }}>{error}</p>}
       {loading && items.length === 0 && (
         <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: C.tan }}>Pulling feeds from a lot of sources. This takes a few seconds.</p>
@@ -406,7 +552,7 @@ function FeedTab({ savedItems, setSavedItems }) {
 
 // ── FOLLOWING TAB ───────────────────────────────────────────────────────────
 function FollowingTab({ savedItems, setSavedItems }) {
-  const [sources, setSources] = useLocalStorage('deriva_research_following', DEFAULT_FOLLOWING)
+  const [sources, setSources] = useLocalStorage('deriva_research_following_v2', DEFAULT_FOLLOWING)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
