@@ -1098,49 +1098,166 @@ function LevelBadge({ label, value }) {
   )
 }
 
-function WhenToGo({ destId }) {
+const WTG_DESTS = ['Italy', 'Portugal', 'Spain', 'Iceland']
+const WTG_DEST_IDS = { Italy: 'italy', Portugal: 'portugal', Spain: 'spain', Iceland: 'iceland' }
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const WTG_CATEGORIES = ['Food and Wine', 'Nature and Wildlife', 'Culture and Festivals', 'Beaches and Coast', 'Skiing and Snow', 'Music and Nightlife', 'Shoulder Season Value', 'Avoid Crowds']
+const WTG_SEASONS = ['Peak', 'Shoulder', 'Off Season']
+const SEASON_MAP = { Peak: 'peak', Shoulder: 'shoulder', 'Off Season': 'off' }
+
+const CATEGORY_KEYWORDS = {
+  'Food and Wine': ['restaurant', 'food', 'wine', 'truffle', 'harvest', 'gastronomy', 'culinary', 'eat', 'dining', 'chef', 'olive', 'sardine', 'pistachio', 'chestnut', 'artichoke', 'asparagus', 'produce', 'cheese', 'grape', 'vendemmia', 'pintxo', 'tapa', 'sherry', 'port', 'fado', 'market'],
+  'Nature and Wildlife': ['northern lights', 'aurora', 'puffin', 'whale', 'wildflower', 'blossom', 'almond', 'cherry', 'lupine', 'firefly', 'bird', 'meteor', 'eclipse', 'midnight sun', 'ice cave', 'glacier', 'snow', 'geothermal', 'hot spring', 'reindeer', 'surf', 'wave', 'acqua alta'],
+  'Culture and Festivals': ['carnival', 'festival', 'procession', 'holy week', 'semana santa', 'easter', 'christmas', 'opera', 'biennale', 'film', 'art', 'museum', 'palio', 'feria', 'calcio', 'tradition', 'heritage', 'saint', 'patron', 'pilgrimage', 'yule', 'viking', 'independence', 'revolution', 'national day'],
+  'Beaches and Coast': ['beach', 'coast', 'sea', 'swim', 'mediterranean', 'atlantic', 'island', 'sardinia', 'algarve', 'balearic', 'mallorca', 'ibiza', 'canary', 'azores', 'madeira'],
+  'Skiing and Snow': ['ski', 'snow', 'dolomite', 'alps', 'sierra nevada', 'pyrenees'],
+  'Music and Nightlife': ['jazz', 'music', 'concert', 'sonar', 'primavera', 'alive', 'rock', 'airwaves', 'pride', 'nightlife', 'drum'],
+  'Shoulder Season Value': [],
+  'Avoid Crowds': [],
+}
+
+function matchesCategory(m, category) {
+  if (category === 'Shoulder Season Value') return m.season === 'shoulder'
+  if (category === 'Avoid Crowds') return m.crowds === 'Low' || m.crowds === 'Low to Medium'
+  const kws = CATEGORY_KEYWORDS[category] || []
+  if (kws.length === 0) return true
+  const haystack = [...(m.phenomena || []), ...(m.events || []), m.weather || '', m.bestFor || ''].join(' ').toLowerCase()
+  return kws.some((kw) => haystack.includes(kw))
+}
+
+function DestInfoPanel({ destId }) {
+  const [open, setOpen] = useState(false)
   const data = SEASONAL_DATA[destId]
   if (!data) return null
+  const name = destId.charAt(0).toUpperCase() + destId.slice(1)
+  return (
+    <div style={{ display: 'inline-block', marginRight: '0.75rem', marginBottom: '0.5rem' }}>
+      <button onClick={() => setOpen(!open)} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', color: C.mid, background: 'none', border: `1px solid ${C.sand}`, padding: '0.35rem 0.7rem', cursor: 'pointer' }}>
+        {name} Info {open ? '−' : '+'}
+      </button>
+      {open && (
+        <div style={{ backgroundColor: C.parchment, border: `1px solid ${C.sand}`, padding: '1rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.5rem' }}>Pricing Overview</p>
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none', marginBottom: '0.75rem' }}>
+            {[['Cheapest', data.pricing.cheapest], ['Most expensive', data.pricing.expensive], ['Book ahead for', data.pricing.bookAhead], ['Shoulder sweet spot', data.pricing.shoulder]].map(([l, v]) => (
+              <li key={l} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.6', marginBottom: '0.35rem', paddingLeft: '0.75rem', position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 0, color: C.terracotta }}>·</span>
+                <strong style={{ fontWeight: '400', color: C.ink }}>{l}:</strong> {v}
+              </li>
+            ))}
+          </ul>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.7', margin: 0 }}>{data.shoulderSummary}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function toggleSet(set, val) {
+  const next = new Set(set)
+  if (next.has(val)) next.delete(val); else next.add(val)
+  return next
+}
+
+function FilterButton({ label, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase',
+      color: active ? '#fff' : C.mid, backgroundColor: active ? C.terracotta : 'transparent',
+      border: `1px solid ${active ? C.terracotta : C.sand}`, padding: '0.4rem 0.75rem', cursor: 'pointer', marginRight: '0.35rem', marginBottom: '0.35rem',
+    }}>{label}</button>
+  )
+}
+
+function WhenToGo() {
+  const [dests, setDests] = useState(new Set())
+  const [month, setMonth] = useState('All Months')
+  const [cats, setCats] = useState(new Set())
+  const [season, setSeason] = useState('All Seasons')
+
+  const hasFilters = dests.size > 0 || month !== 'All Months' || cats.size > 0 || season !== 'All Seasons'
+
+  const clearAll = () => { setDests(new Set()); setMonth('All Months'); setCats(new Set()); setSeason('All Seasons') }
+
+  const results = useMemo(() => {
+    if (!hasFilters) return []
+    const activeDests = dests.size > 0 ? [...dests] : WTG_DESTS
+    const out = []
+    for (const destName of activeDests) {
+      const destId = WTG_DEST_IDS[destName]
+      const data = SEASONAL_DATA[destId]
+      if (!data) continue
+      for (const m of data.months) {
+        if (month !== 'All Months' && m.name !== month) continue
+        if (season !== 'All Seasons' && m.season !== SEASON_MAP[season]) continue
+        if (cats.size > 0 && ![...cats].some((cat) => matchesCategory(m, cat))) continue
+        out.push({ destName, destId, ...m })
+      }
+    }
+    return out
+  }, [dests, month, cats, season, hasFilters])
+
+  const filterLbl = { fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.35rem', marginTop: '0.75rem' }
 
   return (
     <div style={{ marginTop: '2rem' }}>
       <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.75rem' }}>
         When to Go
       </p>
-      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.mid, lineHeight: '1.65', marginBottom: '1.5rem', backgroundColor: C.parchment, padding: '0.75rem 1rem', border: `1px solid ${C.sand}` }}>
-        Shoulder seasons generally offer the best combination of good conditions, lower prices, and authentic local atmosphere. For Italy and Portugal: April to May and September to October. For Spain: March to May in the south, September to October everywhere. For Iceland: May to June and September.
-      </p>
 
-      <div style={{ backgroundColor: C.parchment, border: `1px solid ${C.sand}`, padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
-        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.gold, marginBottom: '0.6rem' }}>Pricing Overview</p>
-        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-          {[
-            ['Cheapest months', data.pricing.cheapest],
-            ['Most expensive months', data.pricing.expensive],
-            ['Book far ahead for', data.pricing.bookAhead],
-            ['Shoulder sweet spot', data.pricing.shoulder],
-          ].map(([label, val]) => (
-            <li key={label} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.65', marginBottom: '0.5rem', paddingLeft: '1rem', position: 'relative' }}>
-              <span style={{ position: 'absolute', left: 0, color: C.terracotta }}>·</span>
-              <strong style={{ fontWeight: '400', color: C.ink }}>{label}:</strong> {val}
-            </li>
-          ))}
-        </ul>
+      <div style={{ backgroundColor: C.parchment, border: `1px solid ${C.sand}`, padding: '1rem', marginBottom: '1rem' }}>
+        <p style={filterLbl}>Destination</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {WTG_DESTS.map((d) => <FilterButton key={d} label={d} active={dests.has(d)} onClick={() => setDests(toggleSet(dests, d))} />)}
+        </div>
+
+        <p style={filterLbl}>Month</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          <FilterButton label="All Months" active={month === 'All Months'} onClick={() => setMonth('All Months')} />
+          {MONTH_NAMES.map((m) => <FilterButton key={m} label={m.slice(0, 3)} active={month === m} onClick={() => setMonth(month === m ? 'All Months' : m)} />)}
+        </div>
+
+        <p style={filterLbl}>Category</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {WTG_CATEGORIES.map((c) => <FilterButton key={c} label={c} active={cats.has(c)} onClick={() => setCats(toggleSet(cats, c))} />)}
+        </div>
+
+        <p style={filterLbl}>Season</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          <FilterButton label="All Seasons" active={season === 'All Seasons'} onClick={() => setSeason('All Seasons')} />
+          {WTG_SEASONS.map((s) => <FilterButton key={s} label={s} active={season === s} onClick={() => setSeason(season === s ? 'All Seasons' : s)} />)}
+        </div>
+
+        {hasFilters && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <button onClick={clearAll} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.terracotta, background: 'none', border: `1px solid ${C.terracotta}`, padding: '0.35rem 0.7rem', cursor: 'pointer' }}>Clear Filters</button>
+          </div>
+        )}
       </div>
 
-      <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.75', marginBottom: '1.5rem' }}>
-        {data.shoulderSummary}
-      </p>
+      <div style={{ marginBottom: '1rem' }}>
+        {WTG_DESTS.map((d) => <DestInfoPanel key={d} destId={WTG_DEST_IDS[d]} />)}
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
-        {data.months.map((m) => {
+      {!hasFilters && (
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: C.tan, lineHeight: '1.6' }}>
+          Select a month, destination, or category to explore the best times to visit.
+        </p>
+      )}
+
+      {hasFilters && results.length === 0 && (
+        <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', fontWeight: '300', color: C.tan }}>No results match these filters.</p>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
+        {results.map((m) => {
           const ss = SEASON_STYLES[m.season] || SEASON_STYLES.off
           const isEclipse = m.bookAhead === 'eclipse'
           const showBookAhead = !!m.bookAhead
           return (
-            <div key={m.name} style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1rem' }}>
+            <div key={`${m.destId}_${m.name}`} style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', color: C.ink }}>{m.name}</span>
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', color: C.ink }}>{m.destName} · {m.name}</span>
                 <span style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: ss.color, backgroundColor: ss.bg, padding: '0.2rem 0.6rem' }}>
                   {ss.label}
                 </span>
@@ -1204,6 +1321,7 @@ function DestinationsTab() {
   return (
     <div>
       <SectionHeader label="Destinations" title="Knowledge reference for the four." />
+      <WhenToGo />
       {DESTINATIONS_INFO.map((d) => {
         const isOpen = open[d.id]
         return (
@@ -1269,7 +1387,6 @@ function DestinationsTab() {
                   />
                 </div>
 
-                <WhenToGo destId={d.id} />
               </div>
             )}
           </div>
