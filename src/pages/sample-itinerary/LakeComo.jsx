@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import Nav from '../../components/Nav'
 import Footer from '../../components/Footer'
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || ''
 
 const SECTIONS = [
   { id: 'como', label: 'Como' },
@@ -8,6 +11,121 @@ const SECTIONS = [
   { id: 'varenna', label: 'Varenna' },
   { id: 'lugano', label: 'Lugano' },
 ]
+
+const LAKE_STOPS = [
+  { name: 'Como', lat: 45.8108, lng: 9.0851 },
+  { name: 'Boat Tour', lat: 46.0021, lng: 9.2154, isBoat: true },
+  { name: 'Bellagio', lat: 45.9862, lng: 9.2618 },
+  { name: 'Varenna', lat: 46.0153, lng: 9.2873 },
+  { name: 'Lugano', lat: 46.0037, lng: 8.9511 },
+]
+
+function loadMapbox() {
+  return new Promise((resolve) => {
+    if (window.mapboxgl) { resolve(window.mapboxgl); return }
+    const css = document.createElement('link')
+    css.rel = 'stylesheet'
+    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.min.css'
+    document.head.appendChild(css)
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.min.js'
+    script.onload = () => resolve(window.mapboxgl)
+    document.head.appendChild(script)
+  })
+}
+
+function StaticLakeMap() {
+  const containerRef = useRef(null)
+  const mapRef = useRef(null)
+
+  useEffect(() => {
+    let cancelled = false
+    if (!MAPBOX_TOKEN) return
+    loadMapbox().then((mapboxgl) => {
+      if (cancelled || !containerRef.current) return
+      mapboxgl.accessToken = MAPBOX_TOKEN
+      const map = new mapboxgl.Map({
+        container: containerRef.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [9.18, 45.95],
+        zoom: 9.5,
+        interactive: false,
+        attributionControl: false,
+      })
+      mapRef.current = map
+
+      map.on('load', () => {
+        // Route line connecting stops in order
+        map.addSource('lake-route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: LAKE_STOPS.map((s) => [s.lng, s.lat]),
+            },
+          },
+        })
+        map.addLayer({
+          id: 'lake-route-line',
+          type: 'line',
+          source: 'lake-route',
+          paint: {
+            'line-color': '#c0614a',
+            'line-width': 2,
+            'line-dasharray': [2, 2],
+            'line-opacity': 0.75,
+          },
+        })
+
+        // Custom markers
+        LAKE_STOPS.forEach((stop) => {
+          const wrap = document.createElement('div')
+          wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;'
+          const pin = document.createElement('div')
+          if (stop.isBoat) {
+            pin.style.cssText = 'width:22px;height:22px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-family:Jost,sans-serif;font-size:11px;font-weight:500;line-height:1;'
+            pin.textContent = '~'
+          } else {
+            pin.style.cssText = 'width:20px;height:20px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;'
+            const dot = document.createElement('div')
+            dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#fff;'
+            pin.appendChild(dot)
+          }
+          wrap.appendChild(pin)
+          const label = document.createElement('span')
+          label.textContent = stop.name
+          label.style.cssText = "font-family:'Jost',sans-serif;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#1e1a16;background:rgba(245,240,232,0.94);padding:3px 8px;margin-top:5px;border-radius:2px;white-space:nowrap;font-weight:500;"
+          wrap.appendChild(label)
+          new mapboxgl.Marker({ element: wrap, anchor: 'top' })
+            .setLngLat([stop.lng, stop.lat])
+            .addTo(map)
+        })
+      })
+    })
+    return () => {
+      cancelled = true
+      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null }
+    }
+  }, [])
+
+  return (
+    <div className="lake-map-section">
+      <div ref={containerRef} className="lake-map-canvas">
+        {!MAPBOX_TOKEN && (
+          <div className="lake-map-fallback">
+            <p>Map unavailable, Mapbox token not configured.</p>
+          </div>
+        )}
+      </div>
+      <p className="lake-map-caption">
+        Clients receive a fully{' '}
+        <Link to="/work-with-me">interactive version</Link>
+        {' '}of this map, every stop tappable and GPS-aware on their phone.
+      </p>
+    </div>
+  )
+}
 
 function DayCard({ number, date, theme, badge, defaultOpen = true, children }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -182,6 +300,13 @@ export default function LakeComo() {
 
         .sample-itinerary main { max-width: 900px; margin: 0 auto; padding: 0 24px 100px; }
 
+        .sample-itinerary .lake-map-section { margin: 48px 0 0; }
+        .sample-itinerary .lake-map-canvas { position: relative; width: 100%; height: 280px; border-radius: 3px; overflow: hidden; border: 1px solid var(--parchment-dark); background: var(--parchment); }
+        .sample-itinerary .lake-map-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--stone); font-size: 12px; font-style: italic; }
+        .sample-itinerary .lake-map-caption { max-width: 560px; margin: 14px auto 0; font-size: 12px; color: var(--stone); line-height: 1.65; font-style: italic; text-align: center; font-family: 'Jost', sans-serif; }
+        .sample-itinerary .lake-map-caption a { color: var(--terracotta); text-decoration: none; border-bottom: 1px solid rgba(192,97,74,0.35); font-style: italic; }
+        .sample-itinerary .lake-map-caption a:hover { color: #a84f3a; border-color: #a84f3a; }
+
         .sample-itinerary .cta-banner { background: var(--dark); color: var(--cream); border-radius: 4px; padding: 32px 40px; margin: 56px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
         .sample-itinerary .cta-banner-text p { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
         .sample-itinerary .cta-banner-text h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; line-height: 1.2; }
@@ -287,6 +412,7 @@ export default function LakeComo() {
           .sample-itinerary .day-header { grid-template-columns: 52px 1fr auto; }
           .sample-itinerary .day-badge { display: none; }
           .sample-itinerary .day-toggle { padding: 0 14px; }
+          .sample-itinerary .lake-map-canvas { height: 220px; }
           .sample-itinerary .cta-banner { flex-direction: column; padding: 28px 24px; text-align: center; }
           .sample-itinerary .hero-scroll-hint { display: none; }
           .sample-itinerary .base-camp-block { padding: 22px 20px; }
@@ -332,6 +458,7 @@ export default function LakeComo() {
       </nav>
 
       <main>
+        <StaticLakeMap />
         <div className="cta-banner">
           <div className="cta-banner-text">
             <p>Want a trip like this?</p>
