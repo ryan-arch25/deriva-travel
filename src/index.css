@@ -110,11 +110,17 @@ code {
 
 /* ── Deriva responsive overrides ──────────────────────────────────────── */
 html, body { overflow-x: hidden; max-width: 100vw; }
+* { box-sizing: border-box; }
 
-/* Minimum tap target size for interactive elements on mobile */
-@media (max-width: 640px) {
+/* Global minimum tap target for interactive elements on mobile */
+@media (max-width: 768px) {
   button, a[role="button"], input[type="submit"], input[type="button"] {
     min-height: 44px;
+  }
+  input[type="text"], input[type="email"], input[type="password"], input[type="tel"],
+  input[type="number"], input[type="search"], select, textarea {
+    min-height: 44px;
+    font-size: 16px; /* prevent iOS zoom-on-focus */
   }
 }
 
@@ -124,29 +130,36 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   .hero-mobile { height: 45vh !important; min-height: 320px !important; }
   .country-hero-mobile { height: 55vh !important; min-height: 380px !important; }
 
-  /* Advisor dashboard shell */
+  /* Advisor dashboard: hamburger drawer pattern. Sidebar hides off-canvas
+     and slides in when .open is toggled by the topbar hamburger button. */
   .advisor-shell { flex-direction: column !important; max-width: 100% !important; }
   .advisor-sidebar {
-    width: 100% !important;
-    min-height: auto !important;
-    position: static !important;
-    border-right: none !important;
-    border-bottom: 1px solid #D8CCBA !important;
-    padding: 0 !important;
-    display: flex !important;
-    flex-direction: row !important;
-    overflow-x: auto !important;
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 260px !important;
+    max-width: 85vw !important;
+    min-height: 0 !important;
+    padding: 1rem 0 !important;
+    border-right: 1px solid #D8CCBA !important;
+    border-bottom: none !important;
+    background: #F5F0E8 !important;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    z-index: 19;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    align-self: stretch !important;
+    box-shadow: 4px 0 20px rgba(30, 26, 22, 0.1);
   }
-  .advisor-sidebar button {
-    white-space: nowrap !important;
-    border-left: none !important;
-    flex-shrink: 0 !important;
-    padding: 1rem 1rem !important;
-  }
-  .advisor-main { padding: 1.5rem 1rem !important; }
+  .advisor-sidebar.open { transform: translateX(0) !important; }
+  .advisor-sidebar button { min-height: 48px !important; }
+
+  .advisor-hamburger { display: flex !important; }
+  .advisor-nav-backdrop { display: block !important; }
+  .advisor-main { padding: 1.5rem 1rem !important; min-width: 0 !important; }
   .advisor-topbar { padding: 0 1rem !important; }
+  .advisor-topbar-link { display: none !important; }
 
   /* Form/table grids collapse to single column */
   .lead-row { grid-template-columns: 1fr !important; gap: 0.35rem !important; }
@@ -171,4 +184,10 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 
   /* Container padding */
   .page-pad-mobile { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+}
+
+/* Extra-narrow (≤480px) refinements */
+@media (max-width: 480px) {
+  .advisor-topbar p { font-size: 0.85rem !important; letter-spacing: 0.2em !important; }
+  .advisor-main { padding: 1.25rem 0.9rem !important; }
 }

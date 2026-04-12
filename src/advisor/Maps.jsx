@@ -796,6 +796,11 @@ export default function Maps() {
 
         @media (max-width: 768px) {
           .deriva-maps { margin: -1.5rem -1rem !important; }
+          .deriva-map-canvas .mapboxgl-ctrl-group button { width: 44px !important; height: 44px !important; }
+          .deriva-map-popup .dm-add-btn { padding: 12px; min-height: 44px; }
+        }
+        @media (max-width: 480px) {
+          .deriva-maps { margin: -1.25rem -0.9rem !important; }
         }
       `}</style>
 

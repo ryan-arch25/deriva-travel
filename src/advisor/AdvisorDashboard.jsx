@@ -1842,9 +1842,11 @@ export default function AdvisorDashboard() {
     return 'leads'
   }
   const [section, setSection] = useState(sectionFromPath(location.pathname))
+  const [navOpen, setNavOpen] = useState(false)
 
   useEffect(() => {
     setSection(sectionFromPath(location.pathname))
+    setNavOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -1858,37 +1860,66 @@ export default function AdvisorDashboard() {
     navigate('/advisor')
   }
 
+  const handleNavClick = (id) => {
+    const pathMap = {
+      clients: '/advisor/clients',
+      affiliates: '/advisor/affiliates',
+      playbook: '/advisor/playbook',
+      research: '/advisor/research',
+      content: '/advisor/content',
+      maps: '/advisor/maps',
+    }
+    if (pathMap[id]) navigate(pathMap[id])
+    else if (location.pathname !== '/advisor/dashboard') navigate('/advisor/dashboard')
+    setSection(id)
+    setNavOpen(false)
+  }
+
   return (
     <div style={{ backgroundColor: C.cream, minHeight: '100vh' }}>
-      <div className="advisor-topbar" style={{ borderBottom: `1px solid ${C.sand}`, padding: '0 2rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.cream, position: 'sticky', top: 0, zIndex: 10 }}>
-        <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: C.ink }}>Deriva Advisor</p>
+      <div className="advisor-topbar" style={{ borderBottom: `1px solid ${C.sand}`, padding: '0 2rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.cream, position: 'sticky', top: 0, zIndex: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', minWidth: 0 }}>
+          <button
+            className="advisor-hamburger"
+            onClick={() => setNavOpen(!navOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={navOpen}
+            style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '8px', flexDirection: 'column', gap: '5px', minHeight: '44px', minWidth: '44px', alignItems: 'center', justifyContent: 'center' }}
+          >
+            {[0, 1, 2].map((i) => (
+              <span key={i} style={{ display: 'block', width: '22px', height: '1.5px', backgroundColor: C.ink, transition: 'transform 0.2s' }} />
+            ))}
+          </button>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Deriva Advisor</p>
+        </div>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          <Link to="/" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, textDecoration: 'none' }}>Public Site</Link>
-          <button onClick={handleLogout} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.mid, background: 'none', border: 'none', cursor: 'pointer' }}>Sign Out</button>
+          <Link to="/" className="advisor-topbar-link" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, textDecoration: 'none' }}>Public Site</Link>
+          <button onClick={handleLogout} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.mid, background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>Sign Out</button>
         </div>
       </div>
+
+      {navOpen && (
+        <div
+          className="advisor-nav-backdrop"
+          onClick={() => setNavOpen(false)}
+          style={{ display: 'none', position: 'fixed', inset: '60px 0 0 0', background: 'rgba(30,26,22,0.35)', zIndex: 18 }}
+        />
+      )}
+
       <div className="advisor-shell" style={{ display: 'flex', maxWidth: '1300px', margin: '0 auto' }}>
-        <div className="advisor-sidebar" style={{ width: '220px', flexShrink: 0, borderRight: `1px solid ${C.sand}`, padding: '2.5rem 0', minHeight: 'calc(100vh - 60px)', position: 'sticky', top: '60px', alignSelf: 'flex-start' }}>
-          {NAV.map(item => {
-            const handleClick = () => {
-              const pathMap = {
-                clients: '/advisor/clients',
-                affiliates: '/advisor/affiliates',
-                playbook: '/advisor/playbook',
-                research: '/advisor/research',
-                content: '/advisor/content',
-                maps: '/advisor/maps',
-              }
-              if (pathMap[item.id]) navigate(pathMap[item.id])
-              else if (location.pathname !== '/advisor/dashboard') navigate('/advisor/dashboard')
-              setSection(item.id)
-            }
-            return (
-              <button key={item.id} onClick={handleClick} style={{ display: 'block', width: '100%', textAlign: 'left', fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', letterSpacing: '0.1em', color: section === item.id ? C.ink : C.tan, fontWeight: section === item.id ? '400' : '300', backgroundColor: 'transparent', border: 'none', borderLeft: section === item.id ? `2px solid ${C.gold}` : '2px solid transparent', padding: '0.75rem 1.5rem', cursor: 'pointer' }}>
-                {item.label}
-              </button>
-            )
-          })}
+        <div
+          className={`advisor-sidebar${navOpen ? ' open' : ''}`}
+          style={{ width: '220px', flexShrink: 0, borderRight: `1px solid ${C.sand}`, padding: '2.5rem 0', minHeight: 'calc(100vh - 60px)', position: 'sticky', top: '60px', alignSelf: 'flex-start', backgroundColor: C.cream }}
+        >
+          {NAV.map(item => (
+            <button
+              key={item.id}
+              onClick={() => handleNavClick(item.id)}
+              style={{ display: 'block', width: '100%', textAlign: 'left', fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', letterSpacing: '0.1em', color: section === item.id ? C.ink : C.tan, fontWeight: section === item.id ? '400' : '300', backgroundColor: 'transparent', border: 'none', borderLeft: section === item.id ? `2px solid ${C.gold}` : '2px solid transparent', padding: '0.9rem 1.5rem', cursor: 'pointer', minHeight: '44px' }}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
         <div className="advisor-main" style={{ flex: 1, padding: '2.5rem 3rem', minWidth: 0 }}>
           {section === 'leads' && <LeadsDashboard />}

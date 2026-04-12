@@ -482,13 +482,13 @@ export default function TripPortal() {
         .tp-stop-note { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 14px; font-style: italic; color: #3a3028; line-height: 1.65; padding: 8px 0 2px 14px; border-left: 3px solid #c0614a; margin: 10px 0 0; }
 
         @media (max-width: 640px) {
-          .tp-header { padding: 12px 16px; }
+          .tp-header { padding: 12px 14px; }
           .tp-brand { font-size: 11px; letter-spacing: 0.25em; }
           .tp-client-name { font-size: 13px; }
           .tp-trip-dates { font-size: 9px; }
-          .tp-message-btn { font-size: 9px; padding: 9px 11px; }
-          .tp-tabs { padding: 0 16px; top: 56px; }
-          .tp-tab { font-size: 11px; padding: 14px 10px 12px; }
+          .tp-message-btn { font-size: 9px; padding: 10px 12px; min-height: 44px; }
+          .tp-tabs { padding: 0 12px; top: 56px; }
+          .tp-tab { font-size: 11px; padding: 14px 12px 12px; min-height: 48px; }
           .tp-main { padding: 120px 16px 60px; }
           .tp-stats { grid-template-columns: repeat(2, 1fr); }
           .tp-timeline-row { grid-template-columns: 40px 1fr; gap: 10px; padding: 12px 14px; }
@@ -498,6 +498,14 @@ export default function TripPortal() {
           .tp-stop { padding: 14px 16px; }
           .tp-stop-name { font-size: 17px; }
           .tp-stop-note { font-size: 13px; }
+        }
+        @media (max-width: 420px) {
+          .tp-header { padding: 10px 12px; gap: 8px; }
+          .tp-brand { font-size: 10px; letter-spacing: 0.22em; }
+          .tp-header-center { padding: 0 4px; }
+          .tp-client-name { font-size: 12px; }
+          .tp-message-btn { font-size: 9px; padding: 10px; letter-spacing: 0.1em; }
+          .tp-main { padding: 116px 14px 50px; }
         }
       `}</style>
 

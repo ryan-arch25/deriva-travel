@@ -553,17 +553,33 @@ export default function LakeComo() {
         .sample-itinerary .footer-cta-btn:hover { background: #a84f3a; }
 
         @media (max-width: 640px) {
-          .sample-itinerary .hero { min-height: 85vh; padding: 100px 20px 56px; }
+          .sample-itinerary main { padding: 0 18px 80px; }
+          .sample-itinerary .hero { min-height: 80vh; padding: 100px 20px 56px; }
           .sample-itinerary .hero-stats { gap: 24px; }
           .sample-itinerary .hero-badges { gap: 6px; margin-bottom: 24px; }
-          .sample-itinerary .section-nav { gap: 18px; padding: 12px 16px; overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; }
-          .sample-itinerary .day-header { grid-template-columns: 52px 1fr auto; }
+          .sample-itinerary .section-nav { gap: 18px; padding: 12px 16px; overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; -webkit-overflow-scrolling: touch; }
+          .sample-itinerary .section-nav a { padding: 12px 0; min-height: 44px; display: inline-flex; align-items: center; }
+          .sample-itinerary .day-header { grid-template-columns: 52px 1fr auto; min-height: 60px; }
           .sample-itinerary .day-badge { display: none; }
           .sample-itinerary .day-toggle { padding: 0 14px; }
-          .sample-itinerary .lake-map-canvas { height: 260px; }
-          .sample-itinerary .cta-banner { flex-direction: column; padding: 28px 24px; text-align: center; }
+          .sample-itinerary .lake-map-canvas { height: 240px; }
+          .sample-itinerary .cta-banner { flex-direction: column; padding: 28px 24px; text-align: center; align-items: stretch; }
+          .sample-itinerary .cta-btn { text-align: center; }
           .sample-itinerary .hero-scroll-hint { display: none; }
           .sample-itinerary .base-camp-block { padding: 22px 20px; }
+          .sample-itinerary .locked-block { padding: 18px 18px; }
+          .sample-itinerary .footer-cta { padding: 56px 20px; }
+          .sample-itinerary .footer-cta-btn { display: block; text-align: center; }
+        }
+        @media (max-width: 420px) {
+          .sample-itinerary main { padding: 0 14px 60px; }
+          .sample-itinerary .hero { padding: 96px 16px 48px; }
+          .sample-itinerary .hero-stats { gap: 18px; }
+          .sample-itinerary .hero-badge { font-size: 9px; padding: 5px 10px; }
+          .sample-itinerary .section-nav { padding: 12px 14px; }
+          .sample-itinerary .day-body { padding: 18px 16px 20px; }
+          .sample-itinerary .cta-banner { padding: 24px 18px; margin-top: 40px; }
+          .sample-itinerary .base-camp-block { padding: 20px 16px; }
         }
       `}</style>
 
