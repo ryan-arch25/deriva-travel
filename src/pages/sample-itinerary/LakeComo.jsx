@@ -20,13 +20,13 @@ const CATEGORY_COLORS = {
 
 const LAKE_STOPS = [
   // Restaurants
-  { name: 'Giulietta al Lago', lat: 45.8142, lng: 9.0798, category: 'restaurant', note: 'Lakefront promenade. Campari spritz. The ritual.' },
-  { name: 'Ristorante Gatto Nero', lat: 45.8388, lng: 9.0711, category: 'restaurant', note: 'Hillside views over the lake. Classic northern Italian.' },
-  { name: 'Figli dei Fiori Osteria', lat: 45.8198, lng: 9.0867, category: 'restaurant', note: 'The best dinner in Como proper.' },
+  { name: 'Giulietta al Lago', lat: 45.8155, lng: 9.0785, category: 'restaurant', note: 'Lakefront promenade. Campari spritz. The ritual.' },
+  { name: 'Ristorante Gatto Nero', lat: 45.8395, lng: 9.0708, category: 'restaurant', note: 'Hillside views over the lake. Classic northern Italian.' },
+  { name: 'Figli dei Fiori Osteria', lat: 45.8205, lng: 9.0872, category: 'restaurant', note: 'The best dinner in Como proper.' },
   { name: 'Trattoria San Giacomo', lat: 45.9867, lng: 9.2622, category: 'restaurant', note: 'Risotto and lake fish in Bellagio. Locals eat here.' },
-  { name: 'Federico Cernobbio', lat: 45.8438, lng: 9.0698, category: 'restaurant', note: 'Modern northern Italian, beautiful room.' },
+  { name: 'Federico Cernobbio', lat: 45.8445, lng: 9.0705, category: 'restaurant', note: 'Modern northern Italian, beautiful room.' },
   { name: 'Il Cavatappi', lat: 46.0158, lng: 9.2868, category: 'restaurant', note: 'Lakefront terrace in Varenna. Best meal of the trip.' },
-  { name: 'Hostaria Cernobbio', lat: 45.8392, lng: 9.0695, category: 'restaurant', note: 'Outdoor seating, traditional northern Italian.' },
+  { name: 'Hostaria Cernobbio', lat: 45.8385, lng: 9.0688, category: 'restaurant', note: 'Outdoor seating, traditional northern Italian.' },
   { name: 'Grotto della Salute', lat: 46.0112, lng: 8.9634, category: 'restaurant', note: 'The Swiss-Italian version of a trattoria. This one is real.' },
   // Hotels
   { name: 'Palace Hotel Como', lat: 45.8108, lng: 9.0851, category: 'hotel', note: 'Right on the lake. Ask for a lake-facing room.' },
@@ -185,11 +185,17 @@ function StaticLakeMap() {
             .addTo(map)
         })
 
-        // Fit the view to all pins with 60px padding on every side
+        // Fit the view to all pins with asymmetric padding. Extra bottom
+        // padding keeps Como (southernmost pin) from being clipped by the
+        // label chip which extends below the marker anchor.
         try {
           const bounds = new mapboxgl.LngLatBounds()
           LAKE_STOPS.forEach((s) => bounds.extend([s.lng, s.lat]))
-          map.fitBounds(bounds, { padding: 60, duration: 0, maxZoom: 12 })
+          map.fitBounds(bounds, {
+            padding: { top: 60, bottom: 80, left: 60, right: 60 },
+            duration: 0,
+            maxZoom: 11,
+          })
         } catch (err) {
           // eslint-disable-next-line no-console
           console.warn('[Deriva LakeComo map] fitBounds failed:', err)
