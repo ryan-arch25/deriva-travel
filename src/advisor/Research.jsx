@@ -1146,7 +1146,15 @@ function DestInfoPanel({ destId }) {
               </li>
             ))}
           </ul>
-          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.7', margin: 0 }}>{data.shoulderSummary}</p>
+          <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.7', marginBottom: data.overtourismNote || data.pricing.valueNote ? '0.75rem' : 0 }}>{data.shoulderSummary}</p>
+          {data.pricing.valueNote && (
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.6', marginBottom: data.overtourismNote ? '0.75rem' : 0, paddingLeft: '0.75rem', borderLeft: `2px solid ${C.gold}` }}>{data.pricing.valueNote}</p>
+          )}
+          {data.overtourismNote && (
+            <div style={{ backgroundColor: C.white, border: `1px solid ${C.sand}`, borderLeft: `3px solid ${C.terracotta}`, padding: '0.75rem 1rem', margin: 0 }}>
+              <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.7', margin: 0 }}>{data.overtourismNote}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1295,6 +1303,12 @@ function WhenToGo() {
                 <div style={{ marginBottom: '0.5rem' }}>
                   <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: C.tan, marginBottom: '0.25rem' }}>Events</p>
                   {m.events.map((e, i) => <span key={i} style={{ ...pillStyle, backgroundColor: C.white }}>{e}</span>)}
+                </div>
+              )}
+
+              {m.note && (
+                <div style={{ backgroundColor: '#FDF6F0', borderLeft: `2px solid ${C.terracotta}`, padding: '0.5rem 0.75rem', marginBottom: '0.5rem' }}>
+                  <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: C.charcoal, lineHeight: '1.6', margin: 0 }}>{m.note}</p>
                 </div>
               )}
 
