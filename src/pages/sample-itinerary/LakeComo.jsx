@@ -250,8 +250,10 @@ export default function LakeComo() {
         .sample-itinerary .base-camp-block { background: var(--dark); color: var(--cream); border-radius: 4px; padding: 28px 32px; margin-top: 32px; }
         .sample-itinerary .base-camp-block .bc-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--lake); display: block; margin-bottom: 12px; font-weight: 500; }
         .sample-itinerary .base-camp-block .bc-name { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--cream); line-height: 1.1; display: block; margin-bottom: 10px; }
+        .sample-itinerary .base-camp-block .bc-name a { color: var(--terracotta); text-decoration: none; border-bottom: 1px solid rgba(192,97,74,0.4); transition: border-color 0.15s, color 0.15s; }
+        .sample-itinerary .base-camp-block .bc-name a:hover { color: #d97a5f; border-color: #d97a5f; }
         .sample-itinerary .base-camp-block .bc-detail { font-size: 13px; color: rgba(245,240,232,0.72); line-height: 1.7; }
-        .sample-itinerary .base-camp-block .bc-detail a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(184,150,62,0.4); }
+        .sample-itinerary .base-camp-block .bc-detail a { color: var(--terracotta); text-decoration: none; border-bottom: 1px solid rgba(192,97,74,0.4); }
 
         .sample-itinerary .section-rule { border: none; border-top: 1px solid var(--parchment-dark); margin: 56px 0; }
 
@@ -341,6 +343,7 @@ export default function LakeComo() {
 
           <DayCard number="1" date="Friday, May 1" theme="Fly into Milan · Train to Como · First evening on the lake" badge="Arrival">
             <Transport title="Milan Malpensa → Como San Giovanni — about 1 hour" detail="Train via Milan Centrale. Buy tickets in advance." />
+            <div className="note">A private car service from Malpensa to Como is worth it on arrival, about an hour, no connections, door to door. Your driver meets you at arrivals. Significantly easier than the train when you have luggage. Ask me for the operator I recommend.</div>
             <AdvisorNote>
               The drive from Como into the city feels like nothing until you catch the first glimpse of the lake between the buildings. Let that moment happen. Check in, walk the promenade, do nothing structured for the first few hours. The lake rewards that kind of arrival.
             </AdvisorNote>
@@ -514,6 +517,7 @@ export default function LakeComo() {
               Do not go straight to the airport. You have the morning. Walk the promenade one last time, get a coffee on the water. The lake looks different when you know you are leaving.
             </AdvisorNote>
             <Transport title="Como San Giovanni → Milan Centrale → Malpensa — allow 2 hours total" detail="Including the Malpensa Express from Milan. Book all legs in advance." />
+            <div className="note">Car service back to Malpensa is the right call on departure too. Book a return with the same operator.</div>
           </DayCard>
         </section>
       </main>
