@@ -26,6 +26,7 @@ export default function App() {
         <Route path="/advisor/clients/:id" element={<AdvisorDashboard />} />
         <Route path="/advisor/affiliates" element={<AdvisorDashboard />} />
         <Route path="/advisor/research" element={<AdvisorDashboard />} />
+        <Route path="/advisor/content" element={<AdvisorDashboard />} />
       </Routes>
     </BrowserRouter>
   )

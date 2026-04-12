@@ -4,6 +4,7 @@ import { listLeads, createLead, updateLead } from './lib/leads-store.js'
 import { listItineraries, getItinerary, createItinerary, updateItinerary, deleteItinerary } from './lib/itineraries-store.js'
 import rssHandler from './api/rss.js'
 import researchSearchHandler from './api/research-search.js'
+import contentHandler from './api/content.js'
 
 const ADVISOR_TOKEN = process.env.ADVISOR_AUTH_TOKEN || 'deriva2024'
 const isAuthorized = (req) => req.headers['x-advisor-auth'] === ADVISOR_TOKEN
@@ -120,5 +121,9 @@ app.delete('/api/itineraries', async (req, res) => {
 app.post('/api/rss', (req, res) => rssHandler(req, res))
 app.get('/api/rss', (req, res) => rssHandler(req, res))
 app.post('/api/research-search', (req, res) => researchSearchHandler(req, res))
+app.get('/api/content', (req, res) => contentHandler(req, res))
+app.post('/api/content', (req, res) => contentHandler(req, res))
+app.patch('/api/content', (req, res) => contentHandler(req, res))
+app.delete('/api/content', (req, res) => contentHandler(req, res))
 
 app.listen(3001, () => console.log('Deriva API server on http://localhost:3001'))
