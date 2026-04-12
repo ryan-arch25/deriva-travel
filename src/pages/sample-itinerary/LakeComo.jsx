@@ -185,17 +185,18 @@ function StaticLakeMap() {
             .addTo(map)
         })
 
-        // Fit the view to all pins with asymmetric padding. Extra bottom
-        // padding keeps Como (southernmost pin) from being clipped by the
-        // label chip which extends below the marker anchor.
+        // Force the map to a fixed bounding box that covers the full
+        // Lake Como Y-shape: Como south, Lugano north west, Varenna
+        // north east. This guarantees every pin is always in view
+        // regardless of canvas size.
         try {
-          const bounds = new mapboxgl.LngLatBounds()
-          LAKE_STOPS.forEach((s) => bounds.extend([s.lng, s.lat]))
-          map.fitBounds(bounds, {
-            padding: { top: 60, bottom: 80, left: 60, right: 60 },
-            duration: 0,
-            maxZoom: 11,
-          })
+          map.fitBounds(
+            [
+              [8.85, 45.75], // southwest corner
+              [9.45, 46.08], // northeast corner
+            ],
+            { padding: 40, animate: false }
+          )
         } catch (err) {
           // eslint-disable-next-line no-console
           console.warn('[Deriva LakeComo map] fitBounds failed:', err)
