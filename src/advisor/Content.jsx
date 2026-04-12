@@ -43,7 +43,7 @@ const SUBSTACK_FORMATS = [
 const FORMAT_LABELS = { note: 'Note', thread: 'Thread', 'link-post': 'Link Post', article: 'Article' }
 
 const FORMAT_PROMPTS = {
-  note: `Generate a Substack Note. A short standalone social post for the Substack feed. Exactly 2 to 3 sentences. One specific observation, take, or recommendation. Reads like something a well traveled person would post on the fly. No intro, no outro, no context setting. Just the take. Target 40 to 60 words. Return the text only, no JSON, no labels, no formatting.`,
+  note: `Generate a Substack Note. A short standalone social post for the Substack feed. Exactly 1 to 2 sentences only. Short and sweet. One specific observation, take, or recommendation. Reads like something a well traveled person would post on the fly. No intro, no outro, no context setting. Just the take. Should feel like it was written by someone who was actually there. Target 20 to 40 words. Return the text only, no JSON, no labels, no formatting.`,
   thread: `Generate a Substack Thread. A series of connected short posts that unfold like a story. Exactly 4 to 6 short paragraphs, each one a single beat or idea that builds on the last. Each paragraph is 1 to 3 sentences. Reads like someone walking you through something they know well. No headers, no bullet points, just flowing short paragraphs. Target 150 to 250 words. Return the text only, no JSON, no labels, no formatting.`,
   'link-post': `Generate a Substack Link Post. A short take above a shared link. Exactly 1 to 2 sentences that make someone want to click through. Opinionated and specific. Not a summary, a reaction or a reason to care. Target 20 to 40 words. Return the text only, no JSON, no labels, no formatting.`,
   article: `Generate a Substack Article starter. First: a strong opening paragraph that hooks the reader in 4 to 6 sentences. Then: a suggested structure for the rest of the piece as 3 to 5 section headings each with one sentence describing what that section covers. Separate the opening paragraph from the section outline with a blank line. Format the outline as "Section Name: one sentence description" on each line. Target 150 to 200 words total. Return the text only, no JSON, no labels, no markdown formatting.`,
@@ -190,15 +190,75 @@ function SubstackGenerator({ saveDraft }) {
   const [result, setResult] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [imageData, setImageData] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
 
   const activeFormat = SUBSTACK_FORMATS.find((f) => f.id === format)
+  const isNote = format === 'note'
+  const hasInput = input.trim() || (isNote && imageData)
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result
+      setImagePreview(dataUrl)
+      const base64 = dataUrl.split(',')[1]
+      const mediaType = file.type || 'image/jpeg'
+      setImageData({ base64, mediaType })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearImage = () => {
+    setImageData(null)
+    setImagePreview(null)
+  }
 
   const generate = async () => {
-    const text = input.trim()
-    if (!text || loading) return
+    if (!hasInput || loading) return
     setLoading(true)
     setError('')
     setResult('')
+
+    const text = input.trim()
+
+    if (isNote && imageData) {
+      const contentBlocks = [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: imageData.mediaType, data: imageData.base64 },
+        },
+      ]
+      let imagePrompt = 'Look at this photo carefully. Analyze the location, mood, light, details, people, architecture, food, landscape, and anything else you notice. Use what you see as the primary inspiration for the Note.'
+      if (text) {
+        imagePrompt += ` The user also provided this context: ${text}. Combine both the image and the topic as inspiration.`
+      } else {
+        imagePrompt += ' Generate the Note purely from what is in the image.'
+      }
+      contentBlocks.push({ type: 'text', text: `${imagePrompt}\n\n${FORMAT_PROMPTS.note}` })
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system: `You are the voice of Deriva, a travel advisory brand focused on Italy, Portugal, Spain, and Iceland. ${DERIVA_VOICE}`,
+            messages: [{ role: 'user', content: contentBlocks }],
+            maxTokens: 300,
+          }),
+        })
+        if (!res.ok) throw new Error((await res.json()).error || 'Generation failed')
+        const data = await res.json()
+        setResult(data.text.trim())
+      } catch (err) {
+        setError(err.message || 'Something went wrong')
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     const context = mode === 'article'
       ? `The user has shared an article or URL. If it looks like a URL, understand what the article says, then draft content inspired by it. The article or URL: ${text}`
@@ -237,7 +297,7 @@ function SubstackGenerator({ saveDraft }) {
         {SUBSTACK_FORMATS.map((f) => {
           const active = format === f.id
           return (
-            <button key={f.id} onClick={() => setFormat(f.id)} style={{ ...softBtn, color: active ? C.white : C.mid, backgroundColor: active ? C.terracotta : 'transparent', borderColor: active ? C.terracotta : C.sand }}>
+            <button key={f.id} onClick={() => { setFormat(f.id); if (f.id !== 'note') clearImage() }} style={{ ...softBtn, color: active ? C.white : C.mid, backgroundColor: active ? C.terracotta : 'transparent', borderColor: active ? C.terracotta : C.sand }}>
               {f.label}
             </button>
           )
@@ -262,7 +322,24 @@ function SubstackGenerator({ saveDraft }) {
         style={{ ...inp, resize: 'vertical', marginBottom: '0.75rem' }}
       />
 
-      <button onClick={generate} disabled={loading || !input.trim()} style={{ ...primaryBtn, opacity: loading || !input.trim() ? 0.6 : 1, marginBottom: '1rem' }}>
+      {isNote && (
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={lbl}>Add a photo for inspiration (optional)</label>
+          {!imagePreview ? (
+            <label style={{ display: 'inline-block', ...softBtn, cursor: 'pointer' }}>
+              Choose Photo
+              <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+            </label>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <img src={imagePreview} alt="Upload preview" style={{ width: '80px', height: '80px', objectFit: 'cover', border: `1px solid ${C.sand}` }} />
+              <button onClick={clearImage} style={{ ...softBtn, color: C.terracotta, borderColor: C.terracotta }}>Remove</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <button onClick={generate} disabled={loading || !hasInput} style={{ ...primaryBtn, opacity: loading || !hasInput ? 0.6 : 1, marginBottom: '1rem' }}>
         {loading ? 'Writing...' : 'Generate'}
       </button>
 
@@ -277,6 +354,11 @@ function SubstackGenerator({ saveDraft }) {
       {result && (
         <div style={{ border: `1px solid ${C.sand}`, backgroundColor: C.white, padding: '1rem' }}>
           <textarea value={result} onChange={(e) => setResult(e.target.value)} rows={rows} style={{ ...inp, resize: 'vertical', lineHeight: '1.7', marginBottom: '0.75rem' }} />
+          {isNote && (
+            <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: C.tan, marginBottom: '0.75rem', lineHeight: '1.5' }}>
+              Remember to attach your photo and add a location tag in Substack.
+            </p>
+          )}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button onClick={handleCopy} style={softBtn}>{copied ? 'Copied' : COPY_LABELS[format]}</button>
             <button onClick={handleSave} style={{ ...softBtn, color: saved ? C.terracotta : C.mid, borderColor: saved ? C.terracotta : C.sand }}>{saved ? 'Saved' : 'Save to Calendar'}</button>
