@@ -201,15 +201,24 @@ function PortalMap({ stops, center, zoom, height = 320 }) {
           map.setPaintProperty('water', 'fill-color', '#a8c8d8')
         } catch {}
 
+        // Detect airport stops by name so they can be styled to match the
+        // advisor Maps design system (muted purple square pin).
+        const isAirport = (stop) => /airport|malpensa|fiumicino|linate|keflavik|peretola|marco polo/i.test(stop.name || '')
+
         // Custom markers with clickable popups
         stops.forEach((stop, i) => {
           const wrap = document.createElement('div')
           wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
           const pin = document.createElement('div')
-          pin.style.cssText = 'width:20px;height:20px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;'
-          const dot = document.createElement('div')
-          dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#fff;'
-          pin.appendChild(dot)
+          if (isAirport(stop)) {
+            // Square rotated pin in muted purple to match /advisor/maps
+            pin.style.cssText = 'width:20px;height:20px;background:#6a5a7a;border:1.5px solid #fff;transform:rotate(45deg);box-shadow:0 2px 6px rgba(0,0,0,0.28);'
+          } else {
+            pin.style.cssText = 'width:20px;height:20px;border-radius:50%;background:#c0614a;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;'
+            const dot = document.createElement('div')
+            dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#fff;'
+            pin.appendChild(dot)
+          }
           wrap.appendChild(pin)
           const label = document.createElement('span')
           label.textContent = `${i + 1}. ${stop.name}`
