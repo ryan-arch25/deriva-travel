@@ -122,9 +122,9 @@ export default function Nav() {
           flexDirection: 'column',
           gap: '1.5rem',
         }}>
-          <Link to="/destinations" style={linkStyle}>Destinations</Link>
-          <Link to="/#how-it-works" style={linkStyle}>How It Works</Link>
-          <Link to="/work-with-me" style={linkStyle}>Work With Me</Link>
+          <Link to="/destinations" style={linkStyle} onClick={() => setMenuOpen(false)}>Destinations</Link>
+          <Link to="/#how-it-works" style={linkStyle} onClick={() => setMenuOpen(false)}>How It Works</Link>
+          <Link to="/work-with-me" style={linkStyle} onClick={() => setMenuOpen(false)}>Work With Me</Link>
         </div>
       )}
 

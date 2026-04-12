@@ -5,6 +5,7 @@ import Clients from './Clients'
 import Affiliates from './Affiliates'
 import Research from './Research'
 import Content from './Content'
+import ClientPortals from './ClientPortals'
 import * as icelandData from '../data/iceland'
 import * as italyData from '../data/italy'
 import * as spainData from '../data/spain'
@@ -1780,6 +1781,7 @@ function LeadsDashboard() {
 const NAV = [
   { id: 'leads', label: 'Leads' },
   { id: 'clients', label: 'Clients' },
+  { id: 'portals', label: 'Client Portals' },
   { id: 'affiliates', label: 'Affiliates' },
   { id: 'brief', label: 'New Client Brief' },
   { id: 'itinerary', label: 'Itinerary Builder' },
@@ -1859,6 +1861,7 @@ export default function AdvisorDashboard() {
           {section === 'spots' && <MySpots />}
           {section === 'research' && <Research />}
           {section === 'content' && <Content />}
+          {section === 'portals' && <ClientPortals />}
           {section === 'notes' && <ClientNotes />}
         </div>
       </div>

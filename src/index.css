@@ -55,11 +55,9 @@ body {
 }
 
 #root {
-  width: 1126px;
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -108,4 +106,69 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* ── Deriva responsive overrides ──────────────────────────────────────── */
+html, body { overflow-x: hidden; max-width: 100vw; }
+
+/* Minimum tap target size for interactive elements on mobile */
+@media (max-width: 640px) {
+  button, a[role="button"], input[type="submit"], input[type="button"] {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stack-mobile { grid-template-columns: 1fr !important; }
+  .row-stack-mobile { flex-direction: column !important; align-items: stretch !important; }
+  .hero-mobile { height: 45vh !important; min-height: 320px !important; }
+  .country-hero-mobile { height: 55vh !important; min-height: 380px !important; }
+
+  /* Advisor dashboard shell */
+  .advisor-shell { flex-direction: column !important; max-width: 100% !important; }
+  .advisor-sidebar {
+    width: 100% !important;
+    min-height: auto !important;
+    position: static !important;
+    border-right: none !important;
+    border-bottom: 1px solid #D8CCBA !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    align-self: stretch !important;
+  }
+  .advisor-sidebar button {
+    white-space: nowrap !important;
+    border-left: none !important;
+    flex-shrink: 0 !important;
+    padding: 1rem 1rem !important;
+  }
+  .advisor-main { padding: 1.5rem 1rem !important; }
+  .advisor-topbar { padding: 0 1rem !important; }
+
+  /* Form/table grids collapse to single column */
+  .lead-row { grid-template-columns: 1fr !important; gap: 0.35rem !important; }
+  .lead-row-header { display: none !important; }
+  .email-row { grid-template-columns: 1fr !important; }
+  .booking-row { grid-template-columns: 1fr !important; }
+  .payment-row { grid-template-columns: 1fr !important; }
+  .pricing-row { grid-template-columns: 1fr !important; padding: 1rem !important; gap: 0.25rem !important; }
+  .pricing-row > span { text-align: left !important; }
+  .pricing-header { display: none !important; }
+
+  /* Typography scale-down */
+  .hero-title-mobile { font-size: 2rem !important; }
+  .hero-sub-mobile { font-size: 0.9rem !important; }
+
+  /* Country page tab bar */
+  .country-tabs { overflow-x: auto !important; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
+  .country-tabs button { flex-shrink: 0 !important; }
+
+  /* Does/Does-Not columns on Playbook */
+  .does-columns { flex-direction: column !important; gap: 2rem !important; }
+
+  /* Container padding */
+  .page-pad-mobile { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
 }

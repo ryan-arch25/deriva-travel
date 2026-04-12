@@ -9,6 +9,7 @@ import Spain from './pages/Spain'
 import WorkWithMe from './pages/WorkWithMe'
 import LakeComoSample from './pages/sample-itinerary/LakeComo'
 import ItalySample from './pages/sample-itinerary/Italy'
+import TripPortal from './pages/TripPortal'
 import AdvisorLogin from './advisor/AdvisorLogin'
 import AdvisorDashboard from './advisor/AdvisorDashboard'
 
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/sample-itinerary" element={<Navigate to="/sample-itinerary/lake-como" replace />} />
         <Route path="/sample-itinerary/lake-como" element={<LakeComoSample />} />
         <Route path="/sample-itinerary/italy" element={<ItalySample />} />
+        <Route path="/trip/:slug" element={<TripPortal />} />
         <Route path="/advisor" element={<AdvisorLogin />} />
         <Route path="/advisor/reset-password" element={<AdvisorLogin />} />
         <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />

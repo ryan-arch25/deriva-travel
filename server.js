@@ -5,6 +5,7 @@ import { listItineraries, getItinerary, createItinerary, updateItinerary, delete
 import rssHandler from './api/rss.js'
 import researchSearchHandler from './api/research-search.js'
 import contentHandler from './api/content.js'
+import portalHandler from './api/portal.js'
 import authHandler from './api/auth.js'
 
 const ADVISOR_TOKEN = process.env.ADVISOR_AUTH_TOKEN || 'deriva2024'
@@ -122,6 +123,9 @@ app.delete('/api/itineraries', async (req, res) => {
 app.post('/api/rss', (req, res) => rssHandler(req, res))
 app.get('/api/rss', (req, res) => rssHandler(req, res))
 app.post('/api/research-search', (req, res) => researchSearchHandler(req, res))
+app.get('/api/portal', (req, res) => portalHandler(req, res))
+app.post('/api/portal', (req, res) => portalHandler(req, res))
+app.delete('/api/portal', (req, res) => portalHandler(req, res))
 app.get('/api/auth', (req, res) => authHandler(req, res))
 app.post('/api/auth', (req, res) => authHandler(req, res))
 app.delete('/api/auth', (req, res) => authHandler(req, res))

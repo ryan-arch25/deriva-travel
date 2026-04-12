@@ -117,6 +117,9 @@ export default function WorkWithMe() {
                 <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.6rem', lineHeight: '1.65' }}>
                   <span style={{ color: colors.ink }}>Full Service.</span> Everything in the standard itinerary plus I handle all bookings for you. Starting at $250.
                 </p>
+                <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', fontWeight: '300', color: colors.mid, marginTop: '0.5rem', lineHeight: '1.65' }}>
+                  Full Service clients receive an interactive trip portal, every stop mapped, tappable, and GPS-aware on their phone.
+                </p>
                 <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.75rem', fontWeight: '300', color: colors.tan, marginTop: '0.75rem' }}>Final price confirmed before work begins.</p>
               </div>
             </div>
