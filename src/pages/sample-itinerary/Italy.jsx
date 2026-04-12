@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import Nav from '../components/Nav'
-import Footer from '../components/Footer'
+import Nav from '../../components/Nav'
+import Footer from '../../components/Footer'
 
-export default function SampleItinerary() {
+export default function ItalySample() {
   useEffect(() => { document.title = 'Italy in Ten Days — A Deriva Itinerary' }, [])
 
   return (

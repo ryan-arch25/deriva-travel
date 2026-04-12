@@ -137,7 +137,7 @@ export default function WorkWithMe() {
               Fill out the form below and we'll set up a short call to talk through your trip. No commitment required. Just a conversation.
             </p>
             <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: colors.mid, lineHeight: '1.7', maxWidth: '560px', marginBottom: '2.5rem' }}>
-              Not sure what you're getting? <Link to="/sample-itinerary" style={{ color: '#B85C45', textDecoration: 'underline' }}>View a sample itinerary.</Link>
+              Not sure what you're getting? <Link to="/sample-itinerary/lake-como" style={{ color: '#B85C45', textDecoration: 'underline' }}>View a sample itinerary.</Link>
             </p>
             <form onSubmit={handleSubmit} style={{ maxWidth: '620px' }}>
               <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.gold, marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: `1px solid ${colors.sand}` }}>About You</p>

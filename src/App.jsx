@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Destinations from './pages/Destinations'
 import Portugal from './pages/Portugal'
@@ -6,7 +6,8 @@ import Italy from './pages/Italy'
 import Iceland from './pages/Iceland'
 import Spain from './pages/Spain'
 import WorkWithMe from './pages/WorkWithMe'
-import SampleItinerary from './pages/SampleItinerary'
+import LakeComoSample from './pages/sample-itinerary/LakeComo'
+import ItalySample from './pages/sample-itinerary/Italy'
 import AdvisorLogin from './advisor/AdvisorLogin'
 import AdvisorDashboard from './advisor/AdvisorDashboard'
 
@@ -20,7 +21,9 @@ export default function App() {
         <Route path="/destinations/italy" element={<Italy />} />
         <Route path="/destinations/iceland" element={<Iceland />} />
         <Route path="/destinations/spain" element={<Spain />} />        <Route path="/work-with-me" element={<WorkWithMe />} />
-        <Route path="/sample-itinerary" element={<SampleItinerary />} />
+        <Route path="/sample-itinerary" element={<Navigate to="/sample-itinerary/lake-como" replace />} />
+        <Route path="/sample-itinerary/lake-como" element={<LakeComoSample />} />
+        <Route path="/sample-itinerary/italy" element={<ItalySample />} />
         <Route path="/advisor" element={<AdvisorLogin />} />
         <Route path="/advisor/reset-password" element={<AdvisorLogin />} />
         <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />

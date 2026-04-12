@@ -93,9 +93,9 @@ export default function Home() {
             See what a Deriva itinerary looks like.
           </h2>
           <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem', fontWeight: '300', color: colors.mid, lineHeight: '1.75', marginBottom: '2rem' }}>
-            Ten days in Italy — Rome, Florence, Lake Como, and Lugano. Every restaurant, every hotel, every hour accounted for.
+            Five days on Lake Como. Bellagio, Varenna, a private boat on the water, and a day in Switzerland. Every restaurant, every hotel, every hour accounted for.
           </p>
-          <Link to="/sample-itinerary" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: '#B85C45', padding: '1rem 2rem', textDecoration: 'none', display: 'inline-block' }}>
+          <Link to="/sample-itinerary/lake-como" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.white, backgroundColor: '#B85C45', padding: '1rem 2rem', textDecoration: 'none', display: 'inline-block' }}>
             View Sample Itinerary
           </Link>
         </div>
