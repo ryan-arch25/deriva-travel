@@ -6,6 +6,7 @@ import rssHandler from './api/rss.js'
 import researchSearchHandler from './api/research-search.js'
 import contentHandler from './api/content.js'
 import portalHandler from './api/portal.js'
+import spotsHandler from './api/spots.js'
 import authHandler from './api/auth.js'
 
 const ADVISOR_TOKEN = process.env.ADVISOR_AUTH_TOKEN || 'deriva2024'
@@ -126,6 +127,10 @@ app.post('/api/research-search', (req, res) => researchSearchHandler(req, res))
 app.get('/api/portal', (req, res) => portalHandler(req, res))
 app.post('/api/portal', (req, res) => portalHandler(req, res))
 app.delete('/api/portal', (req, res) => portalHandler(req, res))
+app.get('/api/spots', (req, res) => spotsHandler(req, res))
+app.post('/api/spots', (req, res) => spotsHandler(req, res))
+app.patch('/api/spots', (req, res) => spotsHandler(req, res))
+app.delete('/api/spots', (req, res) => spotsHandler(req, res))
 app.get('/api/auth', (req, res) => authHandler(req, res))
 app.post('/api/auth', (req, res) => authHandler(req, res))
 app.delete('/api/auth', (req, res) => authHandler(req, res))

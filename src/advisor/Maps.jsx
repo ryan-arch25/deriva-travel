@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import * as italyData from '../data/italy'
-import * as portugalData from '../data/portugal'
-import * as spainData from '../data/spain'
-import * as icelandData from '../data/iceland'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || ''
+const SPOTS_AUTH_HEADERS = { 'Content-Type': 'application/json', 'x-advisor-auth': 'deriva2024' }
 
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
@@ -258,69 +255,51 @@ function normalizeDestination(rawCountry, rawCity) {
   return null
 }
 
-// ── Spot source: bundled curated data + localStorage custom spots ────────
-// Returns ALL spots across all countries with normalized category and
-// destination fields. The Maps component then filters by country.
-function getAllSpotsNormalized() {
-  const sources = { Italy: italyData, Portugal: portugalData, Spain: spainData, Iceland: icelandData }
-  const bundled = []
-  for (const [countryName, src] of Object.entries(sources)) {
-    for (const r of src.restaurants || []) {
-      bundled.push({ ...r, _source: 'bundled', _raw_category: r.category, _raw_country: countryName })
-    }
-    for (const h of src.stays || []) {
-      bundled.push({ ...h, _source: 'bundled', _raw_category: h.category || 'Hotel', _raw_country: countryName, category: h.category || 'Hotel' })
-    }
-  }
-
-  let custom = []
-  try {
-    const raw = JSON.parse(localStorage.getItem('deriva_spots') || '[]')
-    custom = (Array.isArray(raw) ? raw : []).map((s) => ({
-      ...s,
-      _source: 'custom',
-      _raw_category: s.category,
-      _raw_country: s.country,
-    }))
-  } catch {}
-
-  return [...bundled, ...custom].map((s, i) => {
-    const normalizedCategory = normalizeCategory(s._raw_category || s.category)
-    const normalizedCountry = normalizeDestination(s._raw_country || s.country, s.city)
+// ── Spot source: Redis via /api/spots ────────────────────────────────────
+// Fetches the full list once per mount, normalizes category and destination
+// client-side, returns a normalized array. Maps and My Spots both read from
+// this single source so they can never diverge.
+async function fetchAllSpots() {
+  const res = await fetch('/api/spots', { headers: SPOTS_AUTH_HEADERS })
+  if (!res.ok) throw new Error(`Failed to load spots: ${res.status}`)
+  const data = await res.json()
+  const raw = Array.isArray(data.spots) ? data.spots : []
+  return raw.map((s, i) => {
+    const normalizedCategory = normalizeCategory(s.category)
+    const normalizedCountry = normalizeDestination(s.country, s.city) || s.country || ''
     return {
       ...s,
       category: normalizedCategory,
-      country: normalizedCountry || s._raw_country || '',
+      country: normalizedCountry,
+      _raw_category: s.category,
+      _raw_country: s.country,
       id: s.id || `spot_${i}_${(s.name || '').replace(/\s+/g, '_')}`,
     }
   })
 }
 
-function getAllSpotsForCountry(countryId) {
+function filterByCountry(all, countryId) {
   const countryName = countryId.charAt(0).toUpperCase() + countryId.slice(1)
-  return getAllSpotsNormalized().filter((s) => s.country === countryName)
+  return all.filter((s) => s.country === countryName)
 }
 
-// One-time diagnostic dump so we can see exactly what loaded and how it
-// classified. Runs once per page load.
+// Diagnostic dump, runs once per page load after the first fetch completes.
 let _didDumpSpots = false
-function dumpSpotsDiagnostic() {
+function dumpSpotsDiagnostic(all) {
   if (_didDumpSpots) return
   _didDumpSpots = true
-  const all = getAllSpotsNormalized()
   // eslint-disable-next-line no-console
-  console.group('[Deriva Maps] Full spot inventory (normalized)')
+  console.group('[Deriva Maps] Full spot inventory (from Redis, normalized)')
   // eslint-disable-next-line no-console
-  console.log(`Loaded ${all.length} total spots (bundled + localStorage deriva_spots)`)
+  console.log(`Loaded ${all.length} total spots from /api/spots (deriva:spots in Redis)`)
   // eslint-disable-next-line no-console
-  console.log('My Spots and Maps read from the same two sources: src/data/*.js and localStorage.deriva_spots')
+  console.log('My Spots and Maps both read from /api/spots — single source of truth')
 
   const byCountry = { Italy: [], Portugal: [], Spain: [], Iceland: [], Unknown: [] }
   for (const s of all) {
     const bucket = byCountry[s.country] ? s.country : 'Unknown'
     byCountry[bucket].push(s)
   }
-
   for (const [country, list] of Object.entries(byCountry)) {
     if (list.length === 0) continue
     // eslint-disable-next-line no-console
@@ -336,10 +315,9 @@ function dumpSpotsDiagnostic() {
         city: s.city,
         lat: typeof s.lat === 'number' ? s.lat : '(needs geocode)',
         lng: typeof s.lng === 'number' ? s.lng : '(needs geocode)',
-        source: s._source,
+        source: s.source,
       })
     }
-    // Category breakdown
     const byCat = list.reduce((acc, s) => { acc[s.category] = (acc[s.category] || 0) + 1; return acc }, {})
     // eslint-disable-next-line no-console
     console.log('By category:', byCat)
@@ -497,12 +475,33 @@ export default function Maps() {
   const [countryId, setCountryId] = useState('italy')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [cityFilter, setCityFilter] = useState('all')
+  const [allSpots, setAllSpots] = useState([])
+  const [spotsLoaded, setSpotsLoaded] = useState(false)
+  const [spotsError, setSpotsError] = useState('')
   const [geocodedSpots, setGeocodedSpots] = useState([])
   const [loadingSpots, setLoadingSpots] = useState(true)
   const [toast, setToast] = useState('')
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef([])
+
+  // One-time fetch of the full spot list from Redis via /api/spots
+  useEffect(() => {
+    let cancelled = false
+    fetchAllSpots()
+      .then((spots) => {
+        if (cancelled) return
+        setAllSpots(spots)
+        setSpotsLoaded(true)
+        dumpSpotsDiagnostic(spots)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setSpotsError(err.message)
+        setSpotsLoaded(true)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   const validToken = MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.') && !MAPBOX_TOKEN.includes('PLACEHOLDER')
 
@@ -514,16 +513,14 @@ export default function Maps() {
   // Reset city filter when country changes
   useEffect(() => { setCityFilter('all') }, [countryId])
 
-  // Geocode spots whenever country changes
+  // Geocode spots whenever country changes or the initial fetch completes
   useEffect(() => {
+    if (!spotsLoaded) return
     let cancelled = false
     setLoadingSpots(true)
     setGeocodedSpots([])
 
-    // One-time full inventory dump for debugging. Runs once per session.
-    dumpSpotsDiagnostic()
-
-    const spots = getAllSpotsForCountry(countryId)
+    const spots = filterByCountry(allSpots, countryId)
 
     // eslint-disable-next-line no-console
     console.log(`[Deriva Maps] ${country.name}: loaded ${spots.length} spots`)
@@ -555,7 +552,8 @@ export default function Maps() {
       }
     })
     return () => { cancelled = true }
-  }, [countryId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countryId, spotsLoaded, allSpots])
 
   // Initialize / rebuild the map when country changes
   useEffect(() => {

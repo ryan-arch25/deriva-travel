@@ -7,10 +7,6 @@ import Research from './Research'
 import Content from './Content'
 import ClientPortals from './ClientPortals'
 import Maps from './Maps'
-import * as icelandData from '../data/iceland'
-import * as italyData from '../data/italy'
-import * as spainData from '../data/spain'
-import * as portugalData from '../data/portugal'
 
 const C = {
   cream: '#F5F0E8', parchment: '#EDE6D8', sand: '#D8CCBA', tan: '#C8B89A',
@@ -134,46 +130,76 @@ function ClientBriefTool() {
 }
 
 // ── My Spots ─────────────────────────────────────────────────────────────────
-
-// Build a single list of curated picks from each country's data file at module
-// load. Each entry is tagged with its country so the dashboard can filter.
-const CURATED_SPOTS = [
-  ...icelandData.restaurants.map(s => ({ ...s, country: 'Iceland', source: 'curated' })),
-  ...icelandData.stays.map(s => ({ ...s, country: 'Iceland', source: 'curated' })),
-  ...italyData.restaurants.map(s => ({ ...s, country: 'Italy', source: 'curated' })),
-  ...italyData.stays.map(s => ({ ...s, country: 'Italy', source: 'curated' })),
-  ...spainData.restaurants.map(s => ({ ...s, country: 'Spain', source: 'curated' })),
-  ...spainData.stays.map(s => ({ ...s, country: 'Spain', source: 'curated' })),
-  ...portugalData.restaurants.map(s => ({ ...s, country: 'Portugal', source: 'curated' })),
-  ...portugalData.stays.map(s => ({ ...s, country: 'Portugal', source: 'curated' })),
-].map((s, i) => ({ ...s, id: s.id ?? `curated_${i}` }))
+// Spots now live in Upstash Redis at deriva:spots. Both this page and the
+// Maps page fetch from /api/spots as a single source of truth.
+const SPOTS_AUTH_HEADERS = { 'Content-Type': 'application/json', 'x-advisor-auth': 'deriva2024' }
 
 function MySpots() {
-  const [customSpots, setCustomSpots] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('deriva_spots') || '[]') } catch { return [] }
-  })
+  const [allSpots, setAllSpots] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({ name: '', city: '', neighborhood: '', address: '', category: 'Restaurant', note: '' })
+  const [form, setForm] = useState({ name: '', city: '', neighborhood: '', address: '', category: 'Restaurant', country: 'Italy', note: '' })
   const [countryFilter, setCountryFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const [submitting, setSubmitting] = useState(false)
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-  const saveCustom = (updated) => {
-    setCustomSpots(updated)
-    localStorage.setItem('deriva_spots', JSON.stringify(updated))
-  }
 
-  const addSpot = (e) => {
+  // Fetch all spots from the Redis-backed API
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetch('/api/spots', { headers: SPOTS_AUTH_HEADERS })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        if (Array.isArray(data.spots)) {
+          setAllSpots(data.spots)
+          setError('')
+        } else {
+          setError(data.error || 'Failed to load spots')
+        }
+      })
+      .catch((err) => { if (!cancelled) setError(err.message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  const addSpot = async (e) => {
     e.preventDefault()
-    saveCustom([...customSpots, { ...form, id: `custom_${Date.now()}`, country: 'Custom', source: 'custom' }])
-    setForm({ name: '', city: '', neighborhood: '', address: '', category: 'Restaurant', note: '' })
-    setAdding(false)
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/spots', {
+        method: 'POST',
+        headers: SPOTS_AUTH_HEADERS,
+        body: JSON.stringify({ ...form, source: 'custom' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save')
+      setAllSpots((prev) => [...prev, data.spot])
+      setForm({ name: '', city: '', neighborhood: '', address: '', category: 'Restaurant', country: 'Italy', note: '' })
+      setAdding(false)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  // Normalize localStorage entries from older versions that don't have country/source fields
-  const normalizedCustom = customSpots.map(s => ({ ...s, country: s.country || 'Custom', source: 'custom' }))
-
-  const allSpots = useMemo(() => [...CURATED_SPOTS, ...normalizedCustom], [customSpots])
+  const removeSpot = async (id) => {
+    if (!confirm('Remove this spot? This cannot be undone.')) return
+    try {
+      const res = await fetch(`/api/spots?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: SPOTS_AUTH_HEADERS })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to delete')
+      }
+      setAllSpots((prev) => prev.filter((s) => s.id !== id))
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
   const countries = useMemo(() => {
     const set = new Set(allSpots.map(s => s.country).filter(Boolean))
@@ -233,24 +259,35 @@ function MySpots() {
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Neighborhood</label><input value={form.neighborhood} onChange={set('neighborhood')} style={inp} placeholder="Chiado" /></div>
             <div style={{ marginBottom: '1.25rem' }}><label style={lbl}>Address</label><input value={form.address} onChange={set('address')} style={inp} placeholder="Rua de..." /></div>
           </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={lbl}>Category</label>
-            <select value={form.category} onChange={set('category')} style={sel}>
-              <option>Restaurant</option><option>Hotel</option><option>Bar</option><option>Café</option><option>Food Hall</option><option>Experience</option><option>Other</option>
-            </select>
+          <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1.5rem' }}>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={lbl}>Country</label>
+              <select value={form.country} onChange={set('country')} style={sel}>
+                <option>Italy</option><option>Portugal</option><option>Spain</option><option>Iceland</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={lbl}>Category</label>
+              <select value={form.category} onChange={set('category')} style={sel}>
+                <option>Restaurant</option><option>Hotel</option><option>Bar</option><option>Café</option><option>Food Hall</option><option>Experience</option><option>Other</option>
+              </select>
+            </div>
           </div>
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={lbl}>Note</label>
             <textarea value={form.note} onChange={set('note')} rows={2} style={{ ...inp, resize: 'vertical' }} placeholder="Why this place. What to order. When to go." />
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button type="submit" style={primaryBtn}>Save Spot</button>
+            <button type="submit" disabled={submitting} style={{ ...primaryBtn, opacity: submitting ? 0.6 : 1 }}>{submitting ? 'Saving...' : 'Save Spot'}</button>
             <button type="button" onClick={() => setAdding(false)} style={ghostBtn}>Cancel</button>
           </div>
         </form>
       )}
 
-      {filteredSpots.length === 0 && !adding && (
+      {loading && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', color: C.tan }}>Loading spots from Redis...</p>}
+      {error && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.85rem', color: '#9E6060', marginBottom: '1rem' }}>{error}</p>}
+
+      {!loading && filteredSpots.length === 0 && !adding && (
         <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.9rem', fontWeight: '300', color: C.mid }}>No spots match these filters.</p>
       )}
 
@@ -280,9 +317,7 @@ function MySpots() {
                 )}
                 {spot.note && <p style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.875rem', fontWeight: '300', color: C.mid, lineHeight: '1.6' }}>{spot.note}</p>}
               </div>
-              {spot.source === 'custom' && (
-                <button onClick={() => saveCustom(customSpots.filter(s => s.id !== spot.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: '0.25rem', flexShrink: 0 }}>Remove</button>
-              )}
+              <button onClick={() => removeSpot(spot.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.tan, padding: '0.25rem', flexShrink: 0 }}>Remove</button>
             </div>
           </div>
         )
