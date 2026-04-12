@@ -20,21 +20,21 @@ const CATEGORY_COLORS = {
 
 const LAKE_STOPS = [
   // Restaurants
-  { name: 'Giulietta al Lago', lat: 45.8155, lng: 9.0785, category: 'restaurant', note: 'Lakefront promenade. Campari spritz. The ritual.' },
-  { name: 'Ristorante Gatto Nero', lat: 45.8395, lng: 9.0708, category: 'restaurant', note: 'Hillside views over the lake. Classic northern Italian.' },
-  { name: 'Figli dei Fiori Osteria', lat: 45.8205, lng: 9.0872, category: 'restaurant', note: 'The best dinner in Como proper.' },
-  { name: 'Trattoria San Giacomo', lat: 45.9867, lng: 9.2622, category: 'restaurant', note: 'Risotto and lake fish in Bellagio. Locals eat here.' },
-  { name: 'Federico Cernobbio', lat: 45.8445, lng: 9.0705, category: 'restaurant', note: 'Modern northern Italian, beautiful room.' },
-  { name: 'Il Cavatappi', lat: 46.0158, lng: 9.2868, category: 'restaurant', note: 'Lakefront terrace in Varenna. Best meal of the trip.' },
-  { name: 'Hostaria Cernobbio', lat: 45.8385, lng: 9.0688, category: 'restaurant', note: 'Outdoor seating, traditional northern Italian.' },
-  { name: 'Grotto della Salute', lat: 46.0112, lng: 8.9634, category: 'restaurant', note: 'The Swiss-Italian version of a trattoria. This one is real.' },
+  { name: 'Giulietta al Lago', lat: 45.814, lng: 9.082, category: 'restaurant', note: 'Lakefront promenade. Campari spritz. The ritual.' },
+  { name: 'Ristorante Gatto Nero', lat: 45.841, lng: 9.063, category: 'restaurant', note: 'Hillside views over the lake. Classic northern Italian.' },
+  { name: 'Figli dei Fiori Osteria', lat: 45.820, lng: 9.087, category: 'restaurant', note: 'The best dinner in Como proper.' },
+  { name: 'Trattoria San Giacomo', lat: 45.986, lng: 9.259, category: 'restaurant', note: 'Risotto and lake fish in Bellagio. Locals eat here.' },
+  { name: 'Federico Cernobbio', lat: 45.844, lng: 9.062, category: 'restaurant', note: 'Modern northern Italian, beautiful room.' },
+  { name: 'Il Cavatappi', lat: 46.016, lng: 9.287, category: 'restaurant', note: 'Lakefront terrace in Varenna. Best meal of the trip.' },
+  { name: 'Hostaria Cernobbio', lat: 45.839, lng: 9.061, category: 'restaurant', note: 'Outdoor seating, traditional northern Italian.' },
+  { name: 'Grotto della Salute', lat: 46.011, lng: 8.963, category: 'restaurant', note: 'The Swiss-Italian version of a trattoria. This one is real.' },
   // Hotels
-  { name: 'Palace Hotel Como', lat: 45.8108, lng: 9.0851, category: 'hotel', note: 'Right on the lake. Ask for a lake-facing room.' },
+  { name: 'Palace Hotel Como', lat: 45.811, lng: 9.085, category: 'hotel', note: 'Right on the lake. Ask for a lake-facing room.' },
   // Experiences
-  { name: 'Vaporina Boat Tour', lat: 45.8108, lng: 9.0851, category: 'experience', note: 'Private wooden motorboat. Two hours. Non-negotiable. Pickup in Como.' },
-  { name: 'Villa Melzi Gardens', lat: 45.9812, lng: 9.2594, category: 'experience', note: 'Lakeside gardens at water level. Bellagio.' },
-  { name: 'Villa Monastero', lat: 46.0142, lng: 9.2881, category: 'experience', note: 'Gardens running along the lake edge. Varenna.' },
-  { name: 'Piazza della Riforma', lat: 46.0037, lng: 8.9511, category: 'experience', note: 'Coffee in Switzerland. Completely different energy.' },
+  { name: 'Vaporina Boat Tour', lat: 45.811, lng: 9.085, category: 'experience', note: 'Private wooden motorboat. Two hours. Non-negotiable. Pickup in Como.' },
+  { name: 'Villa Melzi Gardens', lat: 45.981, lng: 9.259, category: 'experience', note: 'Lakeside gardens at water level. Bellagio.' },
+  { name: 'Villa Monastero', lat: 46.014, lng: 9.287, category: 'experience', note: 'Gardens running along the lake edge. Varenna.' },
+  { name: 'Piazza della Riforma', lat: 46.004, lng: 8.951, category: 'experience', note: 'Coffee in Switzerland. Completely different energy.' },
 ]
 
 let mapboxLoadPromise = null
@@ -185,17 +185,14 @@ function StaticLakeMap() {
             .addTo(map)
         })
 
-        // Force the map to a fixed bounding box that covers the full
-        // Lake Como Y-shape: Como south, Lugano north west, Varenna
-        // north east. This guarantees every pin is always in view
-        // regardless of canvas size.
+        // Fixed bounding box centered squarely on Lake Como's Y-shape.
         try {
           map.fitBounds(
             [
-              [8.70, 45.70], // southwest corner
-              [9.50, 46.10], // northeast corner
+              [9.00, 45.78], // southwest corner
+              [9.40, 46.18], // northeast corner
             ],
-            { padding: 20, animate: false }
+            { animate: false }
           )
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -211,7 +208,7 @@ function StaticLakeMap() {
   }, [validToken])
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
-  const mapHeight = isMobile ? 220 : 380
+  const mapHeight = isMobile ? 260 : 380
 
   return (
     <div className="lake-map-section">
@@ -557,7 +554,7 @@ export default function LakeComo() {
           .sample-itinerary .day-header { grid-template-columns: 52px 1fr auto; }
           .sample-itinerary .day-badge { display: none; }
           .sample-itinerary .day-toggle { padding: 0 14px; }
-          .sample-itinerary .lake-map-canvas { height: 220px; }
+          .sample-itinerary .lake-map-canvas { height: 260px; }
           .sample-itinerary .cta-banner { flex-direction: column; padding: 28px 24px; text-align: center; }
           .sample-itinerary .hero-scroll-hint { display: none; }
           .sample-itinerary .base-camp-block { padding: 22px 20px; }
