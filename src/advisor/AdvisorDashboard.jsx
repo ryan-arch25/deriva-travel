@@ -1878,23 +1878,39 @@ export default function AdvisorDashboard() {
   return (
     <div style={{ backgroundColor: C.cream, minHeight: '100vh' }}>
       <div className="advisor-topbar" style={{ borderBottom: `1px solid ${C.sand}`, padding: '0 2rem', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.cream, position: 'sticky', top: 0, zIndex: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', minWidth: 0, flex: 1 }}>
           <button
             className="advisor-hamburger"
             onClick={() => setNavOpen(!navOpen)}
             aria-label="Toggle menu"
             aria-expanded={navOpen}
-            style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '8px', flexDirection: 'column', gap: '5px', minHeight: '44px', minWidth: '44px', alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              display: 'none',
+              background: '#1e1a16',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              width: '44px',
+              height: '44px',
+              minWidth: '44px',
+              minHeight: '44px',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '5px',
+              borderRadius: '3px',
+              flexShrink: 0,
+            }}
           >
             {[0, 1, 2].map((i) => (
-              <span key={i} style={{ display: 'block', width: '22px', height: '1.5px', backgroundColor: C.ink, transition: 'transform 0.2s' }} />
+              <span key={i} style={{ display: 'block', width: '20px', height: '1.8px', backgroundColor: '#f5f0e8' }} />
             ))}
           </button>
           <p style={{ fontFamily: 'Georgia, serif', fontSize: '1rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: C.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Deriva Advisor</p>
         </div>
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexShrink: 0 }}>
           <Link to="/" className="advisor-topbar-link" style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.tan, textDecoration: 'none' }}>Public Site</Link>
-          <button onClick={handleLogout} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.mid, background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>Sign Out</button>
+          <button onClick={handleLogout} style={{ fontFamily: 'system-ui, sans-serif', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: C.mid, background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem', minHeight: '44px' }}>Sign Out</button>
         </div>
       </div>
 
@@ -1902,7 +1918,7 @@ export default function AdvisorDashboard() {
         <div
           className="advisor-nav-backdrop"
           onClick={() => setNavOpen(false)}
-          style={{ display: 'none', position: 'fixed', inset: '60px 0 0 0', background: 'rgba(30,26,22,0.35)', zIndex: 18 }}
+          style={{ display: 'none', position: 'fixed', inset: 0, background: 'rgba(30,26,22,0.55)', zIndex: 999 }}
         />
       )}
 
@@ -1914,6 +1930,7 @@ export default function AdvisorDashboard() {
           {NAV.map(item => (
             <button
               key={item.id}
+              data-active={section === item.id}
               onClick={() => handleNavClick(item.id)}
               style={{ display: 'block', width: '100%', textAlign: 'left', fontFamily: 'system-ui, sans-serif', fontSize: '0.8rem', letterSpacing: '0.1em', color: section === item.id ? C.ink : C.tan, fontWeight: section === item.id ? '400' : '300', backgroundColor: 'transparent', border: 'none', borderLeft: section === item.id ? `2px solid ${C.gold}` : '2px solid transparent', padding: '0.9rem 1.5rem', cursor: 'pointer', minHeight: '44px' }}
             >

@@ -1,57 +1,19 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/* ── Deriva global styles ──────────────────────────────────────────────── */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  max-width: 100vw;
+  background: #F5F0E8;
+  color: #3A3630;
+}
+*, *::before, *::after { box-sizing: border-box; }
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+body {
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-body {
-  margin: 0;
 }
 
 #root {
@@ -61,58 +23,11 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
+p { margin: 0; }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-/* ── Deriva responsive overrides ──────────────────────────────────────── */
-html, body { overflow-x: hidden; max-width: 100vw; }
-* { box-sizing: border-box; }
-
-/* Global minimum tap target for interactive elements on mobile */
+/* ── Mobile-first tap target and form input rules ──────────────────────── */
 @media (max-width: 768px) {
   button, a[role="button"], input[type="submit"], input[type="button"] {
     min-height: 44px;
@@ -124,44 +39,85 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   }
 }
 
+/* ── Deriva responsive shell rules (≤768px) ───────────────────────────── */
 @media (max-width: 768px) {
   .stack-mobile { grid-template-columns: 1fr !important; }
   .row-stack-mobile { flex-direction: column !important; align-items: stretch !important; }
   .hero-mobile { height: 45vh !important; min-height: 320px !important; }
   .country-hero-mobile { height: 55vh !important; min-height: 380px !important; }
 
-  /* Advisor dashboard: hamburger drawer pattern. Sidebar hides off-canvas
-     and slides in when .open is toggled by the topbar hamburger button. */
+  /* ── Advisor dashboard: full-screen drawer pattern ─────────────────── */
+  /* Shell: stack vertically so .advisor-main takes full width */
   .advisor-shell { flex-direction: column !important; max-width: 100% !important; }
+
+  /* Sidebar: hidden by default, slides in from left as a fixed overlay
+     when .open class is applied by the topbar hamburger button. */
   .advisor-sidebar {
+    display: block !important;
     position: fixed !important;
-    top: 60px !important;
+    top: 0 !important;
     left: 0 !important;
     bottom: 0 !important;
-    width: 260px !important;
+    width: 280px !important;
     max-width: 85vw !important;
+    height: 100vh !important;
     min-height: 0 !important;
-    padding: 1rem 0 !important;
-    border-right: 1px solid #D8CCBA !important;
+    padding: 5rem 0 2rem !important;
+    border-right: none !important;
     border-bottom: none !important;
-    background: #F5F0E8 !important;
+    background: #1e1a16 !important;
     transform: translateX(-100%);
-    transition: transform 0.24s ease;
-    z-index: 19;
+    transition: transform 0.26s ease-out;
+    z-index: 1000;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    box-shadow: 4px 0 20px rgba(30, 26, 22, 0.1);
+    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.35);
   }
   .advisor-sidebar.open { transform: translateX(0) !important; }
-  .advisor-sidebar button { min-height: 48px !important; }
 
+  /* Nav items inside the dark drawer use cream text */
+  .advisor-sidebar button {
+    color: rgba(245, 240, 232, 0.65) !important;
+    background: transparent !important;
+    border: none !important;
+    border-left: 3px solid transparent !important;
+    padding: 0.9rem 1.6rem !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.12em !important;
+    min-height: 48px !important;
+    width: 100% !important;
+    text-align: left !important;
+    cursor: pointer !important;
+    display: block !important;
+    white-space: normal !important;
+    flex-shrink: 0 !important;
+  }
+  .advisor-sidebar button:hover {
+    color: #f5f0e8 !important;
+    background: rgba(245, 240, 232, 0.04) !important;
+  }
+  .advisor-sidebar button.active,
+  .advisor-sidebar button[data-active="true"] {
+    color: #f5f0e8 !important;
+    border-left-color: #b8963e !important;
+  }
+
+  /* Hamburger button visible on mobile only */
   .advisor-hamburger { display: flex !important; }
   .advisor-nav-backdrop { display: block !important; }
-  .advisor-main { padding: 1.5rem 1rem !important; min-width: 0 !important; }
+
+  /* Main content takes full width when sidebar drawer is closed */
+  .advisor-main {
+    padding: 1.5rem 1rem !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .advisor-topbar { padding: 0 1rem !important; }
   .advisor-topbar-link { display: none !important; }
 
-  /* Form/table grids collapse to single column */
+  /* Form / table grids collapse to single column */
   .lead-row { grid-template-columns: 1fr !important; gap: 0.35rem !important; }
   .lead-row-header { display: none !important; }
   .email-row { grid-template-columns: 1fr !important; }
@@ -171,9 +127,14 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   .pricing-row > span { text-align: left !important; }
   .pricing-header { display: none !important; }
 
-  /* Typography scale-down */
-  .hero-title-mobile { font-size: 2rem !important; }
-  .hero-sub-mobile { font-size: 0.9rem !important; }
+  /* Data tables that need to scroll horizontally should be wrapped in
+     .mobile-scroll-x so they overflow within their own container rather
+     than pushing the whole page. */
+  .mobile-scroll-x {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
 
   /* Country page tab bar */
   .country-tabs { overflow-x: auto !important; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
@@ -186,8 +147,14 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   .page-pad-mobile { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
 }
 
-/* Extra-narrow (≤480px) refinements */
+/* ── Extra-narrow refinements (≤480px) ────────────────────────────────── */
 @media (max-width: 480px) {
   .advisor-topbar p { font-size: 0.85rem !important; letter-spacing: 0.2em !important; }
   .advisor-main { padding: 1.25rem 0.9rem !important; }
+}
+
+/* ── Desktop: make sure the hamburger and backdrop stay hidden ────────── */
+@media (min-width: 769px) {
+  .advisor-hamburger { display: none !important; }
+  .advisor-nav-backdrop { display: none !important; }
 }
