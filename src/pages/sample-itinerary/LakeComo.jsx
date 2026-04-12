@@ -20,18 +20,45 @@ const LAKE_STOPS = [
   { name: 'Lugano', lat: 46.0037, lng: 8.9511, note: 'One day across the border into Switzerland.' },
 ]
 
+let mapboxLoadPromise = null
 function loadMapbox() {
-  return new Promise((resolve) => {
+  if (mapboxLoadPromise) return mapboxLoadPromise
+  mapboxLoadPromise = new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') { resolve(null); return }
     if (window.mapboxgl) { resolve(window.mapboxgl); return }
-    const css = document.createElement('link')
-    css.rel = 'stylesheet'
-    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.min.css'
-    document.head.appendChild(css)
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.min.js'
-    script.onload = () => resolve(window.mapboxgl)
-    document.head.appendChild(script)
+
+    // Load CSS from official Mapbox CDN and wait for it to finish parsing
+    // before resolving. Without the CSS applied, the internal canvas renders
+    // 0x0 inside the container and the map appears blank.
+    const cssHref = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css'
+    const existing = Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).find((l) => l.href === cssHref)
+    let cssReady
+    if (existing) {
+      cssReady = Promise.resolve()
+    } else {
+      cssReady = new Promise((res) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = cssHref
+        link.onload = () => res()
+        link.onerror = () => res() // still try to render
+        document.head.appendChild(link)
+      })
+    }
+
+    const jsReady = new Promise((res, rej) => {
+      const script = document.createElement('script')
+      script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'
+      script.onload = () => res(window.mapboxgl)
+      script.onerror = () => rej(new Error('Failed to load mapbox-gl script'))
+      document.head.appendChild(script)
+    })
+
+    Promise.all([cssReady, jsReady])
+      .then(([, mapboxgl]) => resolve(mapboxgl))
+      .catch(reject)
   })
+  return mapboxLoadPromise
 }
 
 function StaticLakeMap() {
@@ -43,6 +70,12 @@ function StaticLakeMap() {
 
   useEffect(() => {
     let cancelled = false
+    // Diagnostic log so we can verify the token is available at mount time
+    if (typeof window !== 'undefined') {
+      const tokenPreview = MAPBOX_TOKEN ? `${MAPBOX_TOKEN.slice(0, 8)}...${MAPBOX_TOKEN.slice(-4)} (len ${MAPBOX_TOKEN.length})` : '(missing)'
+      // eslint-disable-next-line no-console
+      console.log('[Deriva LakeComo map] VITE_MAPBOX_TOKEN:', tokenPreview, 'validToken:', validToken)
+    }
     if (!validToken) return
 
     loadMapbox().then((mapboxgl) => {
@@ -50,6 +83,11 @@ function StaticLakeMap() {
 
       // Set token BEFORE creating the map
       mapboxgl.accessToken = MAPBOX_TOKEN
+
+      // Sanity check: ensure container has measurable dimensions
+      const rect = containerRef.current.getBoundingClientRect()
+      // eslint-disable-next-line no-console
+      console.log('[Deriva LakeComo map] container size:', rect.width, 'x', rect.height)
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
@@ -72,9 +110,16 @@ function StaticLakeMap() {
       } catch {}
 
       map.on('error', (e) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Deriva LakeComo map] mapbox error:', e?.error?.status, e?.error?.message)
         if (e?.error?.status === 401 || e?.error?.status === 403) {
           setTokenError(true)
         }
+      })
+
+      // Force a resize after first paint in case the container grew after init
+      map.on('style.load', () => {
+        setTimeout(() => { try { map.resize() } catch {} }, 0)
       })
 
       map.on('load', () => {
@@ -150,9 +195,16 @@ function StaticLakeMap() {
     }
   }, [validToken])
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
+  const mapHeight = isMobile ? 220 : 280
+
   return (
     <div className="lake-map-section">
-      <div ref={containerRef} className="lake-map-canvas">
+      <div
+        ref={containerRef}
+        className="lake-map-canvas"
+        style={{ width: '100%', height: `${mapHeight}px`, position: 'relative' }}
+      >
         {(!validToken || tokenError) && (
           <div className="lake-map-fallback">
             <p>Map preview unavailable. Add a valid Mapbox token to Vercel env (VITE_MAPBOX_TOKEN) and redeploy.</p>
