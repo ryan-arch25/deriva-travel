@@ -48,6 +48,15 @@ export default async function handler(req, res) {
       return res.json({ ok: true, step: '2fa' })
     }
 
+    if (action === 'init-seed') {
+      const { secret } = req.body || {}
+      if (secret !== process.env.AUTH_JWT_SECRET) return res.status(403).json({ error: 'Forbidden' })
+      const user = await getUser()
+      if (!user.needsSetup) return res.json({ ok: true, message: 'Password already set' })
+      await setPassword('Deriva2024!')
+      return res.json({ ok: true, message: 'Initial password set' })
+    }
+
     if (action === 'setup') {
       const { email, password } = req.body || {}
       if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
@@ -84,12 +93,14 @@ export default async function handler(req, res) {
     if (action === 'forgot') {
       const { email } = req.body || {}
       if (email?.toLowerCase() === ADMIN_EMAIL) {
-        const user = await getUser()
-        if (!user.needsSetup) {
-          const token = generateResetToken(ADMIN_EMAIL)
-          const origin = `https://${req.headers.host || 'deriva.travel'}`
-          const resetUrl = `${origin}/advisor/reset-password?token=${token}`
+        const token = generateResetToken(ADMIN_EMAIL)
+        const origin = `https://${req.headers.host || 'deriva.travel'}`
+        const resetUrl = `${origin}/advisor/reset-password?token=${token}`
+        try {
           await sendResetEmail(ADMIN_EMAIL, resetUrl)
+        } catch (emailErr) {
+          console.error('Resend email error:', emailErr)
+          return res.status(500).json({ error: 'Failed to send reset email. Please try again.' })
         }
       }
       return res.json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' })

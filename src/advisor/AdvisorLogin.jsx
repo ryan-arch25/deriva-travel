@@ -177,18 +177,28 @@ function ForgotForm({ onBack }) {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
     try {
-      await fetch('/api/auth', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'forgot', email: email.trim() }),
       })
-    } catch {}
-    setSent(true)
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || 'Failed to send reset email.')
+        setLoading(false)
+        return
+      }
+      setSent(true)
+    } catch {
+      setError('Something went wrong. Please try again.')
+    }
     setLoading(false)
   }
 
@@ -210,6 +220,7 @@ function ForgotForm({ onBack }) {
       </p>
       <label style={lbl}>Email</label>
       <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus style={inputStyle} />
+      {error && <p style={errStyle}>{error}</p>}
       <button type="submit" disabled={loading} style={{ ...btnStyle, opacity: loading ? 0.6 : 1 }}>
         {loading ? 'Sending...' : 'Send Reset Link'}
       </button>
